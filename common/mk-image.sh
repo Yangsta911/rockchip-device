@@ -1,8 +1,21 @@
 #!/bin/bash
 
+COMMON_DIR=$(cd `dirname $0`; pwd)
+if [ -h $0 ]
+then
+        CMD=$(readlink $0)
+        COMMON_DIR=$(dirname $CMD)
+fi
+cd $COMMON_DIR
+cd ../../..
+TOP_DIR=$(pwd)
+
+source $TOP_DIR/device/rockchip/.BoardConfig.mk
+
+# Require buildroot host tools to do image packing.
 if [ ! -d "$TARGET_OUTPUT_DIR" ]; then
-    echo "Source buildroot/build/envsetup.sh firstly!!!"
-    exit 1
+    echo "Source buildroot/build/envsetup.sh"
+    source $TOP_DIR/buildroot/build/envsetup.sh $RK_CFG_BUILDROOT
 fi
 
 # Prefer using buildroot host tools for compatible.
