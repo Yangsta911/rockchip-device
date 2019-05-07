@@ -396,7 +396,7 @@ function build_sdupdateimg(){
 
 	cd $PACK_TOOL_DIR/rockdev && ./mkupdate.sh && cd -
 	mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/pack/$IMGNAME
-	rm -rf $IMAGE_PATH/sdupdate.img
+	rm -rf $IMAGE_PATH/update.img
 
 	if [ $? -eq 0 ]; then
 	   echo "Make sdupdate image ok!"

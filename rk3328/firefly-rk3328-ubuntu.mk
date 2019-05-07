@@ -13,12 +13,8 @@ export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 export RK_KERNEL_DTS=rk3328-roc-cc
 # parameter for GPT table
 export RK_PARAMETER=parameter-ubuntu.txt
-# sd_parameter for GPT table
-export RK_SD_PARAMETER=parameter-recovery.txt
 # packagefile for make update image 
 export RK_PACKAGE_FILE=rk3328-ubuntu-package-file
-# packagefile for make sdupdate image
-export RK_SD_PACKAGE_FILE=rk3328-recovery-package-file
 
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
