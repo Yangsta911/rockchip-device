@@ -11,6 +11,9 @@ source $TOP_DIR/device/rockchip/common/Version.mk
 PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
 SD_PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_SD_PARAMETER
 
+ NPROC=`nproc`
+ export RK_JOBS=$NPROC
+
 if [ ! -n "$1" ];then
 	echo "build all and save all as default"
 	BUILD_TARGET=allsave
