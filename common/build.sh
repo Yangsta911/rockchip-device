@@ -348,21 +348,21 @@ function build_updateimg(){
         fi
 
     else
-		echo "Make update.img"
-		cd $PACK_TOOL_DIR/rockdev && ./mkupdate.sh && cd -
-		mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/pack/$IMGNAME
-		rm -rf $IMAGE_PATH/update.img
-		if [ $? -eq 0 ]; then
-		   echo "Make update image ok!"
-		   echo -e "\e[36m $IMAGE_PATH/pack/$IMGNAME \e[0m"
-		else
-		   echo "Make update image failed!"
-		   exit 1
-		fi
+	echo "Make update.img"
+	cd $PACK_TOOL_DIR/rockdev && ./mkupdate.sh && cd -
+	mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/pack/$IMGNAME
+	rm -rf $IMAGE_PATH/update.img
+	if [ $? -eq 0 ]; then
+	   echo "Make update image ok!"
+	   echo -e "\e[36m $IMAGE_PATH/pack/$IMGNAME \e[0m"
+	else
+	   echo "Make update image failed!"
+	   exit 1
+	fi
 
-		if [ $packm == "pack" ];then
-			cd rockdev && ./version.sh $IMGNAME pack && cd -
-		fi
+	if [ $packm == "pack" ];then
+		cd rockdev && ./version.sh $IMGNAME pack && cd -
+	fi
     fi
 }
 
@@ -391,14 +391,8 @@ function build_sdupdateimg(){
 		ln -sf $RK_SD_PACKAGE_FILE package-file
 	fi
 
-	MKSDUPDATE_FILE=${RK_TARGET_PRODUCT}-mksdupdate.sh
-	if [[ x"$MKSDUPDATE_FILE" != x-mksdupdate.sh ]];then
-		rm -f mksdupdate.sh
-		ln -s $MKSDUPDATE_FILE mksdupdate.sh
-	fi
-
-	cd $PACK_TOOL_DIR/rockdev && ./mksdupdate.sh && cd -
-	mv $PACK_TOOL_DIR/rockdev/sdupdate.img $IMAGE_PATH/pack/$IMGNAME
+	cd $PACK_TOOL_DIR/rockdev && ./mkupdate.sh && cd -
+	mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/pack/$IMGNAME
 	rm -rf $IMAGE_PATH/sdupdate.img
 
 	if [ $? -eq 0 ]; then
@@ -554,20 +548,19 @@ elif [ -f $NEW_BOARD_CONFIG ];then
     rm -f $BOARD_CONFIG
     ln -s $NEW_BOARD_CONFIG $BOARD_CONFIG
 	unset RK_PACKAGE_FILE
-	unset RK_MKUPDATE_FILE
 	source $NEW_BOARD_CONFIG
 	if [[ x"$RK_PACKAGE_FILE" != x ]];then
 		PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware/rockdev/
-        cd $PACK_TOOL_DIR
+		cd $PACK_TOOL_DIR
 		rm -f package-file
-        ln -sf $RK_PACKAGE_FILE package-file
+		ln -sf $RK_PACKAGE_FILE package-file
 	fi
     
     MKUPDATE_FILE=${RK_TARGET_PRODUCT}-mkupdate.sh 
     if [[ x"$MKUPDATE_FILE" != x-mkupdate.sh ]];then
 		PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware/rockdev/
-        cd $PACK_TOOL_DIR
-        rm -f mkupdate.sh
+		cd $PACK_TOOL_DIR
+		rm -f mkupdate.sh
 		ln -sf $MKUPDATE_FILE mkupdate.sh
 	fi
     exit 0
