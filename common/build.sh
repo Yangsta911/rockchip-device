@@ -364,7 +364,7 @@ function build_updateimg(){
 	fi
 
 	if [ $packm == "pack" ];then
-		cd rockdev && ./version.sh $IMGNAME pack && cd -
+		cd $TOP_DIR/rockdev && ./version.sh $IMGNAME pack && cd -
 	fi
     fi
 }
