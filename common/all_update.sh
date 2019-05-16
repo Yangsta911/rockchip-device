@@ -1,7 +1,11 @@
 #!/bin/bash
+
 BOARD_CONFIG=device/rockchip/.BoardConfig.mk
-ROOTFS_PATH=/home/ssd/daijh/rootfs_public
-TOP_DIR=$(pwd)
+
+#ROOTFS_PATH 跟文件系统的存放目录 /home/ssd/daijh/rootfs_public
+ROOTFS_PATH=$TOP_DIR/rootfs_public
+
+
 fun_mkfirmware() {
 	source $BOARD_CONFIG
 	if [ $RK_ARCH == arm64 ];then
@@ -10,13 +14,9 @@ fun_mkfirmware() {
 		ARCH="armhf"
 	fi
 	rootfs_file=$(echo $1 | awk -F '"' '{print $2}')
-	if [ $rootfs_file == ubuntu18.04 ];then
-		rootfs_file="ubuntu_18.04_$ARCH"
-	elif [ $rootfs_file == ubuntu16.04 ];then
-		rootfs_file="ubuntu_16.04_$ARCH"
-	fi
+
 	cd device/rockchip/common
-	rootfs_file=$(ls $ROOTFS_PATH | grep $rootfs_file )
+
 	linenumber=$(cat -n mkfirmware.sh | grep "ROOTFS_IMG=" |awk '{print $1}')
 	str=""$linenumber"c ROOTFS_IMG=$ROOTFS_PATH/$rootfs_file"
 	sed -i "$str" mkfirmware.sh
@@ -29,12 +29,12 @@ fun_config() {
 	./build.sh $mk_file	
 	source $BOARD_CONFIG
 	cd kernel
-	git co stable-4.4-${RK_TARGET_PRODUCT}-linux
+	git checkout stable-4.4-${RK_TARGET_PRODUCT}-linux
 	if [ $? -ne 0 ]; then
 		exit -1
 	fi
 	cd ../u-boot
-	git co stable-4.4-${RK_TARGET_PRODUCT}-linux
+	git checkout stable-4.4-${RK_TARGET_PRODUCT}-linux
 	if [ $? -ne 0 ]; then
 		exit -1
 	fi
@@ -47,17 +47,28 @@ echo_green_enter() {
 
 mk_path=device/rockchip
 board_list=`ls $mk_path/rk3288 $mk_path/rk3399 | grep .mk | grep -E "3399|3288"`
-#echo $board_list
+
+
 
 for i in $board_list
 do
-	board=${i%-*}
-	DIS="$DIS $board '----------' OFF "
+	board1=${i%-*}
+	kk=`echo $DIS1 | grep "!$board1!"`
+	if [ $? -ne 0 ]; then
+		DIS1="$DIS1 !?!$board1!?!"
+		#DIS2为去掉重复项
+		DIS2="$DIS2 $board1"
+	fi
+done
+
+for i in $DIS2
+do
+	DIS3="$DIS3 $i '----------' OFF "
 done
 
 DISTROS=$(whiptail --title "Checklist Dialog" --checklist \
-"选择需要编译的板型" 30 42 22 \
-$DIS 3>&1 1>&2 2>&3)
+"选择需要编译的板型" 30 52 22 \
+$DIS3 3>&1 1>&2 2>&3)
  
  exitstatus=$?
  if [ $exitstatus = 0 ]; then
@@ -66,10 +77,16 @@ $DIS 3>&1 1>&2 2>&3)
 	exit -1
 fi
 
+ROOTFS_list=`ls $ROOTFS_PATH | grep .img`
+
+for i in $ROOTFS_list
+do
+	ROOTFS_LIST="$ROOTFS_LIST $i '----------' OFF "
+done
+
 ROOTFS=$(whiptail --title "Checklist Dialog" --checklist \
-"选择需要打包的根文件系统" 15 32 9 \
-"ubuntu18.04" "date:" OFF \
-"ubuntu16.04" "date:" OFF 3>&1 1>&2 2>&3)
+"选择需要打包的根文件系统" 30 72 22 \
+ $ROOTFS_LIST 3>&1 1>&2 2>&3)
 
 exitstatus=$?
  if [ $exitstatus = 0 ]; then
@@ -84,11 +101,11 @@ for d in $DISTROS
 do
 	cd $TOP_DIR
 	fun_config $d
-	./build.sh kernel
+	bash ./build.sh kernel	#编译kernel
 	if [ $? -ne 0 ]; then
 		exit -1
 	fi
-	./build.sh uboot
+	bash ./build.sh uboot	#编译uboot
 	if [ $? -ne 0 ]; then
 		exit -1
 	fi

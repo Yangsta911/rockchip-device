@@ -22,7 +22,7 @@ else
    	NEW_BOARD_CONFIG=$(find $CFG_DIR -name "$1")
 fi
 
-if [ ! -d "rockdev/pack" ];then
+if [ ! -d "$TOP_DIR/rockdev/pack" ];then
 	mkdir rockdev/pack
 fi
 
@@ -42,6 +42,7 @@ usage()
 	echo "pcba               -build pcba"
 	echo "recovery           -build recovery"
 	echo "all                -build uboot, kernel, rootfs, recovery image"
+	echo "allupdate          -build open a GUI build-window"
 	echo "cleanall           -clean uboot, kernel, rootfs, recovery"
 	echo "firmware           -pack all the image we need to boot up system"
 	echo "sdupdateimg        -pack sdupdate image"
@@ -268,10 +269,9 @@ function gen_file_name() {
 	typeset -u board
 	board=$(basename $(readlink ${BOARD_CONFIG}))
 	board=${board%%.MK}
-		
-	rootfs=$(ls -l rockdev/ | grep rootfs.img | awk -F '/' '{print $(NF)}'|awk -F '_' '{print $2}')
-
+	rootfs=$(ls -l $TOP_DIR/rockdev/ | grep rootfs.img | awk -F '/' '{print $(NF)}'|awk -F '_' '{print $2}')
 	board=${board}${rootfs}-GPT
+
 	if [ -n "$1" ];then
 		board=$board-$1
 	fi
@@ -319,7 +319,8 @@ function build_sdbootimg(){
 	   exit 1
 	fi
 	if [ $packm == "pack" ];then
-		cd rockdev && ./version.sh $IMGNAME pack && cd -
+		cd $TOP_DIR/rockdev \
+		&& ./version.sh $IMGNAME pack $2 && cd -
 	fi
 }
 
@@ -331,7 +332,8 @@ function build_updateimg(){
 	gen_file_name 
 
 	if [ $packm == "pack" ];then
-		cd rockdev && ./version.sh $IMGNAME init $2 && cd -
+		cd $TOP_DIR/rockdev \
+		&& ./version.sh $IMGNAME init $2 && cd -
 	fi
 
 	IMAGE_PATH=$TOP_DIR/rockdev
@@ -340,6 +342,7 @@ function build_updateimg(){
         echo "Make Linux a/b update.img."
 	    build_ota_ab_updateimg
         source_package_file_name=`ls -lh $PACK_TOOL_DIR/rockdev/package-file | awk -F ' ' '{print $NF}'`
+
         cd $PACK_TOOL_DIR/rockdev && ln -fs "$source_package_file_name"-ab package-file && ./mkupdate.sh && cd -
         mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/update_ab.img
         cd $PACK_TOOL_DIR/rockdev && ln -fs $source_package_file_name package-file && cd -
@@ -538,6 +541,9 @@ elif [ $BUILD_TARGET == --help ] || [ $BUILD_TARGET == help ] || [ $BUILD_TARGET
 elif [ $BUILD_TARGET == allsave ];then
     build_all_save
     exit 0
+elif [ $BUILD_TARGET == allupdate ];then
+	source $TOP_DIR/device/rockchip/common/all_update.sh
+	exit
 elif [ -f $NEW_BOARD_CONFIG ];then
     if [ ! -n "$NEW_BOARD_CONFIG" ];then
 	    echo "==============================="
@@ -547,9 +553,11 @@ elif [ -f $NEW_BOARD_CONFIG ];then
 	    usage
 	    exit 1
 	fi
+
     echo $NEW_BOARD_CONFIG
     rm -f $BOARD_CONFIG
     ln -s $NEW_BOARD_CONFIG $BOARD_CONFIG
+
 	unset RK_PACKAGE_FILE
 	source $NEW_BOARD_CONFIG
 	if [[ x"$RK_PACKAGE_FILE" != x ]];then
