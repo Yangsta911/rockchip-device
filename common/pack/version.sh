@@ -64,9 +64,9 @@ function package_firmware()
 	mode=$(ls ./pack/$1 | grep "SDBOOT")
 
 	if [ ! -n "$mode" ];then
-		PACK_IMG="$1.tar.gz pack/$1 pack/AndroidTool pack/Linux_Upgrade_Tool pack/README.txt pack/commit"
+		PACK_IMG="$1.7z pack/$1 pack/AndroidTool pack/Linux_Upgrade_Tool pack/README.txt pack/commit"
 	else 
-		PACK_IMG="$1.tar.gz pack/$1 pack/README.txt pack/commit"
+		PACK_IMG="$1.7z pack/$1 pack/README.txt pack/commit"
 	fi
 
 	rm -rf  pack/AndroidTool
@@ -76,8 +76,8 @@ function package_firmware()
 	cp ../device/rockchip/common/pack/README.txt ./pack/
 	cp -r -f ../device/rockchip/common/pack/commit ./pack/ 
 
-	tar -czvf $PACK_IMG
-	echo -e "\e[36m $rockdev/$1.tar.gz \e[0m"
+	7z a $PACK_IMG
+	echo -e "\e[36m $rockdev/$1.7z \e[0m"
 
 }
 
