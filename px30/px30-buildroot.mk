@@ -14,3 +14,8 @@ export RK_KERNEL_DTS=px30-firefly-lvds
 # packagefile for make update image 
 export RK_PACKAGE_FILE=px30-package-file
 
+# sd_parameter for GPT table
+export RK_SD_PARAMETER=parameter-recovery.txt
+# packagefile for make sdupdate image
+export RK_SD_PACKAGE_FILE=px30-recovery-package-file
+
