@@ -19,7 +19,9 @@ export RK_PACKAGE_FILE=px30-ubuntu-package-file
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
 # rootfs image path
-export RK_ROOTFS_IMG=ubunturootfs/ubuntu_16.04_arm64_20190226150448.img
+export RK_ROOTFS_IMG=ubuntu_rootfs/px30_ubuntu_rootfs.img
+# recovery ramdisk
+export RK_RECOVERY_RAMDISK=recovery-arm64.cpio.gz
 
 # Recovery config
 export RK_CFG_RECOVERY=
