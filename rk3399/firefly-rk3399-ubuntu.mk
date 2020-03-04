@@ -13,7 +13,7 @@ export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 export RK_KERNEL_DTS=rk3399-firefly
 # parameter for GPT table
 export RK_PARAMETER=parameter-ubuntu.txt
-# packagefile for make update image 
+# packagefile for make update image
 export RK_PACKAGE_FILE=rk3399-ubuntu-package-file
 
 # Set rootfs type, including ext2 ext4 squashfs
@@ -22,6 +22,8 @@ export RK_ROOTFS_TYPE=ext4
 export RK_ROOTFS_IMG=ubuntu_rootfs/rk3399_ubuntu_rootfs.img
 # recovery ramdisk
 export RK_RECOVERY_RAMDISK=recovery-arm64.cpio.gz
+# Set userdata partition type
+export RK_USERDATA_FS_TYPE=ext4
 
 # Recovery config
 export RK_CFG_RECOVERY=
