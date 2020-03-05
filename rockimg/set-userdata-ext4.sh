@@ -10,7 +10,7 @@ ln -sf ../$IMG
 zcat $IMG | cpio -idmv
 rm -rf $IMG
 
-sed -i '/^\/dev\/block\/by-name\/userdata/s/ext4/ext2/g' etc/fstab
+sed -i '/^\/dev\/block\/by-name\/userdata/s/ext2/ext4/g' etc/fstab
 
 find . | cpio -H newc -o | gzip > ../$IMG
 
