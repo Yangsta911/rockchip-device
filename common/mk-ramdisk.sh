@@ -15,7 +15,12 @@ echo "config is $RAMDISK_CFG"
 
 BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
 source $BOARD_CONFIG
-KERNEL_IMAGE=$TOP_DIR/$RK_KERNEL_IMG
+if [ -z $RK_KERNEL_ZIMG ]; then
+	KERNEL_IMAGE=$TOP_DIR/$RK_KERNEL_IMG
+else
+	KERNEL_IMAGE=$TOP_DIR/$RK_KERNEL_ZIMG
+fi
+
 KERNEL_DTB=$TOP_DIR/kernel/resource.img
 
 if [ -z $RAMDISK_CFG ]
@@ -23,6 +28,7 @@ then
 	if [ -n "$RK_RECOVERY_RAMDISK" ]; then
 		CPIO_IMG=$TOP_DIR/device/rockchip/rockimg/$RK_RECOVERY_RAMDISK
 		TARGET_IMAGE=$TOP_DIR/rockdev/recovery.img
+		echo "use prebuilt $RK_RECOVERY_RAMDISK for CPIO image"
 	else
 		echo "config for building $RAMDISK_IMG doesn't exist, skip!"
 		exit 0
@@ -51,14 +57,16 @@ if [ -n "$RAMDISK_CFG" ]; then
 
 	# build ramdisk
 	echo "====Start build $RAMDISK_CFG===="
-	make
+	$TOP_DIR/buildroot/utils/brmake
 	if [ $? -eq 0 ]; then
-		echo "====Build $RAMDISK_CFG ok!===="
+	    echo "log saved on $TOP_DIR/br.log"
+	    echo "====Build $RAMDISK_CFG ok!===="
 	else
-		echo "====Build $RAMDISK_CFG failed!===="
-		exit 1
+	    echo "log saved on $TOP_DIR/br.log"
+	    echo "====Build $RAMDISK_CFG failed!===="
+	    tail -n 100 $TOP_DIR/br.log
+	    exit 1
 	fi
-
 fi
 
 echo -n "pack $RAMDISK_IMG..."

@@ -42,6 +42,17 @@ then
 	$UPGRADETOOL di -rootfs $ROOTFS
 fi
 
+if [ $FLASH_TYPE = norecovery ]; then
+	$UPGRADETOOL ul $LOADER
+	$UPGRADETOOL di -p $PARAMETER
+	$UPGRADETOOL di -uboot $UBOOT
+	$UPGRADETOOL di -trust $TRUST
+	$UPGRADETOOL di -b $BOOT
+	$UPGRADETOOL di -oem $OEM
+	$UPGRADETOOL di -userdata $USERDATA
+	$UPGRADETOOL di -rootfs $ROOTFS
+fi
+
 if [ $FLASH_TYPE = loader ]
 then
 	if [ -n "$2" ];then
@@ -141,5 +152,10 @@ fi
 if [ $FLASH_TYPE = rd ]
 then
 	$UPGRADETOOL rd
+fi
+
+if [ $FLASH_TYPE = erase ]
+then
+	$UPGRADETOOL EF $LOADER
 fi
 

@@ -3,7 +3,7 @@
 # Target arch
 export RK_ARCH=arm64
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=rk3399pro-npu
+export RK_UBOOT_DEFCONFIG=rknpu-lion
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=rk3399pro_npu_defconfig
 # Kernel dts
@@ -34,8 +34,6 @@ export RK_ROOTFS_IMG=
 export RK_OEM_FS_TYPE=
 # Set userdata partition type, including ext2, fat
 export RK_USERDATA_FS_TYPE=
-# Set flash type. support <emmc, nand, spi_nand, spi_nor>
-export RK_STORAGE_TYPE=
 #OEM config
 export RK_OEM_DIR=
 #userdata config

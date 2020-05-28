@@ -14,6 +14,7 @@ export RK_KERNEL_DTS=px30-evb-ddr3-v10-linux
 export RK_BOOT_IMG=boot.img
 # kernel image path
 export RK_KERNEL_IMG=kernel/arch/arm64/boot/Image
+export RK_KERNEL_ZIMG=kernel/arch/arm64/boot/Image.lz4
 # parameter for GPT table
 export RK_PARAMETER=parameter-buildroot.txt
 # Buildroot config
@@ -31,13 +32,11 @@ export RK_TARGET_PRODUCT=px30
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
 # rootfs image path
-export RK_ROOTFS_IMG=buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.$RK_ROOTFS_TYPE
+export RK_ROOTFS_IMG=rockdev/rootfs.${RK_ROOTFS_TYPE}
 # Set oem partition type, including ext2 squashfs
 export RK_OEM_FS_TYPE=ext2
 # Set userdata partition type, including ext2, fat
 export RK_USERDATA_FS_TYPE=ext2
-# Set flash type. support <emmc, nand, spi_nand, spi_nor>
-export RK_STORAGE_TYPE=emmc
 #OEM config
 export RK_OEM_DIR=oem_normal
 #userdata config

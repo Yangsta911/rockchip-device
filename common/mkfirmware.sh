@@ -2,16 +2,9 @@
 
 set -e
 
-COMMON_DIR=$(cd `dirname $0`; pwd)
-if [ -h $0 ]
-then
-        CMD=$(readlink $0)
-        COMMON_DIR=$(dirname $CMD)
-fi
-cd $COMMON_DIR
-cd ../../..
-TOP_DIR=$(pwd)
-RELATIVE_TOP_DIR=..
+SCRIPT_DIR=$(dirname $(realpath $BASH_SOURCE))
+TOP_DIR=$(realpath $SCRIPT_DIR/../../..)
+cd $TOP_DIR
 
 source $TOP_DIR/device/rockchip/.BoardConfig.mk
 ROCKDEV=$TOP_DIR/rockdev
@@ -28,9 +21,7 @@ UBOOT_IMG=$TOP_DIR/u-boot/uboot.img
 BOOT_IMG=$TOP_DIR/kernel/$RK_BOOT_IMG
 LOADER=$TOP_DIR/u-boot/*_loader_v*.bin
 #SPINOR_LOADER=$TOP_DIR/u-boot/*_loader_spinor_v*.bin
-MKIMAGE=$TOP_DIR/device/rockchip/common/mk-image.sh
-KERNEL_IMAGE=$TOP_DIR/$RK_KERNEL_IMG
-KERNEL_DTB=$TOP_DIR/kernel/resource.img
+MKIMAGE=$SCRIPT_DIR/mk-image.sh
 mkdir -p $ROCKDEV
 
 # Require buildroot host tools to do image packing.
@@ -40,12 +31,72 @@ mkdir -p $ROCKDEV
 #    source $TOP_DIR/buildroot/build/envsetup.sh $RK_CFG_BUILDROOT
 #fi
 
+check_partition_size() {
+	echo $PARAMETER
+
+	PARTITIONS_PREFIX=`echo -n "CMDLINE: mtdparts=rk29xxnand:"`
+	while read line
+	do
+		if [[ $line =~ $PARTITIONS_PREFIX ]]
+		then
+			partitions=`echo $line | sed "s/$PARTITIONS_PREFIX//g"`
+			echo $partitions
+			break
+		fi
+	done < $PARAMETER
+
+	[ -z $"partitions" ] && return
+
+	IFS=,
+	for part in $partitions;
+	do
+		part_size=`echo $part | cut -d '@' -f1`
+		part_name=`echo $part | cut -d '(' -f2|cut -d ')' -f1`
+
+		[[ $part_size =~ "-" ]] && continue
+
+		part_size=$(($part_size))
+		part_size_bytes=$[$part_size*512]
+
+		case $part_name in
+			uboot)
+				if [ $part_size_bytes -lt `du -b $UBOOT_IMG | awk '{print $1}'` ]
+				then
+					echo -e "\e[31m error: uboot image size exceed parameter! \e[0m"
+					return -1
+				fi
+			;;
+			boot)
+				if [ $part_size_bytes -lt `du -b $BOOT_IMG | awk '{print $1}'` ]
+				then
+					echo -e "\e[31m error: boot image size exceed parameter! \e[0m"
+					return -1
+				fi
+			;;
+			recovery)
+				if [ $part_size_bytes -lt `du -b $RECOVERY_IMG | awk '{print $1}'` ]
+				then
+					echo -e "\e[31m error: recovery image size exceed parameter! \e[0m"
+					return -1
+				fi
+			;;
+			rootfs)
+				if [ $part_size_bytes -lt `du -bD $ROOTFS_IMG | awk '{print $1}'` ]
+				then
+					echo -e "\e[31m error: rootfs image size exceed parameter! \e[0m"
+					return -1
+				fi
+			;;
+		esac
+	done
+}
+
 if [ $RK_ROOTFS_IMG ]
 then
 	if [ -f $ROOTFS_IMG ]
 	then
 		echo -n "create rootfs.img..."
-		ln -s -f `echo $ROOTFS_IMG | sed "s;$TOP_DIR;$RELATIVE_TOP_DIR;"` $ROCKDEV/rootfs.img
+		ln -rsf $ROOTFS_IMG $ROCKDEV/rootfs.img
 		echo "done."
 	else
 		echo "warning: $ROOTFS_IMG not found!"
@@ -56,10 +107,11 @@ fi
 if [ -f $PARAMETER ]
 then
 	echo -n "create parameter..."
-	ln -s -f `echo $PARAMETER | sed "s;$TOP_DIR;$RELATIVE_TOP_DIR;"` $ROCKDEV/parameter.txt
+	ln -rsf $PARAMETER $ROCKDEV/parameter.txt
 	echo "done."
 else
-	echo "warning: $PARAMETER not found!"
+	echo -e "\e[31m error: $PARAMETER not found! \e[0m"
+	exit -1
 fi
 
 if [ $RK_CFG_RECOVERY ]
@@ -67,7 +119,7 @@ then
 	if [ -f $RECOVERY_IMG ]
 	then
 		echo -n "create recovery.img..."
-		ln -s -f `echo $RECOVERY_IMG | sed "s;$TOP_DIR;$RELATIVE_TOP_DIR;"` $ROCKDEV/recovery.img
+		ln -rsf $RECOVERY_IMG $ROCKDEV/recovery.img
 		echo "done."
 	else
 		echo "warning: $RECOVERY_IMG not found!"
@@ -79,7 +131,7 @@ then
 	if [ -f $MISC_IMG ]
 	then
 		echo -n "create misc.img..."
-		ln -s -f `echo $MISC_IMG | sed "s;$TOP_DIR;$RELATIVE_TOP_DIR;"` $ROCKDEV/misc.img
+		ln -rsf $MISC_IMG $ROCKDEV/misc.img
 		echo "done."
 	else
 		echo "warning: $MISC_IMG not found!"
@@ -109,7 +161,7 @@ fi
 if [ -f $UBOOT_IMG ]
 then
         echo -n "create uboot.img..."
-        ln -s -f `echo $UBOOT_IMG | sed "s;$TOP_DIR;$RELATIVE_TOP_DIR;"` $ROCKDEV/uboot.img
+        ln -rsf $UBOOT_IMG $ROCKDEV/uboot.img
         echo "done."
 else
         echo -e "\e[31m error: $UBOOT_IMG not found! \e[0m"
@@ -125,7 +177,7 @@ fi
 if [ -f $TRUST_IMG ]
 then
         echo -n "create trust.img..."
-        ln -s -f `echo $TRUST_IMG | sed "s;$TOP_DIR;$RELATIVE_TOP_DIR;"` $ROCKDEV/trust.img
+        ln -rsf $TRUST_IMG $ROCKDEV/trust.img
         echo "done."
 else
         echo -e "\e[31m error: $TRUST_IMG not found! \e[0m"
@@ -134,7 +186,7 @@ fi
 if [ -f $LOADER ]
 then
         echo -n "create loader..."
-        ln -s -f `echo $LOADER | sed "s;$TOP_DIR;$RELATIVE_TOP_DIR;"` $ROCKDEV/MiniLoaderAll.bin
+        ln -rsf $LOADER $ROCKDEV/MiniLoaderAll.bin
         echo "done."
 else
 	echo -e "\e[31m error: $LOADER not found,or there are multiple loaders! \e[0m"
@@ -144,7 +196,7 @@ fi
 #if [ -f $SPINOR_LOADER ]
 #then
 #        echo -n "create spinor loader..."
-#        ln -s -f $SPINOR_LOADER $ROCKDEV/MiniLoaderAll_SpiNor.bin
+#        ln -rsf $SPINOR_LOADER $ROCKDEV/MiniLoaderAll_SpiNor.bin
 #        echo "done."
 #else
 #	rm $SPINOR_LOADER_PATH 2>/dev/null
@@ -155,7 +207,7 @@ then
 	if [ -f $BOOT_IMG ]
 	then
 		echo -n "create boot.img..."
-		ln -s -f `echo $BOOT_IMG | sed "s;$TOP_DIR;$RELATIVE_TOP_DIR;"` $ROCKDEV/boot.img
+		ln -rsf $BOOT_IMG $ROCKDEV/boot.img
 		echo "done."
 	else
 		echo "warning: $BOOT_IMG not found!"
@@ -167,10 +219,13 @@ then
 	if [ -f $RAMBOOT_IMG ]
 	then
 	        echo -n "create boot.img..."
-	        ln -s -f `echo $RAMBOOT_IMG | sed "s;$TOP_DIR;$RELATIVE_TOP_DIR;"` $ROCKDEV/boot.img
+	        ln -rsf $RAMBOOT_IMG $ROCKDEV/boot.img
 	        echo "done."
 	else
 		echo "warning: $RAMBOOT_IMG not found!"
 	fi
 fi
+
+check_partition_size
+
 echo -e "\e[36m Image: image in rockdev is ready \e[0m"
