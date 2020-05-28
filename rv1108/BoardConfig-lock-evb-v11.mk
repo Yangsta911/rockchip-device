@@ -34,6 +34,7 @@ export RK_ROOTFS_TYPE=cpio.lz4
 #            Loader Config             #
 ########################################
 # Set loader config
+export RK_LOADER_BUILD_TYPE=emmc
 export RK_LOADER_POWER_HOLD_GPIO_GROUP=3
 export RK_LOADER_POWER_HOLD_GPIO_INDEX=14
 export RK_LOADER_EMMC_TURNING_DEGREE=2
@@ -80,10 +81,13 @@ export RK_JOBS=12
 # Set ui_resolution
 export RK_UI_RESOLUTION=360x640
 # Set face detection parameter
-export RK_FACE_DETECTION_WIDTH=720
-export RK_FACE_DETECTION_HEIGHT=1280
-export RK_FACE_DETECTION_OFFSET_X=-50
-export RK_FACE_DETECTION_OFFSET_Y=-50
+export RK_FACE_DETECTION_WIDTH=480
+export RK_FACE_DETECTION_HEIGHT=640
+export RK_FACE_DETECTION_OFFSET_X=-40
+export RK_FACE_DETECTION_OFFSET_Y=20
+export RK_FACE_FOV_SCALE_FACTOR_X=1
+export RK_FACE_FOV_SCALE_FACTOR_Y=1
+
 # Set UVC source
 export RK_UVC_USE_SL_MODULE=n
 # Set first start application

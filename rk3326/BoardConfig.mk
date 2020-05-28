@@ -16,9 +16,11 @@ export RK_BOOT_IMG=zboot.img
 export RK_KERNEL_IMG=kernel/arch/arm64/boot/Image
 export RK_KERNEL_ZIMG=kernel/arch/arm64/boot/Image.lz4
 # parameter for GPT table
-export RK_PARAMETER=parameter-buildroot.txt
+export RK_PARAMETER=parameter.txt
 # Buildroot config
 export RK_CFG_BUILDROOT=rockchip_rk3326_64
+# Debian 10 config
+export RK_DISTRO_DEFCONFIG=rk3326_defconfig
 # Recovery config
 export RK_CFG_RECOVERY=rockchip_rk3326_recovery
 # ramboot config

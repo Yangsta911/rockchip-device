@@ -3,34 +3,33 @@
 # Target arch
 export RK_ARCH=arm64
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=evb-px30
-# Trust choose ignore bl32, including --ignore-bl32
-export TRUST_PACK_IGNORE_BL32=
+export RK_UBOOT_DEFCONFIG=rk3399pro
 # Kernel defconfig
-export RK_KERNEL_DEFCONFIG=px30_linux_defconfig
+export RK_KERNEL_DEFCONFIG=rockchip_linux_defconfig
 # Kernel dts
-export RK_KERNEL_DTS=px30-evb-ddr3-v10-linux
+export RK_KERNEL_DTS=rk3399pro-evb-v11-linux
 # boot image type
 export RK_BOOT_IMG=boot.img
 # kernel image path
 export RK_KERNEL_IMG=kernel/arch/arm64/boot/Image
-export RK_KERNEL_ZIMG=kernel/arch/arm64/boot/Image.lz4
 # parameter for GPT table
-export RK_PARAMETER=parameter-buildroot.txt
+export RK_PARAMETER=parameter.txt
 # Buildroot config
-export RK_CFG_BUILDROOT=rockchip_px30_64_open
+export RK_CFG_BUILDROOT=rockchip_rk3399pro
 # Recovery config
-export RK_CFG_RECOVERY=rockchip_px30_recovery
+export RK_CFG_RECOVERY=rockchip_rk3399pro_recovery
 # ramboot config
 export RK_CFG_RAMBOOT=
 # Pcba config
-export RK_CFG_PCBA=rockchip_px30_pcba
+export RK_CFG_PCBA=rockchip_rk3399pro_pcba
 # Build jobs
 export RK_JOBS=12
 # target chip
-export RK_TARGET_PRODUCT=px30
+export RK_TARGET_PRODUCT=rk3399pro
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
+# yocto machine
+export RK_YOCTO_MACHINE=rockchip-rk3399pro-evb
 # rootfs image path
 export RK_ROOTFS_IMG=rockdev/rootfs.${RK_ROOTFS_TYPE}
 # Set oem partition type, including ext2 squashfs
