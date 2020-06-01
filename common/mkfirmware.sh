@@ -19,7 +19,11 @@ USER_DATA_DIR=$TOP_DIR/device/rockchip/userdata/$RK_USERDATA_DIR
 MISC_IMG=$TOP_DIR/device/rockchip/rockimg/$RK_MISC
 ROOTFS_IMG=$TOP_DIR/$RK_ROOTFS_IMG
 RAMBOOT_IMG=$TOP_DIR/buildroot/output/$RK_CFG_RAMBOOT/images/ramboot.img
+if [ -n "${RK_CFG_RECOVERY}" ]; then
 RECOVERY_IMG=$TOP_DIR/buildroot/output/$RK_CFG_RECOVERY/images/recovery.img
+else
+RECOVERY_IMG=$ROCKDEV/recovery.img
+fi
 IDBLOADER_IMG=$TOP_DIR/u-boot/idbloader.img
 FAKEROOT_TOOL=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/host/bin/fakeroot
 OEM_FAKEROOT_SCRIPT=$ROCKDEV/oem.fs
