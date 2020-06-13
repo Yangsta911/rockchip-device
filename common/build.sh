@@ -592,14 +592,18 @@ for option in ${OPTIONS:-allsave}; do
 	echo "processing option: $option"
 	case $option in
 		*.mk)
-			CONF=$(find $CFG_DIR -name $option)
-			echo "switching to board: $CONF"
-			if [ ! -f $CONF ]; then
-				echo "not exist!"
-				exit 1
+			if [ -f $option ]; then
+				CONF=${option}
+			else
+				CONF=$(find $CFG_DIR -name $option)
+				echo "switching to board: $CONF"
+				if [ ! -f $CONF ]; then
+					echo "not exist!"
+					exit 1
+				fi
 			fi
 
-		    ln -sf $CONF $BOARD_CONFIG
+		    ln -rsf $CONF $BOARD_CONFIG
 
 			unset RK_PACKAGE_FILE
 			source $CONF
