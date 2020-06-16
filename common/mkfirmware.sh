@@ -9,7 +9,7 @@ cd $TOP_DIR
 source $TOP_DIR/device/rockchip/.BoardConfig.mk
 ROCKDEV=$TOP_DIR/rockdev
 PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
-CHECK_RK_OEM_FLAG="`grep -w "^BR2_PACKAGE_RK_OEM=y" $TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/.config; true;`"
+CHECK_RK_OEM_FLAG="`grep -w "^BR2_PACKAGE_RK_OEM=y" $TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/.config 2>/dev/null; true;`"
 if [ "${CHECK_RK_OEM_FLAG}x" != "x" ]; then
 OEM_DIR=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/oem
 else

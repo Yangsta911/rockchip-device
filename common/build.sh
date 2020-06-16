@@ -81,9 +81,7 @@ function build_uboot(){
 	echo "============Start build uboot============"
 	echo "TARGET_UBOOT_CONFIG=$RK_UBOOT_DEFCONFIG"
 	echo "========================================="
-	if [ -f u-boot/*_loader_*.bin ]; then
-		rm u-boot/*_loader_*.bin
-	fi
+	rm -f u-boot/*_loader_*.bin
 	cd u-boot && ./make.sh $RK_UBOOT_DEFCONFIG && cd -
 	if [ $? -eq 0 ]; then
 		echo "====Build uboot ok!===="
