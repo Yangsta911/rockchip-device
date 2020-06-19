@@ -8,7 +8,7 @@ source $CUR_DIR/BoardConfig.mk
 # Uboot defconfig
 export RK_UBOOT_DEFCONFIG=firefly-rk3328
 # Kernel defconfig
-export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
+export RK_KERNEL_DEFCONFIG=firefly-rk3328_defconfig
 # Kernel dts
 export RK_KERNEL_DTS=rk3328-roc-cc
 # parameter for GPT table
