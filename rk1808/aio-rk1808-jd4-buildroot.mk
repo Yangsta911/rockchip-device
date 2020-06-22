@@ -7,5 +7,3 @@ source $CUR_DIR/firefly-rk1808-buildroot.mk
 
 # Kernel dts
 export RK_KERNEL_DTS=rk1808-firefly-aiojd4
-# Buildroot config
-export RK_CFG_BUILDROOT=rockchip_rk1808-firefly-aiojd4
