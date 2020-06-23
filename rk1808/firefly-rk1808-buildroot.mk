@@ -13,3 +13,5 @@ export RK_KERNEL_DEFCONFIG=firefly_rk1808_defconfig
 export RK_KERNEL_DTS=rk1808-firefly
 # packagefile for make update image 
 export RK_PACKAGE_FILE=rk1808-package-file
+
+export RK_USERDATA_FS_TYPE=ext4

@@ -13,3 +13,5 @@ export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 export RK_KERNEL_DTS=rk3288-firefly
 # packagefile for pack image files
 export RK_PACKAGE_FILE=rk3288-package-file
+
+export RK_USERDATA_FS_TYPE=ext4

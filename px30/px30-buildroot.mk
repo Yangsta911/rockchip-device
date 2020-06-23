@@ -19,3 +19,4 @@ export RK_SD_PARAMETER=parameter-recovery.txt
 # packagefile for make sdupdate image
 export RK_SD_PACKAGE_FILE=px30-recovery-package-file
 
+export RK_USERDATA_FS_TYPE=ext4
