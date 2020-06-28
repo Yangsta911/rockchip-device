@@ -93,13 +93,6 @@ check_partition_size() {
 					return -1
 				fi
 			;;
-			rootfs)
-				if [ $part_size_bytes -lt `du -bD $ROOTFS_IMG | awk '{print $1}'` ]
-				then
-					echo -e "\e[31m error: rootfs image size exceed parameter! \e[0m"
-					return -1
-				fi
-			;;
 		esac
 	done
 }
