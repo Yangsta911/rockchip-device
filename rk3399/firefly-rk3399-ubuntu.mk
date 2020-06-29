@@ -25,6 +25,8 @@ export RK_RECOVERY_RAMDISK=recovery-arm64.cpio.gz
 # Set userdata partition type
 export RK_USERDATA_FS_TYPE=ext4
 
+# Buildroot config
+export RK_CFG_BUILDROOT=
 # Recovery config
 export RK_CFG_RECOVERY=
 #OEM config

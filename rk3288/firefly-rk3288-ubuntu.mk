@@ -23,6 +23,8 @@ export RK_ROOTFS_IMG=ubuntu_rootfs/rk3288_ubuntu_rootfs.img
 # recovery ramdisk
 export RK_RECOVERY_RAMDISK=recovery-arm.cpio.gz
 
+# Buildroot config
+export RK_CFG_BUILDROOT=
 # Recovery config
 export RK_CFG_RECOVERY=
 #OEM config
