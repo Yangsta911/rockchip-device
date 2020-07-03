@@ -28,6 +28,7 @@ then
 	if [ -n "$RK_RECOVERY_RAMDISK" ]; then
 		CPIO_IMG=$TOP_DIR/device/rockchip/rockimg/$RK_RECOVERY_RAMDISK
 		TARGET_IMAGE=$TOP_DIR/rockdev/recovery.img
+		rm -f $TARGET_IMAGE
 		echo "use prebuilt $RK_RECOVERY_RAMDISK for CPIO image"
 	else
 		echo "config for building $RAMDISK_IMG doesn't exist, skip!"
