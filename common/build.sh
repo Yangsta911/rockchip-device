@@ -260,7 +260,6 @@ function build_distro(){
 }
 
 function build_rootfs(){
-	rm -f $RK_ROOTFS_IMG
 
 	case "$1" in
 		yocto)
@@ -276,8 +275,10 @@ function build_rootfs(){
 			ROOTFS_IMG=yocto/output/images/rootfs.$RK_ROOTFS_TYPE
 			;;
 		*)
-			build_buildroot
-			ROOTFS_IMG=buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.$RK_ROOTFS_TYPE
+			if [ -n $RK_CFG_BUILDROOT ];then
+				build_buildroot
+				ROOTFS_IMG=buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.$RK_ROOTFS_TYPE
+			fi
 			;;
 	esac
 
@@ -287,6 +288,7 @@ function build_rootfs(){
 		echo "$ROOTFS_IMG not generated?"
 	else
 		mkdir -p ${RK_ROOTFS_IMG%/*}
+		rm -f $RK_ROOTFS_IMG
 		ln -rsf $TOP_DIR/$ROOTFS_IMG $RK_ROOTFS_IMG
 	fi
 }
