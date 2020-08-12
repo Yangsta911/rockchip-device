@@ -6,4 +6,4 @@ CUR_DIR=`dirname $CMD`
 source $CUR_DIR/firefly-rk3399-ubuntu.mk
 
 # Kernel dts
-export RK_KERNEL_DTS=rk3399-firefly-srjd4
+export RK_KERNEL_DTS=rk3399-firefly-CS-R1-jd4-sub
