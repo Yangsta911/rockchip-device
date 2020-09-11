@@ -47,8 +47,9 @@ function usage()
 	echo "otapackage         -pack ab update otapackage image"
 	echo "save               -save images, patches, commands used to debug"
 	echo "allsave            -build all & firmware & updateimg & save"
+	echo "allff              -build all & firmware & updateimg"
 	echo ""
-	echo "Default option is 'allsave'."
+	echo "Default option is 'allff'."
 }
 
 function build_extboot() {
@@ -572,6 +573,12 @@ function build_save(){
 
 }
 
+function build_allff(){
+	build_all
+	build_firmware
+	build_updateimg
+}
+
 function build_allsave(){
 	build_all
 	build_firmware
@@ -588,7 +595,7 @@ if echo $@|grep -wqE "help|-h"; then
 fi
 
 OPTIONS="$@"
-for option in ${OPTIONS:-allsave}; do
+for option in ${OPTIONS:-allff}; do
 	echo "processing option: $option"
 	case $option in
 		*.mk)
