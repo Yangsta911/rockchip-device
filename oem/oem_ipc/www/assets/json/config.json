@@ -19,6 +19,7 @@
     "name": "Video",
     "items": [
       "Encoder",
+      "AdvancedEncoder",
       "ROI",
       "RegionCrop"
     ]
@@ -35,13 +36,14 @@
       "DisplaySettings",
       "OSDSettings",
       "PrivacyCover",
-      "ScenarioSwitch"
+      "PictureMask"
     ]
   },
   {
     "name": "Event",
     "items": [
       "MotionDetect",
+      "IntrusionDetection",
       "AlarmInput",
       "AlarmOutput",
       "Abnormal"

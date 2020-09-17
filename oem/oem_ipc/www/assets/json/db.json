@@ -16,37 +16,37 @@
       "id": 2,
       "name": "model",
       "ro": "true",
-      "value": "XX-2CD7T47DWD-IZSW"
+      "value": "model1"
     },
     {
       "id": 3,
       "name": "serialNumber",
       "ro": "true",
-      "value": "XX-2CD7T47DWD-IZSW20190805AACHD46944751"
+      "value": "serialNumber1"
     },
     {
       "id": 4,
       "name": "firmwareVersion",
       "ro": "true",
-      "value": "V5.5.91 build 190218"
+      "value": "firmwareVersion1"
     },
     {
       "id": 5,
       "name": "encoderVersion",
       "ro": "true",
-      "value": "V7.3 build 190107"
+      "value": "encoderVersion1"
     },
     {
       "id": 6,
       "name": "webVersion",
       "ro": "true",
-      "value": "V4.0.1 build 181018"
+      "value": "webVersion1"
     },
     {
       "id": 7,
       "name": "pluginVersion",
       "ro": "true",
-      "value": "V3.0.6.46"
+      "value": "pluginVersion1"
     },
     {
       "id": 8,
@@ -87,11 +87,15 @@
       "sV4Netmask": "255.255.255.0"
     },
     "link": {
-      "sAddress": "84:c2:e4:1b:66:d8",
-      "sDNS1": "114.114.114.114",
-      "sDNS2": "8.8.8.8",
+      "iDuplex": 1,
+      "iNicSpeed": 1000,
+      "iPower": 1,
+      "sAddress": "de:04:cd:7c:c7:31",
+      "sDNS1": "10.10.10.188",
+      "sDNS2": "58.22.96.66",
       "sInterface": "eth0",
-      "sNicType": "10MD"
+      "sNicSpeed": "10baseT/Half",
+      "sNicSpeedSupport": "Auto 10baseT/Half 10baseT/Full 100baseT/Half 100baseT/Full 1000baseT/Full "
     }
   },
   "wlan": {
@@ -282,86 +286,86 @@
       "sAlignment": "customize",
       "sOSDAttribute": "transparent/flashing",
       "sOSDFontSize": "16*16",
-      "sOSDFrontColor": "#e39bc5",
+      "sOSDFrontColor": "f887c2",
       "sOSDFrontColorMode": "customize"
     },
     "channelNameOverlay": {
-      "iPositionX": 0,
-      "iPositionY": 0,
+      "iPositionX": 393.52317880794703,
+      "iPositionY": 198.65486725663712,
       "sChannelName": "channel 2",
       "iChannelNameOverlayEnabled": 1
     },
     "characterOverlay": [
       {
-        "iPositionX": 0,
-        "iPositionY": 0,
+        "iPositionX": 432.4238410596027,
+        "iPositionY": 299.1858407079646,
         "id": 0,
         "sDisplayText": "test",
-        "iIsPersistentText": 1,
+        "sIsPersistentText": "",
         "iTextOverlayEnabled": 1
       },
       {
-        "iPositionX": 0,
-        "iPositionY": 0,
+        "iPositionX": 312.3708609271523,
+        "iPositionY": 272.283185840708,
         "id": 1,
         "sDisplayText": "test",
-        "iIsPersistentText": 1,
+        "sIsPersistentText": "",
         "iTextOverlayEnabled": 0
       },
       {
-        "iPositionX": 0,
-        "iPositionY": 0,
+        "iPositionX": 427.7615894039735,
+        "iPositionY": 251.04424778761063,
         "id": 2,
         "sDisplayText": "test",
-        "iIsPersistentText": 1,
-        "iTextOverlayEnabled": 0
+        "sIsPersistentText": "",
+        "iTextOverlayEnabled": 1
       },
       {
-        "iPositionX": 0,
-        "iPositionY": 0,
+        "iPositionX": 89.74834437086093,
+        "iPositionY": 96.7079646017699,
         "id": 3,
         "sDisplayText": "test",
-        "iIsPersistentText": 1,
+        "sIsPersistentText": "",
         "iTextOverlayEnabled": 0
       },
       {
-        "iPositionX": 0,
-        "iPositionY": 0,
+        "iPositionX": 431.25827814569544,
+        "iPositionY": 365.7345132743363,
         "id": 4,
         "sDisplayText": "test",
-        "iIsPersistentText": 1,
-        "iTextOverlayEnabled": 0
+        "sIsPersistentText": "",
+        "iTextOverlayEnabled": 1
       },
       {
-        "iPositionX": 0,
-        "iPositionY": 0,
+        "iPositionX": 36.13245033112583,
+        "iPositionY": 16,
         "id": 5,
         "sDisplayText": "test",
-        "iIsPersistentText": 1,
+        "sIsPersistentText": "",
         "iTextOverlayEnabled": 0
       },
       {
-        "iPositionX": 0,
-        "iPositionY": 0,
+        "iPositionX": 36.13245033112583,
+        "iPositionY": 16,
         "id": 6,
         "sDisplayText": "test",
-        "iIsPersistentText": 1,
+        "sIsPersistentText": "",
         "iTextOverlayEnabled": 0
       },
       {
-        "iPositionX": 0,
-        "iPositionY": 0,
+        "iPositionX": 36.13245033112583,
+        "iPositionY": 16,
         "id": 7,
         "sDisplayText": "test",
-        "iIsPersistentText": 1,
+        "sIsPersistentText": "",
         "iTextOverlayEnabled": 0
       }
     ],
     "dateTimeOverlay": {
-      "iPositionX": 0,
-      "iPositionY": 0,
+      "iPositionX": 320.00000000000006,
+      "iPositionY": 92.46017699115043,
       "sDateStyle": "MM-DD-YYYY",
-      "iDateTimeOverlayEnabled": 0,
+      "iDateTimeOverlayEnabled": 1,
       "iDisplayWeekEnabled": 1,
       "sTimeStyle": "24hour"
     },
@@ -498,9 +502,11 @@
     "id": 2
   },
   "wifi-enabled": {
-    "iPower": 1,
-    "id": 1,
-    "sType": "wifi"
+    "sName": "",
+    "sService": "",
+    "sPassword": "",
+    "iFavorite": "",
+    "iAutoconnect": 0
   },
   "wifi-list": [
     {
@@ -538,9 +544,315 @@
       "sService": "wifi_8cf710c4e981_7a786d722d3234_managed_psk4",
       "sState": "ready",
       "sType": "wifi"
+    },
+    {
+      "Favorite": 1,
+      "Strength": 68,
+      "sName": "zxmr-24",
+      "sSecurity": "psk",
+      "sService": "wifi_8cf710c4e981_7a786d722d3234_managed_psk1",
+      "sState": "ready",
+      "sType": "wifi"
+    },
+    {
+      "Favorite": 1,
+      "Strength": 63,
+      "sName": "zxmr-25",
+      "sSecurity": "psk",
+      "sService": "wifi_8cf710c4e981_7a786d722d3234_managed_psk1",
+      "sState": "ready",
+      "sType": "wifi"
+    },
+    {
+      "Favorite": 1,
+      "Strength": 80,
+      "sName": "zxmr-26",
+      "sSecurity": "psk",
+      "sService": "wifi_8cf710c4e981_7a786d722d3234_managed_psk1",
+      "sState": "ready",
+      "sType": "wifi"
+    },
+    {
+      "Favorite": 1,
+      "Strength": 20,
+      "sName": "zxmr-27",
+      "sSecurity": "psk",
+      "sService": "wifi_8cf710c4e981_7a786d722d3234_managed_psk1",
+      "sState": "ready",
+      "sType": "wifi"
+    },
+    {
+      "Favorite": 1,
+      "Strength": 64,
+      "sName": "zxmr-28",
+      "sSecurity": "psk",
+      "sService": "wifi_8cf710c4e981_7a786d722d3234_managed_psk1",
+      "sState": "ready",
+      "sType": "wifi"
     }
   ],
   "scan": {},
   "wifi-on": {},
-  "wifi-off": {}
+  "wifi-off": {},
+  "roi": {
+    "normalizedScreenSize": {
+      "iNormalizedScreenHeight": 480,
+      "iNormalizedScreenWidth": 704
+    },
+    "ROIRegionList": [
+      {
+        "sStreamType": "mainStream",
+        "iStreamEnabled": 1,
+        "iROIId": 1,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "mainStream",
+        "iStreamEnabled": 1,
+        "iROIId": 2,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "mainStream",
+        "iStreamEnabled": 1,
+        "iROIId": 3,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "mainStream",
+        "iStreamEnabled": 1,
+        "iROIId": 4,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "subStream",
+        "iStreamEnabled": 1,
+        "iROIId": 1,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "subStream",
+        "iStreamEnabled": 1,
+        "iROIId": 2,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "subStream",
+        "iStreamEnabled": 1,
+        "iROIId": 3,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "subStream",
+        "iStreamEnabled": 1,
+        "iROIId": 4,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "thirdStream",
+        "iStreamEnabled": 1,
+        "iROIId": 1,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "thirdStream",
+        "iStreamEnabled": 1,
+        "iROIId": 2,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "thirdStream",
+        "iStreamEnabled": 1,
+        "iROIId": 3,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      },
+      {
+        "sStreamType": "thirdStream",
+        "iStreamEnabled": 1,
+        "iROIId": 4,
+        "iROIEnabled": 1,
+        "sName": "test",
+        "iQualityLevelOfROI": 1,
+        "iHeight": 100,
+        "iWidth": 100,
+        "iPositionX": 1,
+        "iPositionY": 1
+      }
+    ]
+  },
+  "region-crop": {
+    "normalizedScreenSize": {
+      "iNormalizedScreenHeight": 1000,
+      "iNormalizedScreenWidth": 1000
+    },
+    "RegionClip": {
+      "iVideoResolutionWidth": 640,
+      "iVideoResolutionHeight": 480,
+      "iRegionClipEnabled": 0,
+      "iHeight": 92,
+      "iWidth": 120,
+      "iPositionX": 0,
+      "iPositionY": 0
+    }
+  },
+  "motion-detection": {
+    "iColumnGranularity": 22,
+    "iEndTriggerTime": 500,
+    "iHighlightEnabled": 0,
+    "iMotionDetectionEnabled": 0,
+    "iRowGranularity": 18,
+    "iSamplingInterval": 2,
+    "iSensitivityLevel": 0,
+    "iStartTriggerTime": 500,
+    "id": 0,
+    "sGridMap": "0000012345456000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "sRegionType": "grid"
+  },
+  "motion-linkage": {
+    "iNotificationCenterEnabled": 1,
+    "iNotificationEmailEnabled": 0,
+    "iNotificationFTPEnabled": 0,
+    "iNotificationIO1Enabled": 0,
+    "iNotificationRecord1Enabled": 0,
+    "iVideoInputChannelID": 0,
+    "id": 0,
+    "sEventType": "VMD"
+  },
+  "ntp-time": {
+    "time": "2020-03-20T11:20:18"
+  },
+  "network-ntp": {
+    "iAutoMode": 1,
+    "iRefreshTime": 60,
+    "id": 0,
+    "sNtpServers": "122.224.9.29 94.130.49.186",
+    "sTimeZone": "posix/Etc/GMT-8"
+  },
+  "ntp-zone": [
+    {
+      "iHavedst": 1,
+      "id": 0,
+      "sName": "(GMT-8:00)太平洋时间(美国和加拿大)",
+      "sTimeZone": "posix/Etc/GMT+8",
+      "sTimeZoneDst": "posix/America/Los_Angeles"
+    },
+    {
+      "iHavedst": 0,
+      "id": 1,
+      "sName": "(GMT+0:00)都柏林、爱丁堡、伦敦",
+      "sTimeZone": "posix/Etc/GMT-0",
+      "sTimeZoneDst": ""
+    },
+    {
+      "iHavedst": 0,
+      "id": 2,
+      "sName": "(GMT+8:00)北京、乌鲁木齐、新加坡、珀斯",
+      "sTimeZone": "posix/Etc/GMT-8",
+      "sTimeZoneDst": ""
+    }
+  ],
+  "member-list": [
+    {
+      "sTelephoneNumber": 0,
+      "id": 0,
+      "sAddress": "",
+      "sAge": "",
+      "sBirthday": "2000-1-1",
+      "sCertificateNumber": "",
+      "sCertificateType": "identityCard",
+      "sGender": "male",
+      "sHometown": "",
+      "sListType": "permanent",
+      "sName": "",
+      "sNation": "汉",
+      "sNote": "",
+      "sPicturePath": "",
+      "sRegistrationTime": "",
+      "sType": "whiteList"
+    },
+    {
+      "sTelephoneNumber": 0,
+      "id": 1,
+      "sAddress": "",
+      "sAge": "",
+      "sBirthday": "2000-1-1",
+      "sCertificateNumber": "",
+      "sCertificateType": "identityCard",
+      "sGender": "male",
+      "sHometown": "",
+      "sListType": "permanent",
+      "sName": "",
+      "sNation": "汉",
+      "sNote": "",
+      "sPicturePath": "",
+      "sRegistrationTime": "",
+      "sType": "whiteList"
+    }
+  ]
 }

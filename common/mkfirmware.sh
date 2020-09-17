@@ -18,6 +18,7 @@ fi
 USER_DATA_DIR=$TOP_DIR/device/rockchip/userdata/$RK_USERDATA_DIR
 MISC_IMG=$TOP_DIR/device/rockchip/rockimg/$RK_MISC
 ROOTFS_IMG=$TOP_DIR/$RK_ROOTFS_IMG
+ROOTFS_IMG_SOURCE=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.$RK_ROOTFS_TYPE
 RAMBOOT_IMG=$TOP_DIR/buildroot/output/$RK_CFG_RAMBOOT/images/ramboot.img
 if [ -n "${RK_CFG_RECOVERY}" ]; then
 RECOVERY_IMG=$TOP_DIR/buildroot/output/$RK_CFG_RECOVERY/images/recovery.img
@@ -87,10 +88,13 @@ check_partition_size() {
 				fi
 			;;
 			recovery)
-				if [ $part_size_bytes -lt `du -b $RECOVERY_IMG | awk '{print $1}'` ]
+				if [ -f $RECOVERY_IMG ]
 				then
-					echo -e "\e[31m error: recovery image size exceed parameter! \e[0m"
-					return -1
+					if [ $part_size_bytes -lt `du -b $RECOVERY_IMG | awk '{print $1}'` ]
+					then
+						echo -e "\e[31m error: recovery image size exceed parameter! \e[0m"
+						return -1
+					fi
 				fi
 			;;
 		esac
@@ -99,6 +103,9 @@ check_partition_size() {
 
 if [ $RK_ROOTFS_IMG ]
 then
+	if [ -f $ROOTFS_IMG_SOURCE ];then
+		ln -rsf $ROOTFS_IMG_SOURCE $ROOTFS_IMG
+	fi
 	if [ -f $ROOTFS_IMG ]
 	then
 		echo -n "create rootfs.img..."
@@ -193,6 +200,10 @@ then
         echo "done."
 fi
 
+if [ "$RK_UBOOT_FORMAT_TYPE" = "fit" ]; then
+        rm -f $ROCKDEV/trust.img
+        echo "uboot fotmat type is fit, so ignore trust.img..."
+else
 if [ -f $TRUST_IMG ]
 then
         echo -n "create trust.img..."
@@ -200,6 +211,7 @@ then
         echo "done."
 else
         echo -e "\e[31m error: $TRUST_IMG not found! \e[0m"
+fi
 fi
 
 if [ -f $LOADER ]
@@ -214,7 +226,7 @@ then
         echo "done."
 else
 	echo -e "\e[31m error: $LOADER not found,or there are multiple loaders! \e[0m"
-	rm $LOADER
+	rm $LOADER || true
 fi
 
 #if [ -f $SPINOR_LOADER ]

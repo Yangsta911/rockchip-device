@@ -1,5 +1,8 @@
 #!/bin/bash
 
+export LC_ALL=C
+unset RK_CFG_TOOLCHAIN
+
 CMD=`realpath $0`
 COMMON_DIR=`dirname $CMD`
 TOP_DIR=$(realpath $COMMON_DIR/../../..)
@@ -17,6 +20,55 @@ export RK_JOBS=$NPROC
 if [ ! -d "$TOP_DIR/rockdev/pack" ];then
 	mkdir -p rockdev/pack
 fi
+
+function usagekernel()
+{
+	echo "cd kernel"
+	echo "make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG"
+	echo "make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS"
+}
+
+function usageuboot()
+{
+	echo "cd u-boot"
+	echo "./make.sh $RK_UBOOT_DEFCONFIG"
+}
+
+function usagerootfs()
+{
+	echo "source envsetup.sh $RK_CFG_BUILDROOT"
+
+	case "${RK_ROOTFS_SYSTEM:-buildroot}" in
+		yocto)
+			;;
+		debian)
+			;;
+		distro)
+			;;
+		*)
+			echo "make"
+			;;
+	esac
+}
+
+function usagerecovery()
+{
+	echo "source envsetup.sh $RK_CFG_RECOVERY"
+	echo "$COMMON_DIR/mk-ramdisk.sh recovery.img $RK_CFG_RECOVERY"
+}
+
+function usageramboot()
+{
+	echo "source envsetup.sh $RK_CFG_RAMBOOT"
+	echo "$COMMON_DIR/mk-ramdisk.sh ramboot.img $RK_CFG_RAMBOOT"
+}
+
+function usagemodules()
+{
+	echo "cd kernel"
+	echo "make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG"
+	echo "make ARCH=$RK_ARCH modules -j$RK_JOBS"
+}
 
 function usage()
 {
@@ -79,6 +131,9 @@ function build_extboot() {
 }
 
 function build_uboot(){
+	if [ -z $RK_UBOOT_DEFCONFIG ]; then
+		return;
+	fi
 	echo "============Start build uboot============"
 	echo "TARGET_UBOOT_CONFIG=$RK_UBOOT_DEFCONFIG"
 	echo "========================================="
@@ -113,8 +168,9 @@ function build_kernel(){
 	echo "TARGET_ARCH          =$RK_ARCH"
 	echo "TARGET_KERNEL_CONFIG =$RK_KERNEL_DEFCONFIG"
 	echo "TARGET_KERNEL_DTS    =$RK_KERNEL_DTS"
+	echo "TARGET_KERNEL_CONFIG_FRAGMENT =$RK_KERNEL_DEFCONFIG_FRAGMENT"
 	echo "=========================================="
-	cd $TOP_DIR/kernel && make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG && make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS && cd -
+	cd $TOP_DIR/kernel && make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT && make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS && cd -
 	if [ $? -eq 0 ]; then
 		echo "====Build kernel ok!===="
 	else
@@ -127,8 +183,9 @@ function build_modules(){
 	echo "============Start build kernel modules============"
 	echo "TARGET_ARCH          =$RK_ARCH"
 	echo "TARGET_KERNEL_CONFIG =$RK_KERNEL_DEFCONFIG"
+	echo "TARGET_KERNEL_CONFIG_FRAGMENT =$RK_KERNEL_DEFCONFIG_FRAGMENT"
 	echo "=================================================="
-	cd $TOP_DIR/kernel && make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG && make ARCH=$RK_ARCH modules -j$RK_JOBS && cd -
+	cd $TOP_DIR/kernel && make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT && make ARCH=$RK_ARCH modules -j$RK_JOBS && cd -
 	if [ $? -eq 0 ]; then
 		echo "====Build kernel ok!===="
 	else
@@ -171,6 +228,8 @@ function build_ramboot(){
 	echo "====================================="
 	/usr/bin/time -f "you take %E to build ramboot" $COMMON_DIR/mk-ramdisk.sh ramboot.img $RK_CFG_RAMBOOT
 	if [ $? -eq 0 ]; then
+		rm $TOP_DIR/rockdev/boot.img
+		ln -s $TOP_DIR/buildroot/output/$RK_CFG_RAMBOOT/images/ramboot.img $TOP_DIR/rockdev/boot.img
 		echo "====Build ramboot ok!===="
 	else
 		echo "====Build ramboot failed!===="
@@ -204,6 +263,8 @@ function build_yocto(){
 	echo "=========Start build ramboot========="
 	echo "TARGET_MACHINE=$RK_YOCTO_MACHINE"
 	echo "====================================="
+
+	export LANG=en_US.UTF-8 LANGUAGE=en_US.en LC_ALL=en_US.UTF-8
 
 	cd yocto
 	ln -sf $RK_YOCTO_MACHINE.conf build/conf/local.conf
@@ -273,7 +334,7 @@ function build_rootfs(){
 			;;
 		distro)
 			build_distro
-			ROOTFS_IMG=yocto/output/images/rootfs.$RK_ROOTFS_TYPE
+			ROOTFS_IMG=distro/output/images/rootfs.$RK_ROOTFS_TYPE
 			;;
 		*)
 			if [ -n $RK_CFG_BUILDROOT ];then
@@ -355,7 +416,7 @@ function build_cleanall(){
 	cd $TOP_DIR/u-boot/ && make distclean && cd -
 	cd $TOP_DIR/kernel && make distclean && cd -
 	rm -rf $TOP_DIR/buildroot/output
-	rm -rf $TOP_DIR/yocto/build
+	rm -rf $TOP_DIR/yocto/build/tmp
 	rm -rf $TOP_DIR/distro/output
 	rm -rf $TOP_DIR/debian/binary
 }
@@ -590,7 +651,12 @@ function build_allsave(){
 #=========================
 
 if echo $@|grep -wqE "help|-h"; then
-	usage
+	if [ -n "$2" -a "$(type -t usage$2)" == function ]; then
+		echo "###Current SDK Default [ $2 ] Build Command###"
+		eval usage$2
+	else
+		usage
+	fi
 	exit 0
 fi
 

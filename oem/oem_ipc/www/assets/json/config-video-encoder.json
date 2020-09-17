@@ -18,9 +18,7 @@
     "name": "resolution",
     "items": {
       "mainStream": [
-        "1280*720",
-        "1920*1080",
-        "2560*1440"
+        "2688*1520"
       ],
       "subStream": [
         "640*480",
@@ -77,9 +75,7 @@
     "name": "outputDataType",
     "items": [
       "H.264",
-      "H.265",
-      "MPEG4",
-      "MJPEG"
+      "H.265"
     ]
   },
   {
