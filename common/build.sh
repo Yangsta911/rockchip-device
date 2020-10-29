@@ -3,16 +3,78 @@
 export LC_ALL=C
 unset RK_CFG_TOOLCHAIN
 
+function choose_target_board()
+{
+	echo
+	echo "You're building on Linux"
+	echo "Lunch menu...pick a combo:"
+	echo ""
+
+	echo "0. default BoardConfig.mk"
+	echo ${RK_TARGET_BOARD_ARRAY[@]} | xargs -n 1 | sed "=" | sed "N;s/\n/. /"
+
+	local INDEX
+	read -p "Which would you like? [0]: " INDEX
+	INDEX=$((${INDEX:-0} - 1))
+
+	if echo $INDEX | grep -vq [^0-9]; then
+		RK_BUILD_TARGET_BOARD="${RK_TARGET_BOARD_ARRAY[$INDEX]}"
+	else
+		echo "Lunching for Default BoardConfig.mk boards..."
+		RK_BUILD_TARGET_BOARD=BoardConfig.mk
+	fi
+}
+
+function build_select_board()
+{
+	TARGET_PRODUCT="device/rockchip/.target_product"
+	TARGET_PRODUCT_DIR=$(realpath ${TARGET_PRODUCT})
+
+	RK_TARGET_BOARD_ARRAY=( $(cd ${TARGET_PRODUCT_DIR}/; ls BoardConfig*.mk | sort) )
+
+	RK_TARGET_BOARD_ARRAY_LEN=${#RK_TARGET_BOARD_ARRAY[@]}
+	if [ $RK_TARGET_BOARD_ARRAY_LEN -eq 0 ]; then
+		echo "No available Board Config"
+		return
+	fi
+
+	choose_target_board
+
+	ln -rfs $TARGET_PRODUCT_DIR/$RK_BUILD_TARGET_BOARD device/rockchip/.BoardConfig.mk
+	echo "switching to board: `realpath $BOARD_CONFIG`"
+}
+
+function unset_board_config_all()
+{
+	local tmp_file=`mktemp`
+	grep -o "^export.*RK_.*=" `find $TOP_DIR/device/rockchip -name "Board*.mk" -type f` -h | sort | uniq > $tmp_file
+	source $tmp_file
+	rm -f $tmp_file
+}
+
 CMD=`realpath $0`
 COMMON_DIR=`dirname $CMD`
 TOP_DIR=$(realpath $COMMON_DIR/../../..)
+
 BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
+
+if [ ! -L "$BOARD_CONFIG" -a  "$1" != "lunch" ]; then
+	build_select_board
+fi
+unset_board_config_all
+[ -L "$BOARD_CONFIG" ] && source $BOARD_CONFIG
+source $TOP_DIR/device/rockchip/common/Version.mk
 CFG_DIR=$TOP_DIR/device/rockchip
 ROCKDEV=$TOP_DIR/rockdev
-[ -f $BOARD_CONFIG ] && source $BOARD_CONFIG
-source $TOP_DIR/device/rockchip/common/Version.mk
 PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
 SD_PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_SD_PARAMETER
+
+function check_config() {
+	if [ -z ${1} ];then
+		echo "====No Found config on `realpath $BOARD_CONFIG`. Just exit ..."
+		exit 0
+	fi
+}
 
 NPROC=`nproc`
 export RK_JOBS=$NPROC
@@ -23,20 +85,34 @@ fi
 
 function usagekernel()
 {
+	check_config $RK_KERNEL_DTS
+	check_config $RK_KERNEL_DEFCONFIG
 	echo "cd kernel"
-	echo "make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG"
+	echo "make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT"
 	echo "make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS"
 }
 
 function usageuboot()
 {
 	echo "cd u-boot"
-	echo "./make.sh $RK_UBOOT_DEFCONFIG"
+	echo "./make.sh $RK_UBOOT_DEFCONFIG" \
+		"${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG}" \
+		"${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG}" \
+		"${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG}" \
+		"${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}"
 }
 
 function usagerootfs()
 {
-	echo "source envsetup.sh $RK_CFG_BUILDROOT"
+	if [ "${RK_CFG_BUILDROOT}x" != "x" ];then
+		echo "source envsetup.sh $RK_CFG_BUILDROOT"
+	else
+		if [ "${RK_CFG_RAMBOOT}x" != "x" ];then
+			echo "source envsetup.sh $RK_CFG_RAMBOOT"
+		else
+			echo "Not found config buildroot. Please Check !!!"
+		fi
+	fi
 
 	case "${RK_ROOTFS_SYSTEM:-buildroot}" in
 		yocto)
@@ -53,12 +129,14 @@ function usagerootfs()
 
 function usagerecovery()
 {
+	check_config $RK_CFG_RECOVERY
 	echo "source envsetup.sh $RK_CFG_RECOVERY"
 	echo "$COMMON_DIR/mk-ramdisk.sh recovery.img $RK_CFG_RECOVERY"
 }
 
 function usageramboot()
 {
+	check_config $RK_CFG_RAMBOOT
 	echo "source envsetup.sh $RK_CFG_RAMBOOT"
 	echo "$COMMON_DIR/mk-ramdisk.sh ramboot.img $RK_CFG_RAMBOOT"
 }
@@ -75,8 +153,10 @@ function usage()
 	echo "Usage: build.sh [OPTIONS]"
 	echo "Available options:"
 	echo "*.mk               -switch to specified board config"
+	echo "lunch              -list current SDK boards and switch to specified board config"
 	echo "uboot              -build uboot"
 	echo "spl                -build spl"
+	echo "loader             -build loader"
 	echo "kernel             -build kernel"
 	echo "modules            -build kernel modules"
 	echo "toolchain          -build toolchain"
@@ -99,9 +179,32 @@ function usage()
 	echo "otapackage         -pack ab update otapackage image"
 	echo "save               -save images, patches, commands used to debug"
 	echo "allsave            -build all & firmware & updateimg & save"
+	echo "check              -check the environment of building"
 	echo "allff              -build all & firmware & updateimg"
 	echo ""
 	echo "Default option is 'allff'."
+}
+
+function build_check(){
+	local build_depend_cfg="build-depend-tools.txt"
+	common_product_build_tools="$TOP_DIR/device/rockchip/common/$build_depend_cfg"
+	target_product_build_tools="$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$build_depend_cfg"
+	cat $common_product_build_tools $target_product_build_tools 2>/dev/null | while read chk_item
+		do
+			chk_item=${chk_item###*}
+			if [ -z "$chk_item" ]; then
+				continue
+			fi
+
+			dst=${chk_item%%,*}
+			src=${chk_item##*,}
+			eval $dst 1>/dev/null 2>&1
+			if [ $? -ne 0 ];then
+				echo "**************************************"
+				echo "Please install ${dst%% *} first"
+				echo "    sudo apt-get install $src"
+			fi
+		done
 }
 
 function build_extboot() {
@@ -138,7 +241,13 @@ function build_uboot(){
 	echo "TARGET_UBOOT_CONFIG=$RK_UBOOT_DEFCONFIG"
 	echo "========================================="
 	rm -f u-boot/*_loader_*.bin
-	cd u-boot && ./make.sh $RK_UBOOT_DEFCONFIG && cd -
+	cd u-boot && ./make.sh $RK_UBOOT_DEFCONFIG \
+		${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG} \
+		${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG} \
+		${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG} \
+		${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG} \
+		&& cd -
+
 	if [ $? -eq 0 ]; then
 		echo "====Build uboot ok!===="
 	else
@@ -163,6 +272,22 @@ function build_spl(){
 	fi
 }
 
+function build_loader(){
+	if [ -z $RK_LOADER_BUILD_TARGET ]; then
+		return;
+	fi
+	echo "============Start build loader============"
+	echo "RK_LOADER_BUILD_TARGET=$RK_LOADER_BUILD_TARGET"
+	echo "=========================================="
+	cd loader && ./build.sh $RK_LOADER_BUILD_TARGET && cd -
+	if [ $? -eq 0 ]; then
+		echo "====Build loader ok!===="
+	else
+		echo "====Build loader failed!===="
+		exit 1
+	fi
+}
+
 function build_kernel(){
 	echo "============Start build kernel============"
 	echo "TARGET_ARCH          =$RK_ARCH"
@@ -172,6 +297,9 @@ function build_kernel(){
 	echo "=========================================="
 	cd $TOP_DIR/kernel && make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT && make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS && cd -
 	if [ $? -eq 0 ]; then
+		if [ -f "$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS" ];then
+			$COMMON_DIR/mk-fitimage.sh $TOP_DIR/kernel/$RK_BOOT_IMG $TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS
+		fi
 		echo "====Build kernel ok!===="
 	else
 		echo "====Build kernel failed!===="
@@ -213,6 +341,10 @@ function build_buildroot(){
 	echo "==========Start build buildroot=========="
 	echo "TARGET_BUILDROOT_CONFIG=$RK_CFG_BUILDROOT"
 	echo "========================================="
+	if [ -z ${RK_CFG_BUILDROOT} ];then
+		echo "====No Found config on `realpath $BOARD_CONFIG`. Just exit ..."
+		return
+	fi
 	/usr/bin/time -f "you take %E to build builroot" $COMMON_DIR/mk-buildroot.sh $BOARD_CONFIG
 	if [ $? -eq 0 ]; then
 		echo "====Build buildroot ok!===="
@@ -226,10 +358,14 @@ function build_ramboot(){
 	echo "=========Start build ramboot========="
 	echo "TARGET_RAMBOOT_CONFIG=$RK_CFG_RAMBOOT"
 	echo "====================================="
+	if [ -z ${RK_CFG_RAMBOOT} ];then
+		echo "====No Found config on `realpath $BOARD_CONFIG`. Just exit ..."
+		return
+	fi
 	/usr/bin/time -f "you take %E to build ramboot" $COMMON_DIR/mk-ramdisk.sh ramboot.img $RK_CFG_RAMBOOT
 	if [ $? -eq 0 ]; then
 		rm $TOP_DIR/rockdev/boot.img
-		ln -s $TOP_DIR/buildroot/output/$RK_CFG_RAMBOOT/images/ramboot.img $TOP_DIR/rockdev/boot.img
+		ln -rfs $TOP_DIR/buildroot/output/$RK_CFG_RAMBOOT/images/ramboot.img $TOP_DIR/rockdev/boot.img
 		echo "====Build ramboot ok!===="
 	else
 		echo "====Build ramboot failed!===="
@@ -372,6 +508,10 @@ function build_pcba(){
 	echo "==========Start build pcba=========="
 	echo "TARGET_PCBA_CONFIG=$RK_CFG_PCBA"
 	echo "===================================="
+	if [ -z ${RK_CFG_PCBA} ];then
+		echo "====No Found config on `realpath $BOARD_CONFIG`. Just exit ..."
+		return
+	fi
 	/usr/bin/time -f "you take %E to build pcba" $COMMON_DIR/mk-ramdisk.sh pcba.img $RK_CFG_PCBA
 	if [ $? -eq 0 ]; then
 		echo "====Build pcba ok!===="
@@ -404,6 +544,7 @@ function build_all(){
 		build_spl
 	fi
 
+	build_loader
 	build_kernel
 	build_toolchain && \
 	build_rootfs ${RK_ROOTFS_SYSTEM:-buildroot}
@@ -512,7 +653,7 @@ function build_updateimg(){
 		echo "Make Linux a/b update.img."
 		build_otapackage
 		source_package_file_name=`ls -lh $PACK_TOOL_DIR/rockdev/package-file | awk -F ' ' '{print $NF}'`
-		cd $PACK_TOOL_DIR/rockdev && ln -fs "$source_package_file_name"-ab package-file && ./mkupdate.sh && cd -
+		cd $PACK_TOOL_DIR/rockdev && ln -fs "$PACK_TOOL_DIR/rockdev/$RK_PACKAGE_FILE"-ab package-file && ./mkupdate.sh && cd -
 		mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/update_ab.img
 		cd $PACK_TOOL_DIR/rockdev && ln -fs $source_package_file_name package-file && cd -
 		if [ $? -eq 0 ]; then
@@ -523,8 +664,19 @@ function build_updateimg(){
 		fi
 
     else
-	echo "Make update.img"
-	cd $PACK_TOOL_DIR/rockdev && ./mkupdate.sh && cd -
+		echo "Make update.img"
+		if [ -f "$PACK_TOOL_DIR/rockdev/$RK_PACKAGE_FILE" ]; then
+			source_package_file_name=`ls -lh $PACK_TOOL_DIR/rockdev/package-file | awk -F ' ' '{print $NF}'`
+
+			cd $PACK_TOOL_DIR/rockdev && \
+				ln -fs "$PACK_TOOL_DIR/rockdev/$RK_PACKAGE_FILE" package-file && \
+				./mkupdate.sh && cd -
+
+			cd $PACK_TOOL_DIR/rockdev && \
+				ln -fs $source_package_file_name package-file && cd -
+		else
+			cd $PACK_TOOL_DIR/rockdev && ./mkupdate.sh && cd -
+		fi
 	mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/pack/$IMGNAME
 	rm -rf $IMAGE_PATH/update.img
 	if [ $? -eq 0 ]; then
@@ -596,7 +748,7 @@ function build_otapackage(){
 
 	echo "Make ota ab update.img"
 	source_package_file_name=`ls -lh $PACK_TOOL_DIR/rockdev/package-file | awk -F ' ' '{print $NF}'`
-	cd $PACK_TOOL_DIR/rockdev && ln -fs "$source_package_file_name"-ota package-file && ./mkupdate.sh && cd -
+	cd $PACK_TOOL_DIR/rockdev && ln -fs "$PACK_TOOL_DIR/rockdev/$RK_PACKAGE_FILE"-ota package-file && ./mkupdate.sh && cd -
 	mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/update_ota.img
 	cd $PACK_TOOL_DIR/rockdev && ln -fs $source_package_file_name package-file && cd -
 	if [ $? -eq 0 ]; then
@@ -646,6 +798,7 @@ function build_allsave(){
 	build_updateimg
 	build_save
 }
+
 #=========================
 # build targets
 #=========================
@@ -660,8 +813,12 @@ if echo $@|grep -wqE "help|-h"; then
 	exit 0
 fi
 
-OPTIONS="$@"
-for option in ${OPTIONS:-allff}; do
+OPTIONS="${@:-allff}"
+
+[ -f "$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_BOARD_PRE_BUILD_SCRIPT" ] \
+	&& source "$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_BOARD_PRE_BUILD_SCRIPT"  # board hooks
+
+for option in ${OPTIONS}; do
 	echo "processing option: $option"
 	case $option in
 		*.mk)
@@ -698,6 +855,13 @@ for option in ${OPTIONS:-allff}; do
 		buildroot|debian|distro|yocto)
 			build_rootfs $option
 			;;
+		lunch)
+			build_select_board
+			;;
+		recovery)
+			check_config ${RK_CFG_RECOVERY}
+			build_kernel
+			;&
 		*)
 			shift
 			eval build_$option $@ || usage

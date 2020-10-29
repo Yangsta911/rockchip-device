@@ -6,14 +6,22 @@ SCRIPT_DIR=$(dirname $(realpath $BASH_SOURCE))
 TOP_DIR=$(realpath $SCRIPT_DIR/../../..)
 cd $TOP_DIR
 
+function unset_board_config_all()
+{
+	local tmp_file=`mktemp`
+	grep -o "^export.*RK_.*=" `find $TOP_DIR/device/rockchip -name "Board*.mk" -type f` -h | sort | uniq > $tmp_file
+	source $tmp_file
+	rm -f $tmp_file
+}
+unset_board_config_all
+
 source $TOP_DIR/device/rockchip/.BoardConfig.mk
 ROCKDEV=$TOP_DIR/rockdev
 PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
-CHECK_RK_OEM_FLAG="`grep -w "^BR2_PACKAGE_RK_OEM=y" $TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/.config 2>/dev/null; true;`"
-if [ "${CHECK_RK_OEM_FLAG}x" != "x" ]; then
-OEM_DIR=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/oem
+if [ "${RK_OEM_DIR}x" != "x" ];then
+	OEM_DIR=$TOP_DIR/device/rockchip/oem/$RK_OEM_DIR
 else
-OEM_DIR=$TOP_DIR/device/rockchip/oem/$RK_OEM_DIR
+	OEM_DIR=
 fi
 USER_DATA_DIR=$TOP_DIR/device/rockchip/userdata/$RK_USERDATA_DIR
 MISC_IMG=$TOP_DIR/device/rockchip/rockimg/$RK_MISC
@@ -26,7 +34,13 @@ else
 RECOVERY_IMG=$ROCKDEV/recovery.img
 fi
 IDBLOADER_IMG=$TOP_DIR/u-boot/idbloader.img
-FAKEROOT_TOOL=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/host/bin/fakeroot
+if which fakeroot; then
+FAKEROOT_TOOL="`which fakeroot`"
+else
+	echo -e "Install fakeroot First."
+	echo -e "  sudo apt-get install fakeroot"
+	exit -1
+fi
 OEM_FAKEROOT_SCRIPT=$ROCKDEV/oem.fs
 USERDATA_FAKEROOT_SCRIPT=$ROCKDEV/userdata.fs
 TRUST_IMG=$TOP_DIR/u-boot/trust.img
@@ -42,7 +56,7 @@ mkdir -p $ROCKDEV
 #Move to mk-image.sh, for ubuntu and debian os not need
 #if [ ! -d "$TARGET_OUTPUT_DIR" ]; then
 #    echo "Source buildroot/build/envsetup.sh"
-#    source $TOP_DIR/buildroot/build/envsetup.sh $RK_CFG_BUILDROOT
+
 #fi
 
 check_partition_size() {
@@ -151,9 +165,9 @@ then
 	fi
 fi
 
-if [ $RK_OEM_DIR ]
+if [ "${RK_OEM_BUILDIN_BUILDROOT}x" != "YESx" ]
 then
-	if [ -d $OEM_DIR ]
+	if [ -d "$OEM_DIR" ]
 	then
 		echo "#!/bin/sh" > $OEM_FAKEROOT_SCRIPT
 		echo "set -e" >> $OEM_FAKEROOT_SCRIPT
@@ -167,11 +181,15 @@ then
 	else
 		echo "warning: $OEM_DIR  not found!"
 	fi
+else
+	if [ -f "$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/images/oem.img" ]; then
+		ln -sfr $TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/images/oem.img $ROCKDEV/oem.img
+	fi
 fi
 
 if [ $RK_USERDATA_DIR ]
 then
-	if [ -d $USER_DATA_DIR ]
+	if [ -d "$USER_DATA_DIR" ]
 	then
 		echo "#!/bin/sh" > $USERDATA_FAKEROOT_SCRIPT
 		echo "set -e" >> $USERDATA_FAKEROOT_SCRIPT
