@@ -858,10 +858,6 @@ for option in ${OPTIONS}; do
 		lunch)
 			build_select_board
 			;;
-		recovery)
-			check_config ${RK_CFG_RECOVERY}
-			build_kernel
-			;&
 		*)
 			shift
 			eval build_$option $@ || usage
