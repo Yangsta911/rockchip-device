@@ -116,6 +116,14 @@ function usageuboot()
 		"${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG}" \
 		"${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG}" \
 		"${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}"
+
+	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
+		echo "./make.sh --spl"
+	fi
+
+	if [ "$RK_BUILD_SPI_NOR" = "true" ]; then
+		echo "./make.sh --idblock"
+	fi
 }
 
 function usagerootfs()
@@ -187,8 +195,8 @@ function usage()
 	echo "ramboot            -build ramboot image"
 	echo "multi-npu_boot     -build boot image for multi-npu board"
 	echo "yocto              -build yocto rootfs"
-	echo "debian             -build debian9 stretch rootfs"
-	echo "distro             -build debian10 buster rootfs"
+	echo "debian             -build debian10 buster/x11 rootfs"
+	echo "distro             -build debian10 buster/wayland rootfs"
 	echo "pcba               -build pcba"
 	echo "recovery           -build recovery"
 	echo "all                -build uboot, kernel, rootfs, recovery image"
@@ -243,6 +251,10 @@ function build_uboot(){
 	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
 		rm -f *spl.bin
 		./make.sh --spl
+	fi
+
+	if [ "$RK_BUILD_SPI_NOR" = "true" ]; then
+		./make.sh --idblock
 	fi
 
 	finish_build
@@ -393,10 +405,10 @@ function build_debian(){
 	esac
 
 	cd debian
-	[ ! -e linaro-stretch-alip-*.tar.gz ] && \
-		RELEASE=stretch TARGET=desktop ARCH=$ARCH ./mk-base-debian.sh
+	[ ! -e linaro-buster-alip-*.tar.gz ] && \
+		RELEASE=buster TARGET=desktop ARCH=$ARCH ./mk-base-debian.sh
 
-	VERSION=debug ARCH=$ARCH ./mk-rootfs-stretch.sh
+	VERSION=debug ARCH=$ARCH ./mk-rootfs-buster.sh
 	./mk-image.sh
 
 	finish_build
@@ -424,7 +436,7 @@ function build_rootfs(){
 	ROOTFS_IMG=${RK_ROOTFS_IMG##*/}
 
 	rm -rf $RK_ROOTFS_IMG $RK_ROOTFS_DIR
-	mkdir -p $RK_ROOTFS_DIR
+	mkdir -p ${RK_ROOTFS_IMG%/*} $RK_ROOTFS_DIR
 
 	case "$1" in
 		yocto)
@@ -463,8 +475,6 @@ function build_rootfs(){
 
 function build_recovery(){
 	check_config RK_CFG_RECOVERY && return
-
-	build_kernel
 
 	echo "==========Start building recovery=========="
 	echo "TARGET_RECOVERY_CONFIG=$RK_CFG_RECOVERY"
@@ -549,10 +559,31 @@ function build_updateimg(){
 	IMAGE_PATH=$TOP_DIR/rockdev
 	PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware
 
-	cd $PACK_TOOL_DIR/rockdev
+	if [ "$RK_BUILD_SPI_NOR" = "true" ]; then
+		mkdir -p $IMAGE_PATH
+		PACK_TOOL_DIR=$TOP_DIR/tools/linux/Firmware_Merger/
+		cd $PACK_TOOL_DIR/
+		if [ ! -f "$TOP_DIR/u-boot/idblock.bin" ]; then
+			echo "Error: idblock.bin not found!!!"
+			exit 1
+		fi
+
+		if [ ! -f "$RK_PACKAGE_FILE" ]; then
+			echo "Error: $RK_PACKAGE_FILE not found!!!"
+			exit 1
+		fi
+
+		ln -fs "$TOP_DIR/u-boot/idblock.bin" $IMAGE_PATH/
+		./firmware_merger -P $RK_PACKAGE_FILE $IMAGE_PATH
+		rm -f $IMAGE_PATH/idblock.bin
+		finish_build
+		return
+	fi
+
 	if [ "$RK_LINUX_AB_ENABLE" == "true" ];then
 		echo "Make Linux a/b update.img."
 		build_otapackage
+                cd $PACK_TOOL_DIR/rockdev
 		source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
 		ln -fs "$RK_PACKAGE_FILE"-ab package-file
 		./mkupdate.sh
@@ -560,6 +591,7 @@ function build_updateimg(){
 		ln -fs $source_package_file_name package-file
 	else
 		echo "Make update.img"
+	        cd $PACK_TOOL_DIR/rockdev
 
 		if [ -f "$RK_PACKAGE_FILE" ]; then
 			source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
@@ -662,7 +694,7 @@ for option in ${OPTIONS}; do
 				exit 1
 			fi
 
-			ln -sf $CONF $BOARD_CONFIG
+			ln -rsf $CONF $BOARD_CONFIG
 			;;
 		lunch) build_select_board ;;
 		all) build_all ;;

@@ -11,7 +11,7 @@ export RK_KERNEL_DEFCONFIG=rockchip_linux_defconfig
 # Kernel defconfig fragment
 export RK_KERNEL_DEFCONFIG_FRAGMENT=rockchip_linux_bifrost.config
 # Kernel dts
-export RK_KERNEL_DTS=rk3568-evb1-ddr4-v10-linux
+export RK_KERNEL_DTS=rk3568-nvr-demo-v10-linux
 # boot image type
 export RK_BOOT_IMG=boot.img
 # kernel image path
@@ -36,6 +36,8 @@ export RK_JOBS=12
 export RK_TARGET_PRODUCT=rk356x
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
+# yocto machine
+export RK_YOCTO_MACHINE=rockchip-rk3568-evb
 # rootfs image path
 export RK_ROOTFS_IMG=rockdev/rootfs.${RK_ROOTFS_TYPE}
 # Set ramboot image type
