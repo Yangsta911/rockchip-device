@@ -21,7 +21,7 @@ export RK_KERNEL_FIT_ITS=boot.its
 # parameter for GPT table
 export RK_PARAMETER=parameter-facial-gate.txt
 # Buildroot config
-export RK_CFG_BUILDROOT=rockchip_rv1126_rv1109_facial_gate
+export RK_CFG_BUILDROOT=firefly_rv1126_rv1109_facial_gate
 # Recovery config
 export RK_CFG_RECOVERY=rockchip_rv1126_rv1109_recovery
 # Recovery image format type: fit(flattened image tree)
