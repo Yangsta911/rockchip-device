@@ -28,7 +28,12 @@ MISC_IMG=$TOP_DIR/device/rockchip/rockimg/$RK_MISC
 ROOTFS_IMG=$TOP_DIR/$RK_ROOTFS_IMG
 ROOTFS_IMG_SOURCE=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.$RK_ROOTFS_TYPE
 RAMBOOT_IMG=$TOP_DIR/buildroot/output/$RK_CFG_RAMBOOT/images/ramboot.img
+if [ -n "${RK_CFG_RECOVERY}" ]; then
 RECOVERY_IMG=$TOP_DIR/buildroot/output/$RK_CFG_RECOVERY/images/recovery.img
+else
+RECOVERY_IMG=$ROCKDEV/recovery.img
+fi
+IDBLOADER_IMG=$TOP_DIR/u-boot/idbloader.img
 if which fakeroot; then
 FAKEROOT_TOOL="`which fakeroot`"
 else
@@ -48,15 +53,11 @@ MKIMAGE=$SCRIPT_DIR/mk-image.sh
 mkdir -p $ROCKDEV
 
 # Require buildroot host tools to do image packing.
-if [ ! -d "$TARGET_OUTPUT_DIR" ]; then
-    echo "Source buildroot/build/envsetup.sh"
-	if [ "${RK_CFG_RAMBOOT}x" != "x" ];then
-		source $TOP_DIR/buildroot/build/envsetup.sh $RK_CFG_RAMBOOT
-	fi
-	if [ "${RK_CFG_BUILDROOT}x" != "x" ];then
-		source $TOP_DIR/buildroot/build/envsetup.sh $RK_CFG_BUILDROOT
-	fi
-fi
+#Move to mk-image.sh, for ubuntu and debian os not need
+#if [ ! -d "$TARGET_OUTPUT_DIR" ]; then
+#    echo "Source buildroot/build/envsetup.sh"
+
+#fi
 
 check_partition_size() {
 	echo $PARAMETER
@@ -110,22 +111,15 @@ check_partition_size() {
 					fi
 				fi
 			;;
-			rootfs)
-				if [ -f $ROOTFS_IMG ]
-				then
-					if [ $part_size_bytes -lt `du -bD $ROOTFS_IMG | awk '{print $1}'` ]
-					then
-						echo -e "\e[31m error: rootfs image size exceed parameter! \e[0m"
-						return -1
-					fi
-				fi
-			;;
 		esac
 	done
 }
 
 if [ $RK_ROOTFS_IMG ]
 then
+	if [ -f $ROOTFS_IMG_SOURCE ];then
+		ln -rsf $ROOTFS_IMG_SOURCE $ROOTFS_IMG
+	fi
 	if [ -f $ROOTFS_IMG ]
 	then
 		echo -n "create rootfs.img..."
@@ -133,10 +127,7 @@ then
 		echo "done."
 	else
 		echo "warning: $ROOTFS_IMG not found!"
-		if [ -f $ROOTFS_IMG_SOURCE ];then
-			echo "Fallback to $ROOTFS_IMG_SOURCE"
-			ln -rsf $ROOTFS_IMG_SOURCE $ROCKDEV/rootfs.img
-		fi
+		echo -e "\nplease set correct \e[31m RK_ROOTFS_IMG \e[0m in \e[31m device/rockchip/.BoardConfig.mk \e[0m\n"
 	fi
 fi
 
@@ -183,11 +174,7 @@ then
 		if [ -d $OEM_DIR/www ]; then
 			echo "chown -R www-data:www-data $OEM_DIR/www" >> $OEM_FAKEROOT_SCRIPT
 		fi
-		if [ "$RK_OEM_FS_TYPE" = "ubi" ]; then
-			echo "$MKIMAGE $OEM_DIR $ROCKDEV/oem.img $RK_OEM_FS_TYPE $RK_OEM_PARTITION_SIZE oem $RK_UBI_PAGE_SIZE $RK_UBI_BLOCK_SIZE"  >> $OEM_FAKEROOT_SCRIPT
-		else
-			echo "$MKIMAGE $OEM_DIR $ROCKDEV/oem.img $RK_OEM_FS_TYPE"  >> $OEM_FAKEROOT_SCRIPT
-		fi
+		echo "$MKIMAGE $OEM_DIR $ROCKDEV/oem.img $RK_OEM_FS_TYPE"  >> $OEM_FAKEROOT_SCRIPT
 		chmod a+x $OEM_FAKEROOT_SCRIPT
 		$FAKEROOT_TOOL -- $OEM_FAKEROOT_SCRIPT
 		rm -f $OEM_FAKEROOT_SCRIPT
@@ -206,11 +193,7 @@ then
 	then
 		echo "#!/bin/sh" > $USERDATA_FAKEROOT_SCRIPT
 		echo "set -e" >> $USERDATA_FAKEROOT_SCRIPT
-		if [ "$RK_USERDATA_FS_TYPE" = "ubi" ]; then
-			echo "$MKIMAGE $USER_DATA_DIR $ROCKDEV/userdata.img $RK_USERDATA_FS_TYPE $RK_USERDATA_PARTITION_SIZE userdata $RK_UBI_PAGE_SIZE $RK_UBI_BLOCK_SIZE"  >> $USERDATA_FAKEROOT_SCRIPT
-		else
-			echo "$MKIMAGE $USER_DATA_DIR $ROCKDEV/userdata.img $RK_USERDATA_FS_TYPE"  >> $USERDATA_FAKEROOT_SCRIPT
-		fi
+		echo "$MKIMAGE $USER_DATA_DIR $ROCKDEV/userdata.img $RK_USERDATA_FS_TYPE"  >> $USERDATA_FAKEROOT_SCRIPT
 		chmod a+x $USERDATA_FAKEROOT_SCRIPT
 		$FAKEROOT_TOOL -- $USERDATA_FAKEROOT_SCRIPT
 		rm -f $USERDATA_FAKEROOT_SCRIPT
@@ -226,6 +209,13 @@ then
         echo "done."
 else
         echo -e "\e[31m error: $UBOOT_IMG not found! \e[0m"
+fi
+
+if [ -f $IDBLOADER_IMG ]
+then
+        echo -n "create idbloader.img..."
+        ln -s -f $IDBLOADER_IMG $ROCKDEV/idbloader.img
+        echo "done."
 fi
 
 if [ "$RK_UBOOT_FORMAT_TYPE" = "fit" ]; then

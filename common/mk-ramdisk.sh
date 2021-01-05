@@ -13,11 +13,6 @@ RAMDISK_IMG=$1
 RAMDISK_CFG=$2
 RAMDISK_TYPE=$RK_RAMBOOT_TYPE
 echo "config is $RAMDISK_CFG"
-if [ -z $RAMDISK_CFG ]
-then
-	echo "config for building $RAMDISK_IMG doesn't exist, skip!"
-	exit 0
-fi
 
 BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
 source $BOARD_CONFIG
@@ -28,6 +23,19 @@ else
 fi
 
 KERNEL_DTB=$TOP_DIR/kernel/resource.img
+
+if [ -z $RAMDISK_CFG ]
+then
+	if [ -n "$RK_RECOVERY_RAMDISK" ]; then
+		ROOTFS_IMAGE=$TOP_DIR/device/rockchip/rockimg/$RK_RECOVERY_RAMDISK
+		TARGET_IMAGE=$TOP_DIR/rockdev/recovery.img
+		rm -f $TARGET_IMAGE
+		echo "use prebuilt $RK_RECOVERY_RAMDISK for CPIO image"
+	else
+		echo "config for building $RAMDISK_IMG doesn't exist, skip!"
+		exit 0
+	fi
+fi
 
 # build kernel
 if [ -f $KERNEL_IMAGE ]
@@ -43,38 +51,40 @@ else
 	fi
 fi
 
-source $TOP_DIR/buildroot/build/envsetup.sh $RAMDISK_CFG
-CPIO_IMG=$TOP_DIR/buildroot/output/$RAMDISK_CFG/images/rootfs.cpio.gz
-ROMFS_IMG=$TOP_DIR/buildroot/output/$RAMDISK_CFG/images/rootfs.romfs
-TARGET_IMAGE=$TOP_DIR/buildroot/output/$RAMDISK_CFG/images/$RAMDISK_IMG
+if [ -n "$RAMDISK_CFG" ]; then
 
-if [ -z $RAMDISK_TYPE ]
-then
-RAMDISK_TYPE=CPIO
-fi
+	source $TOP_DIR/buildroot/build/envsetup.sh $RAMDISK_CFG
+	CPIO_IMG=$TOP_DIR/buildroot/output/$RAMDISK_CFG/images/rootfs.cpio.gz
+	ROMFS_IMG=$TOP_DIR/buildroot/output/$RAMDISK_CFG/images/rootfs.romfs
+	TARGET_IMAGE=$TOP_DIR/buildroot/output/$RAMDISK_CFG/images/$RAMDISK_IMG
 
-eval ROOTFS_IMAGE=\$${RAMDISK_TYPE}_IMG
+	if [ -z $RAMDISK_TYPE ]
+	then
+	RAMDISK_TYPE=CPIO
+	fi
+	eval ROOTFS_IMAGE=\$${RAMDISK_TYPE}_IMG
 
-# build ramdisk
-echo "====Start build $RAMDISK_CFG===="
-$TOP_DIR/buildroot/utils/brmake
-if [ $? -eq 0 ]; then
-    echo "log saved on $TOP_DIR/br.log"
-    echo "====Build $RAMDISK_CFG ok!===="
-else
-    echo "log saved on $TOP_DIR/br.log"
-    echo "====Build $RAMDISK_CFG failed!===="
-    tail -n 100 $TOP_DIR/br.log
-    exit 1
-fi
+	# build ramdisk
+	echo "====Start build $RAMDISK_CFG===="
+	$TOP_DIR/buildroot/utils/brmake
+	if [ $? -eq 0 ]; then
+	    echo "log saved on $TOP_DIR/br.log"
+	    echo "====Build $RAMDISK_CFG ok!===="
+	else
+	    echo "log saved on $TOP_DIR/br.log"
+	    echo "====Build $RAMDISK_CFG failed!===="
+	    tail -n 100 $TOP_DIR/br.log
+	    exit 1
+	fi
 
-if [ $RAMDISK_TYPE == ROMFS ]
-then
-# Do compress for tinyrootfs
-cat $ROOTFS_IMAGE | gzip -n -f -9 > $ROOTFS_IMAGE.gz
-cat $KERNEL_IMAGE | gzip -n -f -9 > $KERNEL_IMAGE.gz
-ROOTFS_IMAGE=$ROOTFS_IMAGE.gz
-KERNEL_IMAGE=$KERNEL_IMAGE.gz
+	if [ $RAMDISK_TYPE == ROMFS ]
+	then
+	# Do compress for tinyrootfs
+	cat $ROOTFS_IMAGE | gzip -n -f -9 > $ROOTFS_IMAGE.gz
+	cat $KERNEL_IMAGE | gzip -n -f -9 > $KERNEL_IMAGE.gz
+	ROOTFS_IMAGE=$ROOTFS_IMAGE.gz
+	KERNEL_IMAGE=$KERNEL_IMAGE.gz
+	fi
 fi
 
 echo -n "pack $RAMDISK_IMG..."
