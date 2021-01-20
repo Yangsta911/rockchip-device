@@ -100,6 +100,14 @@ function usageuboot()
 		"${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG}" \
 		"${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG}" \
 		"${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}"
+
+	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
+		echo "./make.sh --spl"
+	fi
+
+	if [ "$RK_BUILD_SPI_NOR" = "true" ]; then
+		echo "./make.sh --idblock --spl"
+	fi
 }
 
 function usagerootfs()
@@ -254,6 +262,16 @@ function build_uboot(){
 		echo "====Build uboot failed!===="
 		exit 1
 	fi
+
+	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
+		rm -f *spl.bin
+		./make.sh --spl
+	fi
+
+	if [ "$RK_BUILD_SPI_NOR" = "true" ]; then
+		./make.sh --idblock --spl
+	fi
+
 }
 
 function build_spl(){

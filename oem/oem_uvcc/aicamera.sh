@@ -1,6 +1,25 @@
 #!/bin/sh
 #
 
+TRY_CNT=0
+check_uvc_buffer()
+{
+  if [ "$TRY_CNT" -gt 0 ];then
+     let TRY_CNT=TRY_CNT-1
+     #echo "++++++++TRY_CNT:$TRY_CNT"
+  fi
+  if [ "$TRY_CNT" -gt 10 ];then
+     echo "+++check_uvc_buffer recovery fail,reboot to recovery now+++"
+     reboot &
+  fi
+  if [ -e /tmp/uvc_camera_no_buf ];then
+     let TRY_CNT=TRY_CNT+10
+     echo "uvc no buf to send 200 frames,try to recovery isp time,timeout:$TRY_CNT"
+     killall ispserver
+     killall aiserver
+     rm /tmp/uvc_camera_no_buf -rf
+  fi
+}
 check_alive()
 {
   PID=`busybox ps |grep $1 |grep -v grep | wc -l`
@@ -16,7 +35,7 @@ check_alive()
        uvc_app &
      else
        if [ "$1"x == "ispserver"x ];then
-          ispserver -no-sync-db &
+          ispserver -n &
        else
          if [ "$1"x == "aiserver"x ];then
             echo "aiserver is die,tell uvc to recovery"
@@ -47,9 +66,9 @@ usb_irq_set()
   echo "usb irq:$usbirq"
   echo 1 > /proc/irq/$usbirq/smp_affinity_list
 }
-ulimit -c unlimited
+#ulimit -c unlimited
 dbserver &
-ispserver -no-sync-db &
+ispserver -n &
 stop_unused_daemon
 /oem/usb_config.sh rndis
 usb_irq_set
@@ -61,6 +80,7 @@ do
   check_alive ispserver
   check_alive uvc_app
   check_alive aiserver
+  check_uvc_buffer
   sleep 2
   check_alive smart_display_service
 done
