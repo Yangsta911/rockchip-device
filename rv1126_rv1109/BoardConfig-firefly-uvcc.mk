@@ -25,7 +25,7 @@ export RK_KERNEL_IMG=kernel/arch/arm/boot/zImage
 # parameter for GPT table
 export RK_PARAMETER=parameter-buildroot-fit.txt
 # Buildroot config
-export RK_CFG_BUILDROOT=rockchip_rv1126_rv1109_uvcc
+export RK_CFG_BUILDROOT=firefly_rv1126_rv1109_uvcc
 # Recovery config
 export RK_CFG_RECOVERY=
 # ramboot config
@@ -49,7 +49,7 @@ export RK_OEM_BUILDIN_BUILDROOT=YES
 # Set userdata partition type, including ext2, fat
 export RK_USERDATA_FS_TYPE=ext2
 #OEM config
-export RK_OEM_DIR=oem_uvcc
+export RK_OEM_DIR=oem_firefly_uvcc
 #userdata config
 export RK_USERDATA_DIR=userdata_normal
 #misc image
