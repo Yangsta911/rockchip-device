@@ -45,7 +45,7 @@ export RK_OEM_FS_TYPE=ext2
 # Set userdata partition type, including ext2, fat
 export RK_USERDATA_FS_TYPE=ext2
 #OEM config
-export RK_OEM_DIR=oem_ipc
+export RK_OEM_DIR=oem_ipc_firefly
 # OEM build on buildroot
 export RK_OEM_BUILDIN_BUILDROOT=YES
 #userdata config, if not define this, system will format by RK_USERDATA_FS_TYPE
