@@ -861,6 +861,13 @@ for option in ${OPTIONS}; do
 				rm -f package-file
 				ln -sf $RK_PACKAGE_FILE package-file
 			fi
+
+			if [[ x"$RK_PARAMETER" != x ]];then
+				PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
+				ln -sf $PARAMETER $ROCKDEV/parameter.txt
+			else
+				echo -e "\e[31m error: $SD_PARAMETER not found! \e[0m"
+			fi
     
 		    MKUPDATE_FILE=${RK_TARGET_PRODUCT}-mkupdate.sh 
 		    if [[ x"$MKUPDATE_FILE" != x-mkupdate.sh ]];then
@@ -868,6 +875,13 @@ for option in ${OPTIONS}; do
 				cd $PACK_TOOL_DIR
 				rm -f mkupdate.sh
 				ln -sf $MKUPDATE_FILE mkupdate.sh
+			fi
+
+			if [[ x"$RK_PACKAGE_FILE" != x ]];then
+				PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware/rockdev/
+				cd $PACK_TOOL_DIR
+				rm -f package-file
+				ln -sf $RK_PACKAGE_FILE package-file
 			fi
 			;;
 		buildroot|debian|distro|yocto)
