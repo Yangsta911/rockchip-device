@@ -6,6 +6,12 @@ ADB_EN=off
 fi
 USB_FUNCTIONS_DIR=/sys/kernel/config/usb_gadget/rockchip/functions
 USB_CONFIGS_DIR=/sys/kernel/config/usb_gadget/rockchip/configs/b.1
+backup=/dev/block/by-name/backup
+file=/tmp/tmp_mac
+NETINTERFACE=eth0
+DNS="8.8.8.8"
+IP="172.16.110.6"
+GW="172.16.110.1"
 
 configure_uvc_resolution_yuyv()
 {
@@ -155,12 +161,17 @@ pre_run_rndis()
       for line in `cat $IP_FILE`
       do
         echo "save ip is: $line"
-        ifconfig eth0 $line
+        ifconfig $NETINTERFACE $line
       done
    else
-    ifconfig eth0 172.16.110.6
+    ifconfig $NETINTERFACE $IP
+    ifconfig $NETINTERFACE down
+    ifconfig $NETINTERFACE up
+    route add default gw $GW
+    echo "nameserver $DNS" > /etc/resolv.conf
+
    fi
-   ifconfig eth0 up
+   ifconfig $NETINTERFACE up
   fi
 }
 pre_run_adb()
@@ -210,8 +221,22 @@ fi
 
 case "$1" in
 rndis)
-    # config rndis
-   mkdir /sys/kernel/config/usb_gadget/rockchip/functions/rndis.gs0
+   # config rndis
+   rndis_path="/sys/kernel/config/usb_gadget/rockchip/functions/rndis.gs0"
+   mkdir $rndis_path
+   # rndis Mac 地址写入 backup 分区，开机校验分区是否存在 Mac 地址
+   HOST_MAC=$(cat $file  | cut -c1-100 | grep HOST_MAC | awk -F '=' '{print $2}')
+   DEV_MAC=$(cat $file  | cut -c1-100 | grep DEV_MAC | awk -F '=' '{print $2}')
+   if [ ! -n "$HOST_MAC" ] || [ ! -n "$DEV_MAC" ];then
+            HOST_MAC=$(cat $rndis_path/host_addr)
+            DEV_MAC=$(cat $rndis_path/dev_addr)
+            echo "HOST_MAC=$HOST_MAC" > $file
+            echo "DEV_MAC=$DEV_MAC" >> $file
+            dd if=$file of=$backup
+   else
+	    echo "$HOST_MAC" > $rndis_path/host_addr
+	    echo "$DEV_MAC" > $rndis_path/dev_addr
+   fi
    echo "uvc_rndis" > ${USB_CONFIGS_DIR}/strings/0x409/configuration
    ln -s ${USB_FUNCTIONS_DIR}/rndis.gs0 ${USB_CONFIGS_DIR}/f2
    echo "config uvc and rndis..."
