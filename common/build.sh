@@ -58,7 +58,7 @@ function choose_target_board()
 
 function build_select_board()
 {
-	RK_TARGET_BOARD_ARRAY=( $(cd ${TARGET_PRODUCT_DIR}/; ls BoardConfig*.mk | sort) )
+	RK_TARGET_BOARD_ARRAY=( $(cd ${TARGET_PRODUCT_DIR}/; ls *.mk | sort) )
 
 	RK_TARGET_BOARD_ARRAY_LEN=${#RK_TARGET_BOARD_ARRAY[@]}
 	if [ $RK_TARGET_BOARD_ARRAY_LEN -eq 0 ]; then
@@ -88,9 +88,6 @@ BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
 TARGET_PRODUCT="$TOP_DIR/device/rockchip/.target_product"
 TARGET_PRODUCT_DIR=$(realpath ${TARGET_PRODUCT})
 
-if [ ! -L "$BOARD_CONFIG" -a  "$1" != "lunch" ]; then
-	build_select_board
-fi
 unset_board_config_all
 [ -L "$BOARD_CONFIG" ] && source $BOARD_CONFIG
 source $TOP_DIR/device/rockchip/common/Version.mk
@@ -98,13 +95,6 @@ CFG_DIR=$TOP_DIR/device/rockchip
 ROCKDEV=$TOP_DIR/rockdev
 PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
 SD_PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_SD_PARAMETER
-
-function check_config() {
-	if [ -z ${1} ];then
-		echo "====No Found config on `realpath $BOARD_CONFIG`. Just exit ..."
-		exit 0
-	fi
-}
 
 NPROC=`nproc`
 export RK_JOBS=$NPROC
@@ -335,14 +325,6 @@ function build_pkg() {
 }
 
 function build_uboot(){
-	check_config RK_UBOOT_DEFCONFIG || return 0
-
-	rm temp.conf
-
-	echo -e "\e[36m Generate extLinux Boot image : ${BOOT} success! \e[0m"
-}
-
-function build_uboot(){
 	if [ -z $RK_UBOOT_DEFCONFIG ]; then
 		return;
 	fi
@@ -380,7 +362,8 @@ function build_uboot(){
 	if [ "$RK_IDBLOCK_UPDATE_SPL" = "true" ]; then
 		./make.sh --idblock --spl
 	fi
-
+	
+	finish_build
 }
 
 function build_spl(){
@@ -425,7 +408,7 @@ function build_kernel(){
 	echo "TARGET_KERNEL_DTS    =$RK_KERNEL_DTS"
 	echo "TARGET_KERNEL_CONFIG_FRAGMENT =$RK_KERNEL_DEFCONFIG_FRAGMENT"
 	echo "=========================================="
-
+	pwd
 	cd kernel
 	make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT
 	make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS
@@ -1034,20 +1017,11 @@ for option in ${OPTIONS}; do
 				ln -sf $RK_PACKAGE_FILE package-file
 			fi
 			;;
-		buildroot|debian|distro|yocto)
-			build_rootfs $option
-			;;
-		lunch)
-			build_select_board
-			;;
-		*)
-			shift
-			eval build_$option $@ || usage
-			;;
 		lunch) build_select_board ;;
 		all) build_all ;;
 		save) build_save ;;
 		allsave) build_allsave ;;
+		allff) build_allff ;;
 		check) build_check ;;
 		cleanall) build_cleanall ;;
 		firmware) build_firmware ;;
