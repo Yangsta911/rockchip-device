@@ -28,6 +28,8 @@ check_alive()
        echo " uvc app die ,restart it and usb reprobe !!!"
        sleep 1
        rm -rf /sys/kernel/config/usb_gadget/rockchip/configs/b.1/f*
+       echo none > /sys/kernel/config/usb_gadget/rockchip/UDC
+       rmdir /sys/kernel/config/usb_gadget/rockchip/functions/rndis.gs0
        echo ffd00000.dwc3  > /sys/bus/platform/drivers/dwc3/unbind
        echo ffd00000.dwc3  > /sys/bus/platform/drivers/dwc3/bind
        /oem/usb_config.sh rndis off #disable adb
@@ -41,6 +43,8 @@ check_alive()
             echo "aiserver is die,tell uvc to recovery"
             killall -3 uvc_app
             aiserver &
+            sleep .5
+            killall -10 smart_display_service
          else
             $1 &
          fi
@@ -74,13 +78,15 @@ stop_unused_daemon
 usb_irq_set
 uvc_app &
 aiserver &
+sleep .5
+smart_display_service &
 while true
 do
   check_alive dbserver
   check_alive ispserver
   check_alive uvc_app
   check_alive aiserver
-  check_uvc_buffer
+#  check_uvc_buffer
   sleep 2
   check_alive smart_display_service
 done

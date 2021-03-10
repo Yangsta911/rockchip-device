@@ -9,21 +9,21 @@ export RK_UBOOT_FORMAT_TYPE=fit
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=rockchip_linux_defconfig
 # Kernel defconfig fragment
-export RK_KERNEL_DEFCONFIG_FRAGMENT=rk3568_nvr.config
-# Kernel dts   rk3568-nvr-demo-v10-linux   rk3568-evb1-ddr4-v10-linux
-export RK_KERNEL_DTS=rk3568-nvr-demo-v10-linux
+export RK_KERNEL_DEFCONFIG_FRAGMENT=rockchip_linux_bifrost.config
+# Kernel dts
+export RK_KERNEL_DTS=rk3568-evb1-ddr4-v10-linux-spi-nor
 # boot image type
-export RK_BOOT_IMG=boot.img
+export RK_BOOT_IMG=zboot.img
 # kernel image path
-export RK_KERNEL_IMG=kernel/arch/arm64/boot/Image
+export RK_KERNEL_ZIMG=kernel/arch/arm64/boot/Image.lz4
 # kernel image format type: fit(flattened image tree)
-export RK_KERNEL_FIT_ITS=boot.its
+export RK_KERNEL_FIT_ITS=zboot.its
 # parameter for GPT table
-export RK_PARAMETER=parameter-buildroot-fit.txt
+export RK_PARAMETER=parameter-buildroot-spi-nor-64M.txt
 # Buildroot config
-export RK_CFG_BUILDROOT=rockchip_rk356x_nvr
+export RK_CFG_BUILDROOT=rockchip_rk356x_libs
 # Recovery config
-export RK_CFG_RECOVERY=rockchip_rk356x_nvr_recovery
+export RK_CFG_RECOVERY=
 # Recovery image format type: fit(flattened image tree)
 export RK_RECOVERY_FIT_ITS=boot4recovery.its
 # ramboot config
@@ -35,7 +35,7 @@ export RK_JOBS=12
 # target chip
 export RK_TARGET_PRODUCT=rk356x
 # Set rootfs type, including ext2 ext4 squashfs
-export RK_ROOTFS_TYPE=ext4
+export RK_ROOTFS_TYPE=squashfs
 # yocto machine
 export RK_YOCTO_MACHINE=rockchip-rk3568-evb
 # rootfs image path
@@ -43,18 +43,24 @@ export RK_ROOTFS_IMG=rockdev/rootfs.${RK_ROOTFS_TYPE}
 # Set ramboot image type
 export RK_RAMBOOT_TYPE=
 # Set oem partition type, including ext2 squashfs
-export RK_OEM_FS_TYPE=ext2
+export RK_OEM_FS_TYPE=jffs2
+# Set oem node
+export RK_OEM_NODE=/dev/mtdblock4
 # Set userdata partition type, including ext2, fat
-export RK_USERDATA_FS_TYPE=ext2
+export RK_USERDATA_FS_TYPE=jffs2
+# Set userdata node
+export RK_USERDATA_NODE=/dev/mtdblock5
 #OEM config
-export RK_OEM_DIR=oem_nvr
+export RK_OEM_DIR=oem_sample
 # OEM build on buildroot
 #export RK_OEM_BUILDIN_BUILDROOT=YES
 #userdata config
-export RK_USERDATA_DIR=userdata_empty
+export RK_USERDATA_DIR=userdata_normal
 #misc image
-export RK_MISC=wipe_all-misc.img
+export RK_MISC=
 #choose enable distro module
 export RK_DISTRO_MODULE=
 # Define pre-build script for this board
 export RK_BOARD_PRE_BUILD_SCRIPT=app-build.sh
+# Define package-file
+export RK_PACKAGE_FILE=rk356x-package-file-spi-nor

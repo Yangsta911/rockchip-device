@@ -196,7 +196,7 @@ echo 0x1 > /sys/kernel/config/usb_gadget/rockchip/os_desc/b_vendor_code
 echo "MSFT100" > /sys/kernel/config/usb_gadget/rockchip/os_desc/qw_sign
 echo 500 > /sys/kernel/config/usb_gadget/rockchip/configs/b.1/MaxPower
 #ln -s /sys/kernel/config/usb_gadget/rockchip/configs/b.1 /sys/kernel/config/usb_gadget/rockchip/os_desc/b.1
-echo 0x0020 > /sys/kernel/config/usb_gadget/rockchip/idProduct
+echo 0x0016 > /sys/kernel/config/usb_gadget/rockchip/idProduct
 
 #uvc config init
 uvc_device_config
@@ -257,7 +257,7 @@ if [ $ADB_EN = on ];then
   echo "adb on++++++ ${USB_CNT}"
   ln -s ${USB_FUNCTIONS_DIR}/ffs.adb ${USB_CONFIGS_DIR}/f${USB_CNT}
   pre_run_adb
-  sleep 1
+  sleep .5
 fi
 
 UDC=`ls /sys/class/udc/| awk '{print $1}'`

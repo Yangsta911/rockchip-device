@@ -85,12 +85,17 @@ fi
 export MEDIA_DEV=/dev/block/by-name/media
 export FSTYPE=ext4
 
+if [ ! -L $MEDIA_DEV ]; then
+	echo "media part not exit, do nothing";
+	exit
+fi
+
 prepare_part()
 {
   dumpe2fs -h $MEDIA_DEV 2>/dev/null| grep "media"
   if [ $? -ne 0 ]; then
     echo "Auto formatting $MEDIA_DEV to $FSTYPE"
-    mke2fs -F -L media $MEDIA_DEV && tune2fs -c 0 -i 0 $MEDIA_DEV && prepare_part && return
+    mke2fs -F -L media $MEDIA_DEV && resize2fs $MEDIA_DEV && tune2fs -c 0 -i 0 $MEDIA_DEV && prepare_part && return
   fi
 }
 prepare_part

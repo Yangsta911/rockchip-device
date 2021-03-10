@@ -3,6 +3,37 @@
 export LC_ALL=C
 unset RK_CFG_TOOLCHAIN
 
+err_handler() {
+	ret=$?
+	[ "$ret" -eq 0 ] && return
+
+	echo "ERROR: Running ${FUNCNAME[1]} failed!"
+	echo "ERROR: exit code $ret from line ${BASH_LINENO[0]}:"
+	echo "    $BASH_COMMAND"
+	exit $ret
+}
+trap 'err_handler' ERR
+set -eE
+
+function finish_build(){
+	echo "Running ${FUNCNAME[1]} succeeded."
+	cd $TOP_DIR
+}
+
+function check_config(){
+	unset missing
+	for var in $@; do
+		eval [ \$$var ] && continue
+
+		missing="$missing $var"
+	done
+
+	[ -z "$missing" ] && return 0
+
+	echo "Skipping ${FUNCNAME[1]} for missing configs: $missing."
+	return 1
+}
+
 function choose_target_board()
 {
 	echo
@@ -27,9 +58,6 @@ function choose_target_board()
 
 function build_select_board()
 {
-	TARGET_PRODUCT="device/rockchip/.target_product"
-	TARGET_PRODUCT_DIR=$(realpath ${TARGET_PRODUCT})
-
 	RK_TARGET_BOARD_ARRAY=( $(cd ${TARGET_PRODUCT_DIR}/; ls BoardConfig*.mk | sort) )
 
 	RK_TARGET_BOARD_ARRAY_LEN=${#RK_TARGET_BOARD_ARRAY[@]}
@@ -57,6 +85,8 @@ COMMON_DIR=`dirname $CMD`
 TOP_DIR=$(realpath $COMMON_DIR/../../..)
 
 BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
+TARGET_PRODUCT="$TOP_DIR/device/rockchip/.target_product"
+TARGET_PRODUCT_DIR=$(realpath ${TARGET_PRODUCT})
 
 if [ ! -L "$BOARD_CONFIG" -a  "$1" != "lunch" ]; then
 	build_select_board
@@ -85,8 +115,8 @@ fi
 
 function usagekernel()
 {
-	check_config $RK_KERNEL_DTS
-	check_config $RK_KERNEL_DEFCONFIG
+	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
+
 	echo "cd kernel"
 	echo "make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT"
 	echo "make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS"
@@ -94,24 +124,44 @@ function usagekernel()
 
 function usageuboot()
 {
+	check_config RK_UBOOT_DEFCONFIG || return 0
+
+	cd u-boot
 	echo "cd u-boot"
-	echo "./make.sh $RK_UBOOT_DEFCONFIG" \
-		"${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG}" \
-		"${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG}" \
-		"${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG}" \
-		"${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}"
+	if [ -f "configs/$RK_UBOOT_DEFCONFIG_FRAGMENT" ]; then
+		if [ -f "configs/${RK_UBOOT_DEFCONFIG}_defconfig" ]; then
+			echo "make ${RK_UBOOT_DEFCONFIG}_defconfig $RK_UBOOT_DEFCONFIG_FRAGMENT"
+		else
+			echo "make ${RK_UBOOT_DEFCONFIG}.config $RK_UBOOT_DEFCONFIG_FRAGMENT"
+		fi
+		echo "./make.sh \
+			${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG} \
+			${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG} \
+			${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG} \
+			${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}"
+	else
+		echo "./make.sh $RK_UBOOT_DEFCONFIG" \
+			"${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG}" \
+			"${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG}" \
+			"${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG}" \
+			"${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}"
+	fi
 
 	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
 		echo "./make.sh --spl"
 	fi
 
-	if [ "$RK_BUILD_SPI_NOR" = "true" ]; then
+	if [ "$RK_IDBLOCK_UPDATE_SPL" = "true" ]; then
 		echo "./make.sh --idblock --spl"
 	fi
+
+	finish_build
 }
 
 function usagerootfs()
 {
+	check_config RK_ROOTFS_IMG || return 0
+
 	if [ "${RK_CFG_BUILDROOT}x" != "x" ];then
 		echo "source envsetup.sh $RK_CFG_BUILDROOT"
 	else
@@ -137,20 +187,24 @@ function usagerootfs()
 
 function usagerecovery()
 {
-	check_config $RK_CFG_RECOVERY
+	check_config RK_CFG_RECOVERY || return 0
+
 	echo "source envsetup.sh $RK_CFG_RECOVERY"
 	echo "$COMMON_DIR/mk-ramdisk.sh recovery.img $RK_CFG_RECOVERY"
 }
 
 function usageramboot()
 {
-	check_config $RK_CFG_RAMBOOT
+	check_config RK_CFG_RAMBOOT || return 0
+
 	echo "source envsetup.sh $RK_CFG_RAMBOOT"
 	echo "$COMMON_DIR/mk-ramdisk.sh ramboot.img $RK_CFG_RAMBOOT"
 }
 
 function usagemodules()
 {
+	check_config RK_KERNEL_DEFCONFIG || return 0
+
 	echo "cd kernel"
 	echo "make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG"
 	echo "make ARCH=$RK_ARCH modules -j$RK_JOBS"
@@ -181,16 +235,32 @@ function usage()
 	echo "all                -build uboot, kernel, rootfs, recovery image"
 	echo "cleanall           -clean uboot, kernel, rootfs, recovery"
 	echo "firmware           -pack all the image we need to boot up system"
-	echo "sdupdateimg        -pack sdupdate image"
-	echo "updateimg [-p]     -pack update image; [-p] compress"
-	echo "sdbootimg [-p]     -pack sdboot image; [-p] compress"
-	echo "otapackage         -pack ab update otapackage image"
+	echo "updateimg          -pack update image"
+	echo "otapackage         -pack ab update otapackage image (update_ota.img)"
+	echo "sdpackage          -pack update sdcard package image (update_sdcard.img)"
 	echo "save               -save images, patches, commands used to debug"
 	echo "allsave            -build all & firmware & updateimg & save"
 	echo "check              -check the environment of building"
-	echo "allff              -build all & firmware & updateimg"
+	echo "info               -see the current board building information"
+	echo "app/<pkg>          -build packages in the dir of app/*"
+	echo "external/<pkg>     -build packages in the dir of external/*"
 	echo ""
 	echo "Default option is 'allff'."
+}
+
+function build_info(){
+	if [ ! -L $TARGET_PRODUCT_DIR ];then
+		echo "No found target product!!!"
+	fi
+	if [ ! -L $BOARD_CONFIG ];then
+		echo "No found target board config!!!"
+	fi
+
+	echo "Current Building Information:"
+	echo "Target Product: $TARGET_PRODUCT_DIR"
+	echo "Target BoardConfig: `realpath $BOARD_CONFIG`"
+	echo "Target Misc config:"
+	echo "`env |grep "^RK_" | grep -v "=$" | sort`"
 }
 
 function build_check(){
@@ -206,35 +276,66 @@ function build_check(){
 
 			dst=${chk_item%%,*}
 			src=${chk_item##*,}
-			eval $dst 1>/dev/null 2>&1
-			if [ $? -ne 0 ];then
-				echo "**************************************"
+			echo "**************************************"
+			if eval $dst &>/dev/null;then
+				echo "Check [OK]: $dst"
+			else
 				echo "Please install ${dst%% *} first"
 				echo "    sudo apt-get install $src"
 			fi
 		done
 }
 
-function build_extboot() {
+function build_pkg() {
+	check_config RK_CFG_BUILDROOT || check_config RK_CFG_RAMBOOT || check_config RK_CFG_RECOVERY || check_config RK_CFG_PCBA || return 0
 
-    build_kernel
+	local target_pkg=$1
+	target_pkg=${target_pkg%*/}
 
-	BOOT=${TOP_DIR}/kernel/extboot.img
-	rm -rf ${BOOT}
+	if [ ! -d $target_pkg ];then
+		echo "build pkg: error: not found package $target_pkg"
+		return 1
+	fi
 
-	echo -e "\e[36m Generate extLinuxBoot image start\e[0m"
+	if ! eval [ $rk_package_mk_arrry ];then
+		rk_package_mk_arrry=( $(find buildroot/package/rockchip/ -name "*.mk" | sort) )
+	fi
 
-	# 100 Mb
-	mkfs.vfat -n "EFI" -S 512 -C ${BOOT} $((30 * 1024))
+	local pkg_mk pkg_config_in pkg_br pkg_final_target pkg_final_target_upper pkg_cfg
 
-	echo "label kernel-4.4" > temp.conf
-	echo "    kernel /Image" >> temp.conf
-	echo "    fdt /${RK_KERNEL_DTS}.dtb" >> temp.conf
+	for it in ${rk_package_mk_arrry[@]}
+	do
+		pkg_final_target=$(basename $it)
+		pkg_final_target=${pkg_final_target%%.mk*}
+		pkg_final_target_upper=${pkg_final_target^^}
+		pkg_final_target_upper=${pkg_final_target_upper//-/_}
+		if grep "${pkg_final_target_upper}_SITE.*$target_pkg" $it &>/dev/null; then
+			pkg_mk=$it
+			pkg_config_in=$(dirname $pkg_mk)/Config.in
+			pkg_br=BR2_PACKAGE_$pkg_final_target_upper
+			break
+		fi
+	done
 
-	mmd -i ${BOOT} ::/extlinux
-	mcopy -i ${BOOT} -s temp.conf ::/extlinux/extlinux.conf
-	mcopy -i ${BOOT} -s ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/rockchip/${RK_KERNEL_DTS}.dtb ::
-	mcopy -i ${BOOT} -s ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/Image ::
+	for cfg in RK_CFG_BUILDROOT RK_CFG_RAMBOOT RK_CFG_RECOVERY RK_CFG_PCBA
+	do
+		if eval [ \$$cfg ] ;then
+			pkg_cfg=$( eval "echo \$$cfg" )
+			if grep -wq ${pkg_br}=y buildroot/output/$pkg_cfg/.config; then
+				echo "Found $pkg_br in buildroot/output/$pkg_cfg/.config "
+				make ${pkg_final_target}-dirclean O=buildroot/output/$pkg_cfg
+				make ${pkg_final_target}-rebuild O=buildroot/output/$pkg_cfg
+			else
+				echo "[SKIP BUILD $target_pkg] NOT Found ${pkg_br}=y in buildroot/output/$pkg_cfg/.config"
+			fi
+		fi
+	done
+
+	finish_build
+}
+
+function build_uboot(){
+	check_config RK_UBOOT_DEFCONFIG || return 0
 
 	rm temp.conf
 
@@ -248,19 +349,27 @@ function build_uboot(){
 	echo "============Start build uboot============"
 	echo "TARGET_UBOOT_CONFIG=$RK_UBOOT_DEFCONFIG"
 	echo "========================================="
-	rm -f u-boot/*_loader_*.bin
-	cd u-boot && ./make.sh $RK_UBOOT_DEFCONFIG \
-		${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG} \
-		${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG} \
-		${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG} \
-		${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG} \
-		&& cd -
 
-	if [ $? -eq 0 ]; then
-		echo "====Build uboot ok!===="
+	cd u-boot
+	rm -f *_loader_*.bin
+
+	if [ -f "configs/$RK_UBOOT_DEFCONFIG_FRAGMENT" ]; then
+		if [ -f "configs/${RK_UBOOT_DEFCONFIG}_defconfig" ]; then
+			make ${RK_UBOOT_DEFCONFIG}_defconfig $RK_UBOOT_DEFCONFIG_FRAGMENT
+		else
+			make ${RK_UBOOT_DEFCONFIG}.config $RK_UBOOT_DEFCONFIG_FRAGMENT
+		fi
+		./make.sh \
+			${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG} \
+			${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG} \
+			${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG} \
+			${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}
 	else
-		echo "====Build uboot failed!===="
-		exit 1
+		./make.sh $RK_UBOOT_DEFCONFIG \
+			${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG} \
+			${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG} \
+			${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG} \
+			${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}
 	fi
 
 	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
@@ -268,14 +377,16 @@ function build_uboot(){
 		./make.sh --spl
 	fi
 
-	if [ "$RK_BUILD_SPI_NOR" = "true" ]; then
+	if [ "$RK_IDBLOCK_UPDATE_SPL" = "true" ]; then
 		./make.sh --idblock --spl
 	fi
 
 }
 
 function build_spl(){
-	echo "============Start build spl============"
+	check_config RK_SPL_DEFCONFIG || return 0
+
+	echo "============Start building spl============"
 	echo "TARGET_SPL_CONFIG=$RK_SPL_DEFCONFIG"
 	echo "========================================="
 	if [ -f u-boot/*spl.bin ]; then
@@ -291,10 +402,9 @@ function build_spl(){
 }
 
 function build_loader(){
-	if [ -z $RK_LOADER_BUILD_TARGET ]; then
-		return;
-	fi
-	echo "============Start build loader============"
+	check_config RK_LOADER_BUILD_TARGET || return 0
+
+	echo "============Start building loader============"
 	echo "RK_LOADER_BUILD_TARGET=$RK_LOADER_BUILD_TARGET"
 	echo "=========================================="
 	cd loader && ./build.sh $RK_LOADER_BUILD_TARGET && cd -
@@ -307,26 +417,28 @@ function build_loader(){
 }
 
 function build_kernel(){
-	echo "============Start build kernel============"
+	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
+
+	echo "============Start building kernel============"
 	echo "TARGET_ARCH          =$RK_ARCH"
 	echo "TARGET_KERNEL_CONFIG =$RK_KERNEL_DEFCONFIG"
 	echo "TARGET_KERNEL_DTS    =$RK_KERNEL_DTS"
 	echo "TARGET_KERNEL_CONFIG_FRAGMENT =$RK_KERNEL_DEFCONFIG_FRAGMENT"
 	echo "=========================================="
-	cd $TOP_DIR/kernel && make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT && make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS && cd -
-	if [ $? -eq 0 ]; then
-		if [ -f "$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS" ];then
-			$COMMON_DIR/mk-fitimage.sh $TOP_DIR/kernel/$RK_BOOT_IMG $TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS
-		fi
-		echo "====Build kernel ok!===="
-	else
-		echo "====Build kernel failed!===="
-		exit 1
+
+	cd kernel
+	make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT
+	make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS
+	if [ -f "$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS" ]; then
+		$COMMON_DIR/mk-fitimage.sh $TOP_DIR/kernel/$RK_BOOT_IMG \
+			$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS
 	fi
 }
 
 function build_modules(){
-	echo "============Start build kernel modules============"
+	check_config RK_KERNEL_DEFCONFIG || return 0
+
+	echo "============Start building kernel modules============"
 	echo "TARGET_ARCH          =$RK_ARCH"
 	echo "TARGET_KERNEL_CONFIG =$RK_KERNEL_DEFCONFIG"
 	echo "TARGET_KERNEL_CONFIG_FRAGMENT =$RK_KERNEL_DEFCONFIG_FRAGMENT"
@@ -341,7 +453,9 @@ function build_modules(){
 }
 
 function build_toolchain(){
-	echo "==========Start build toolchain =========="
+	check_config RK_CFG_TOOLCHAIN || return 0
+
+	echo "==========Start building toolchain =========="
 	echo "TARGET_TOOLCHAIN_CONFIG=$RK_CFG_TOOLCHAIN"
 	echo "========================================="
 	[[ $RK_CFG_TOOLCHAIN ]] \
@@ -356,7 +470,9 @@ function build_toolchain(){
 }
 
 function build_buildroot(){
-	echo "==========Start build buildroot=========="
+	check_config RK_CFG_BUILDROOT || return 0
+
+	echo "==========Start building buildroot=========="
 	echo "TARGET_BUILDROOT_CONFIG=$RK_CFG_BUILDROOT"
 	echo "========================================="
 	if [ -z ${RK_CFG_BUILDROOT} ];then
@@ -373,7 +489,9 @@ function build_buildroot(){
 }
 
 function build_ramboot(){
-	echo "=========Start build ramboot========="
+	check_config RK_CFG_RAMBOOT || return 0
+
+	echo "=========Start building ramboot========="
 	echo "TARGET_RAMBOOT_CONFIG=$RK_CFG_RAMBOOT"
 	echo "====================================="
 	if [ -z ${RK_CFG_RAMBOOT} ];then
@@ -392,11 +510,9 @@ function build_ramboot(){
 }
 
 function build_multi-npu_boot(){
-	if [ -z "$RK_MULTINPU_BOOT" ]; then
-		echo "=========Please set 'RK_MULTINPU_BOOT=y' in BoardConfig.mk========="
-		exit 1
-	fi
-	echo "=========Start build multi-npu boot========="
+	check_config RK_MULTINPU_BOOT || return 0
+
+	echo "=========Start building multi-npu boot========="
 	echo "TARGET_RAMBOOT_CONFIG=$RK_CFG_RAMBOOT"
 	echo "====================================="
 	/usr/bin/time -f "you take %E to build multi-npu boot" $COMMON_DIR/mk-multi-npu_boot.sh
@@ -409,10 +525,7 @@ function build_multi-npu_boot(){
 }
 
 function build_yocto(){
-	if [ -z "$RK_YOCTO_MACHINE" ]; then
-		echo "This board doesn't support yocto!"
-		exit 1
-	fi
+	check_config RK_YOCTO_MACHINE || return 0
 
 	echo "=========Start build ramboot========="
 	echo "TARGET_MACHINE=$RK_YOCTO_MACHINE"
@@ -462,7 +575,9 @@ function build_debian(){
 }
 
 function build_distro(){
-	echo "===========Start build debian==========="
+	check_config RK_DISTRO_DEFCONFIG || return 0
+
+	echo "===========Start building distro==========="
 	echo "TARGET_ARCH=$RK_ARCH"
 	echo "RK_DISTRO_DEFCONFIG=$RK_DISTRO_DEFCONFIG"
 	echo "========================================"
@@ -476,6 +591,13 @@ function build_distro(){
 }
 
 function build_rootfs(){
+	check_config RK_ROOTFS_IMG || return 0
+
+	RK_ROOTFS_DIR=.rootfs
+	ROOTFS_IMG=${RK_ROOTFS_IMG##*/}
+
+	rm -rf $RK_ROOTFS_IMG $RK_ROOTFS_DIR
+	mkdir -p ${RK_ROOTFS_IMG%/*} $RK_ROOTFS_DIR
 
 	case "$1" in
 		yocto)
@@ -510,7 +632,14 @@ function build_rootfs(){
 }
 
 function build_recovery(){
-	echo "==========Start build recovery=========="
+
+	if [ "$RK_UPDATE_SDCARD_ENABLE_FOR_AB" = "true" ] ;then
+		RK_CFG_RECOVERY=$RK_UPDATE_SDCARD_CFG_RECOVERY
+	fi
+
+	check_config RK_CFG_RECOVERY || return 0
+
+	echo "==========Start building recovery=========="
 	echo "TARGET_RECOVERY_CONFIG=$RK_CFG_RECOVERY"
 	echo "========================================"
 	/usr/bin/time -f "you take %E to build recovery" $COMMON_DIR/mk-ramdisk.sh recovery.img $RK_CFG_RECOVERY
@@ -523,7 +652,9 @@ function build_recovery(){
 }
 
 function build_pcba(){
-	echo "==========Start build pcba=========="
+	check_config RK_CFG_PCBA || return 0
+
+	echo "==========Start building pcba=========="
 	echo "TARGET_PCBA_CONFIG=$RK_CFG_PCBA"
 	echo "===================================="
 	if [ -z ${RK_CFG_PCBA} ];then
@@ -637,61 +768,27 @@ function build_sdbootimg(){
 	IMAGE_PATH=$TOP_DIR/rockdev
 	PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware
 
-	echo "Make sdboot.img"
-	cd $PACK_TOOL_DIR/rockdev && ./mksdbootimg.sh && cd -
-	mv $PACK_TOOL_DIR/rockdev/sdboot.img $IMAGE_PATH/pack/$IMGNAME
-	if [ $? -eq 0 ]; then
-		echo "Make sdboot image ok!"
-		echo -e "\e[36m $IMAGE_PATH/pack/$IMGNAME \e[0m"
-	else
-	   echo "Make sdboot image failed!"
-	   exit 1
-	fi
-	if [ $packm == "pack" ];then
-		cd $TOP_DIR/rockdev \
-		&& ./version.sh $IMGNAME pack $2 && cd -
-	fi
-}
+	cd $PACK_TOOL_DIR/rockdev
 
-function build_updateimg(){
-	packm="unpack"
-	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage 
-	[[ -n "$1" ]] && packm="pack"
-
-	gen_file_name 
-
-	if [ $packm == "pack" ];then
-		cd $TOP_DIR/rockdev \
-		&& ./version.sh $IMGNAME init $2 && cd -
-	fi
-
-	IMAGE_PATH=$TOP_DIR/rockdev
-	PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware
-	if [ "$RK_LINUX_AB_ENABLE"x = "true"x ];then
-		echo "Make Linux a/b update.img."
+	if [ -f "$RK_PACKAGE_FILE_AB" ]; then
+		build_sdcard_package
 		build_otapackage
-		source_package_file_name=`ls -lh $PACK_TOOL_DIR/rockdev/package-file | awk -F ' ' '{print $NF}'`
-		cd $PACK_TOOL_DIR/rockdev && ln -fs "$PACK_TOOL_DIR/rockdev/$RK_PACKAGE_FILE"-ab package-file && ./mkupdate.sh && cd -
-		mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/update_ab.img
-		cd $PACK_TOOL_DIR/rockdev && ln -fs $source_package_file_name package-file && cd -
-		if [ $? -eq 0 ]; then
-			echo "Make Linux a/b update image ok!"
-		else
-			echo "Make Linux a/b update image failed!"
-			exit 1
-		fi
 
-    else
+		cd $PACK_TOOL_DIR/rockdev
+		echo "Make Linux a/b update_ab.img."
+		source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
+		ln -fs "$RK_PACKAGE_FILE_AB" package-file
+		./mkupdate.sh
+		mv update.img $IMAGE_PATH/update_ab.img
+		ln -fs $source_package_file_name package-file
+	else
 		echo "Make update.img"
-		if [ -f "$PACK_TOOL_DIR/rockdev/$RK_PACKAGE_FILE" ]; then
-			source_package_file_name=`ls -lh $PACK_TOOL_DIR/rockdev/package-file | awk -F ' ' '{print $NF}'`
 
-			cd $PACK_TOOL_DIR/rockdev && \
-				ln -fs "$PACK_TOOL_DIR/rockdev/$RK_PACKAGE_FILE" package-file && \
-				./mkupdate.sh && cd -
-
-			cd $PACK_TOOL_DIR/rockdev && \
-				ln -fs $source_package_file_name package-file && cd -
+		if [ -f "$RK_PACKAGE_FILE" ]; then
+			source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
+			ln -fs "$RK_PACKAGE_FILE" package-file
+			./mkupdate.sh
+			ln -fs $source_package_file_name package-file
 		else
 			cd $PACK_TOOL_DIR/rockdev && ./mkupdate.sh && cd -
 		fi
@@ -764,17 +861,70 @@ function build_otapackage(){
 	IMAGE_PATH=$TOP_DIR/rockdev
 	PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware
 
-	echo "Make ota ab update.img"
-	source_package_file_name=`ls -lh $PACK_TOOL_DIR/rockdev/package-file | awk -F ' ' '{print $NF}'`
-	cd $PACK_TOOL_DIR/rockdev && ln -fs "$PACK_TOOL_DIR/rockdev/$RK_PACKAGE_FILE"-ota package-file && ./mkupdate.sh && cd -
-	mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/update_ota.img
-	cd $PACK_TOOL_DIR/rockdev && ln -fs $source_package_file_name package-file && cd -
-	if [ $? -eq 0 ]; then
-		echo "Make update ota ab image ok!"
-	else
-		echo "Make update ota ab image failed!"
-		exit 1
+	echo "Make ota ab update_ota.img"
+	cd $PACK_TOOL_DIR/rockdev
+	if [ -f "$RK_PACKAGE_FILE_OTA" ]; then
+		source_package_file_name=`ls -lh $PACK_TOOL_DIR/rockdev/package-file | awk -F ' ' '{print $NF}'`
+		ln -fs "$RK_PACKAGE_FILE_OTA" package-file
+		./mkupdate.sh
+		mv update.img $IMAGE_PATH/update_ota.img
+		ln -fs $source_package_file_name package-file
 	fi
+
+	finish_build
+}
+
+function build_sdcard_package(){
+
+	check_config RK_UPDATE_SDCARD_ENABLE_FOR_AB || return 0
+
+	local image_path=$TOP_DIR/rockdev
+	local pack_tool_dir=$TOP_DIR/tools/linux/Linux_Pack_Firmware
+	local rk_sdupdate_ab_misc=${RK_SDUPDATE_AB_MISC:=sdupdate-ab-misc.img}
+	local rk_parameter_sdupdate=${RK_PARAMETER_SDUPDATE:=parameter-sdupdate.txt}
+	local rk_package_file_sdcard_update=${RK_PACKAGE_FILE_SDCARD_UPDATE:=sdcard-update-package-file}
+	local sdupdate_ab_misc_img=$TOP_DIR/device/rockchip/rockimg/$rk_sdupdate_ab_misc
+	local parameter_sdupdate=$TOP_DIR/device/rockchip/rockimg/$rk_parameter_sdupdate
+	local recovery_img=$TOP_DIR/buildroot/output/$RK_UPDATE_SDCARD_CFG_RECOVERY/images/recovery.img
+
+	if [ $RK_UPDATE_SDCARD_CFG_RECOVERY ]; then
+		if [ -f $recovery_img ]; then
+			echo -n "create recovery.img..."
+			ln -rsf $recovery_img $image_path/recovery.img
+		else
+			echo "error: $recovery_img not found!"
+			return 1
+		fi
+	fi
+
+
+	echo "Make sdcard update update_sdcard.img"
+	cd $pack_tool_dir/rockdev
+	if [ -f "$rk_package_file_sdcard_update" ]; then
+
+		if [ $rk_parameter_sdupdate ]; then
+			if [ -f $parameter_sdupdate ]; then
+				echo -n "create sdcard update image parameter..."
+				ln -rsf $parameter_sdupdate $image_path/
+			fi
+		fi
+
+		if [ $rk_sdupdate_ab_misc ]; then
+			if [ -f $sdupdate_ab_misc_img ]; then
+				echo -n "create sdupdate ab misc.img..."
+				ln -rsf $sdupdate_ab_misc_img $image_path/
+			fi
+		fi
+
+		source_package_file_name=`ls -lh $pack_tool_dir/rockdev/package-file | awk -F ' ' '{print $NF}'`
+		ln -fs "$rk_package_file_sdcard_update" package-file
+		./mkupdate.sh
+		mv update.img $image_path/update_sdcard.img
+		ln -fs $source_package_file_name package-file
+		rm -f $image_path/$rk_sdupdate_ab_misc $image_path/$rk_parameter_sdupdate $image_path/recovery.img
+	fi
+
+	finish_build
 }
 
 function build_save(){
@@ -894,5 +1044,29 @@ for option in ${OPTIONS}; do
 			shift
 			eval build_$option $@ || usage
 			;;
+		lunch) build_select_board ;;
+		all) build_all ;;
+		save) build_save ;;
+		allsave) build_allsave ;;
+		check) build_check ;;
+		cleanall) build_cleanall ;;
+		firmware) build_firmware ;;
+		updateimg) build_updateimg ;;
+		otapackage) build_otapackage ;;
+		sdpackage) build_sdcard_package ;;
+		toolchain) build_toolchain ;;
+		spl) build_spl ;;
+		uboot) build_uboot ;;
+		loader) build_loader ;;
+		kernel) build_kernel ;;
+		modules) build_modules ;;
+		rootfs|buildroot|debian|distro|yocto) build_rootfs $option ;;
+		pcba) build_pcba ;;
+		ramboot) build_ramboot ;;
+		recovery) build_recovery ;;
+		multi-npu_boot) build_multi-npu_boot ;;
+		info) build_info ;;
+		app/*|external/*) build_pkg $option ;;
+		*) usage ;;
 	esac
 done

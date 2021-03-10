@@ -59,7 +59,8 @@ mkdir -p $ROCKDEV
 
 #fi
 
-check_partition_size() {
+# NOT support the grow partition
+get_partition_size() {
 	echo $PARAMETER
 
 	PARTITIONS_PREFIX=`echo -n "CMDLINE: mtdparts=rk29xxnand:"`
@@ -73,8 +74,13 @@ check_partition_size() {
 		fi
 	done < $PARAMETER
 
-	[ -z $"partitions" ] && return
+	if [ -z $partitions ]
+	then
+		echo -e "\e[31m $PARAMETER parse no find string \"$PARTITIONS_PREFIX\" or The last line is not empty or other reason\e[0m"
+		return
+	fi
 
+	PART_NAME_NEED_TO_CHECK=""
 	IFS=,
 	for part in $partitions;
 	do
@@ -87,15 +93,45 @@ check_partition_size() {
 		part_size_bytes=$[$part_size*512]
 
 		case $part_name in
-			uboot)
-				if [ $part_size_bytes -lt `du -b $UBOOT_IMG | awk '{print $1}'` ]
+			uboot|uboot_[ab])
+				uboot_part_size_bytes=$part_size_bytes
+				PART_NAME_NEED_TO_CHECK="$PART_NAME_NEED_TO_CHECK:$part_name"
+			;;
+			boot|boot_[ab])
+				boot_part_size_bytes=$part_size_bytes
+				PART_NAME_NEED_TO_CHECK="$PART_NAME_NEED_TO_CHECK:$part_name"
+			;;
+			recovery)
+				recovery_part_size_bytes=$part_size_bytes
+				PART_NAME_NEED_TO_CHECK="$PART_NAME_NEED_TO_CHECK:$part_name"
+			;;
+			rootfs|system_[ab])
+				rootfs_part_size_bytes=$part_size_bytes
+				PART_NAME_NEED_TO_CHECK="$PART_NAME_NEED_TO_CHECK:$part_name"
+			;;
+			oem)
+				oem_part_size_bytes=$part_size_bytes
+				PART_NAME_NEED_TO_CHECK="$PART_NAME_NEED_TO_CHECK:$part_name"
+			;;
+		esac
+	done
+}
+
+check_partition_size() {
+
+	while true
+	do
+		part_name=${PART_NAME_NEED_TO_CHECK##*:}
+		case $part_name in
+			uboot|uboot_[ab])
+				if [ $uboot_part_size_bytes -lt `du -b $UBOOT_IMG | awk '{print $1}'` ]
 				then
 					echo -e "\e[31m error: uboot image size exceed parameter! \e[0m"
 					return -1
 				fi
 			;;
-			boot)
-				if [ $part_size_bytes -lt `du -b $BOOT_IMG | awk '{print $1}'` ]
+			boot|boot_[ab])
+				if [ $boot_part_size_bytes -lt `du -b $BOOT_IMG | awk '{print $1}'` ]
 				then
 					echo -e "\e[31m error: boot image size exceed parameter! \e[0m"
 					return -1
@@ -104,14 +140,28 @@ check_partition_size() {
 			recovery)
 				if [ -f $RECOVERY_IMG ]
 				then
-					if [ $part_size_bytes -lt `du -b $RECOVERY_IMG | awk '{print $1}'` ]
+					if [ $recovery_part_size_bytes -lt `du -b $RECOVERY_IMG | awk '{print $1}'` ]
 					then
 						echo -e "\e[31m error: recovery image size exceed parameter! \e[0m"
 						return -1
 					fi
 				fi
 			;;
+			rootfs|system_[ab])
+				if [ -f $ROOTFS_IMG ]
+				then
+					if [ $rootfs_part_size_bytes -lt `du -bD $ROOTFS_IMG | awk '{print $1}'` ]
+					then
+						echo -e "\e[31m error: rootfs image size exceed parameter! \e[0m"
+						return -1
+					fi
+				fi
+			;;
 		esac
+		PART_NAME_NEED_TO_CHECK=${PART_NAME_NEED_TO_CHECK%:*}
+		if [ -z "$PART_NAME_NEED_TO_CHECK" ]; then
+			break
+		fi
 	done
 }
 
@@ -140,6 +190,8 @@ else
 	echo -e "\e[31m error: $PARAMETER not found! \e[0m"
 	exit -1
 fi
+
+get_partition_size
 
 if [ $RK_CFG_RECOVERY ]
 then
@@ -174,7 +226,11 @@ then
 		if [ -d $OEM_DIR/www ]; then
 			echo "chown -R www-data:www-data $OEM_DIR/www" >> $OEM_FAKEROOT_SCRIPT
 		fi
-		echo "$MKIMAGE $OEM_DIR $ROCKDEV/oem.img $RK_OEM_FS_TYPE"  >> $OEM_FAKEROOT_SCRIPT
+		if [ "$RK_OEM_FS_TYPE" = "ubi" ]; then
+			echo "$MKIMAGE $OEM_DIR $ROCKDEV/oem.img $RK_OEM_FS_TYPE ${RK_OEM_PARTITION_SIZE:-$oem_part_size_bytes} oem $RK_UBI_PAGE_SIZE $RK_UBI_BLOCK_SIZE"  >> $OEM_FAKEROOT_SCRIPT
+		else
+			echo "$MKIMAGE $OEM_DIR $ROCKDEV/oem.img $RK_OEM_FS_TYPE"  >> $OEM_FAKEROOT_SCRIPT
+		fi
 		chmod a+x $OEM_FAKEROOT_SCRIPT
 		$FAKEROOT_TOOL -- $OEM_FAKEROOT_SCRIPT
 		rm -f $OEM_FAKEROOT_SCRIPT

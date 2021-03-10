@@ -6,14 +6,12 @@ export RK_ARCH=arm
 export RK_UBOOT_DEFCONFIG=rv1126-emmc-tb
 # Uboot image format type: fit(flattened image tree)
 export RK_UBOOT_FORMAT_TYPE=fit
-# Loader update spl from Uboot
-export RK_LOADER_UPDATE_SPL=true
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=rv1126_defconfig
 # kernel defconfig fragment
-export RK_KERNEL_DEFCONFIG_FRAGMENT=rv1126-tb.config
+export RK_KERNEL_DEFCONFIG_FRAGMENT="rv1126-tb.config rv1126-facial-gate.config"
 # Kernel dts
-export RK_KERNEL_DTS=rv1126-evb-ddr3-v12-tb-emmc
+export RK_KERNEL_DTS=rv1126-evb-ddr3-v13-dualcam-tb-emmc
 # boot image type
 export RK_BOOT_IMG=zboot.img
 # kernel image path
@@ -23,7 +21,7 @@ export RK_PARAMETER=parameter-tb.txt
 # Recovery config
 export RK_CFG_RECOVERY=
 # ramboot config
-export RK_CFG_RAMBOOT=rockchip_rv1126_evb_tb
+export RK_CFG_RAMBOOT=rockchip_rv1126_evb_dualcam_tb
 # ramboot idt config
 export RK_RECOVERY_FIT_ITS=boot-tb.its
 # Pcba config
