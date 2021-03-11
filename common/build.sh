@@ -382,6 +382,8 @@ function build_spl(){
 		echo "====Build spl failed!===="
 		exit 1
 	fi
+
+	finish_build
 }
 
 function build_loader(){
@@ -397,6 +399,8 @@ function build_loader(){
 		echo "====Build loader failed!===="
 		exit 1
 	fi
+
+	finish_build
 }
 
 function build_kernel(){
@@ -416,6 +420,8 @@ function build_kernel(){
 		$COMMON_DIR/mk-fitimage.sh $TOP_DIR/kernel/$RK_BOOT_IMG \
 			$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS
 	fi
+
+	finish_build
 }
 
 function build_modules(){
@@ -450,6 +456,8 @@ function build_toolchain(){
 		echo "====Build toolchain failed!===="
 		exit 1
 	fi
+
+	finish_build
 }
 
 function build_buildroot(){
@@ -490,6 +498,9 @@ function build_ramboot(){
 		echo "====Build ramboot failed!===="
 		exit 1
 	fi
+
+
+	finish_build
 }
 
 function build_multi-npu_boot(){
@@ -612,6 +623,9 @@ function build_rootfs(){
 		rm -f $RK_ROOTFS_IMG
 		ln -rsf $TOP_DIR/$ROOTFS_IMG $RK_ROOTFS_IMG
 	fi
+
+
+	finish_build
 }
 
 function build_recovery(){
@@ -632,6 +646,9 @@ function build_recovery(){
 		echo "====Build recovery failed!===="
 		exit 1
 	fi
+
+
+	finish_build
 }
 
 function build_pcba(){
@@ -682,6 +699,8 @@ function build_all(){
 	build_rootfs ${RK_ROOTFS_SYSTEM:-buildroot}
 	build_recovery
 	build_ramboot
+
+	finish_build
 }
 
 function build_cleanall(){
