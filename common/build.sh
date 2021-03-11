@@ -83,6 +83,7 @@ function unset_board_config_all()
 CMD=`realpath $0`
 COMMON_DIR=`dirname $CMD`
 TOP_DIR=$(realpath $COMMON_DIR/../../..)
+IMGNAME=
 
 BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
 TARGET_PRODUCT="$TOP_DIR/device/rockchip/.target_product"
@@ -260,6 +261,7 @@ function build_check(){
 	cat $common_product_build_tools $target_product_build_tools 2>/dev/null | while read chk_item
 		do
 			chk_item=${chk_item###*}
+			echo $chk_item
 			if [ -z "$chk_item" ]; then
 				continue
 			fi
@@ -955,6 +957,62 @@ function build_save(){
 	echo "BUILDROOT: $RK_CFG_BUILDROOT" >> $STUB_PATH/build_cmd_info
 
 }
+
+function build_updateimg(){
+	packm="unpack"
+	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage 
+	[[ -n "$1" ]] && packm="pack"
+
+	gen_file_name 
+
+	if [ $packm == "pack" ];then
+		cd $TOP_DIR/rockdev \
+		&& ./version.sh $IMGNAME init $2 && cd -
+	fi
+	
+	IMAGE_PATH=$TOP_DIR/rockdev
+	PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware
+
+	cd $PACK_TOOL_DIR/rockdev
+
+	if [ -f "$RK_PACKAGE_FILE_AB" ]; then
+		build_sdcard_package
+		build_otapackage
+
+		cd $PACK_TOOL_DIR/rockdev
+		echo "Make Linux a/b update_ab.img."
+		source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
+		ln -fs "$RK_PACKAGE_FILE_AB" package-file
+		./mkupdate.sh
+		mv update.img $IMAGE_PATH/update_ab.img
+		ln -fs $source_package_file_name package-file
+	else
+		echo "Make update.img"
+
+		if [ -f "$RK_PACKAGE_FILE" ]; then
+			source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
+			ln -fs "$RK_PACKAGE_FILE" package-file
+			./mkupdate.sh
+			ln -fs $source_package_file_name package-file
+		else
+			./mkupdate.sh
+		fi
+		mv update.img $IMAGE_PATH
+	fi
+	
+	mv $IMAGE_PATH/update.img $IMAGE_PATH/pack/$IMGNAME
+	rm -rf $IMAGE_PATH/update.img
+	if [ $? -eq 0 ]; then
+	   echo "Make update image ok!"
+	   echo -e "\e[36m $IMAGE_PATH/pack/$IMGNAME \e[0m"
+	else
+	   echo "Make update image failed!"
+	   exit 1
+	fi
+
+	finish_build
+}
+
 
 function build_allff(){
 	build_all
