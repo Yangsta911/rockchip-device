@@ -22,5 +22,7 @@ export RK_SD_PACKAGE_FILE=rk356x-recovery-package-file
 export RK_CFG_BUILDROOT=rockchip_rk3566
 # yocto machine
 export RK_YOCTO_MACHINE=rockchip-rk3566-evb
+# kernel image format type: fit(flattened image tree)
+export RK_KERNEL_FIT_ITS=bootramdisk.its
 
 export RK_USERDATA_FS_TYPE=ext4

@@ -420,7 +420,8 @@ function build_kernel(){
 	make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS
 	if [ -f "$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS" ]; then
 		$COMMON_DIR/mk-fitimage.sh $TOP_DIR/kernel/$RK_BOOT_IMG \
-			$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS
+			$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS \
+			$TOP_DIR/kernel/ramdisk.img
 	fi
 
 	finish_build

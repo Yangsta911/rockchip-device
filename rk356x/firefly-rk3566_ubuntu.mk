@@ -24,6 +24,8 @@ export RK_ROOTFS_IMG=ubuntu_rootfs/rk356x_ubuntu_rootfs.img
 export RK_RECOVERY_RAMDISK=recovery-arm64.cpio.gz
 # Set userdata partition type
 export RK_USERDATA_FS_TYPE=ext4
+# kernel image format type: fit(flattened image tree)
+export RK_KERNEL_FIT_ITS=bootramdisk.its
 
 # Buildroot config
 export RK_CFG_BUILDROOT=
