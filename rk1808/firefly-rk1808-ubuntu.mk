@@ -31,3 +31,5 @@ export RK_CFG_RECOVERY=
 export RK_OEM_DIR=
 #userdata config
 export RK_USERDATA_DIR=
+# rootfs_system
+export RK_ROOTFS_SYSTEM=ubuntu

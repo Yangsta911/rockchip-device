@@ -593,8 +593,10 @@ function build_rootfs(){
 	RK_ROOTFS_DIR=.rootfs
 	ROOTFS_IMG=${RK_ROOTFS_IMG##*/}
 
-	rm -rf $RK_ROOTFS_IMG $RK_ROOTFS_DIR
-	mkdir -p ${RK_ROOTFS_IMG%/*} $RK_ROOTFS_DIR
+	if [ ${RK_ROOTFS_SYSTEM} != "ubuntu" ]; then
+		rm -rf $RK_ROOTFS_IMG $RK_ROOTFS_DIR
+		mkdir -p ${RK_ROOTFS_IMG%/*} $RK_ROOTFS_DIR
+	fi
 
 	case "$1" in
 		yocto)
