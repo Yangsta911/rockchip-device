@@ -637,8 +637,6 @@ function build_recovery(){
 		RK_CFG_RECOVERY=$RK_UPDATE_SDCARD_CFG_RECOVERY
 	fi
 
-	check_config RK_CFG_RECOVERY || return 0
-
 	echo "==========Start building recovery=========="
 	echo "TARGET_RECOVERY_CONFIG=$RK_CFG_RECOVERY"
 	echo "========================================"
