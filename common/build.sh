@@ -742,7 +742,7 @@ function gen_file_name() {
 	fi
 
 	echo -e "File name is \e[36m $board \e[0m"
-	read -t 10 -e -p "Rename the file? [N|y]" ANS 
+	read -t 10 -e -p "Rename the file? [N|y]" ANS || :
 	ANS=${ANS:-n}
 	
 	case $ANS in
