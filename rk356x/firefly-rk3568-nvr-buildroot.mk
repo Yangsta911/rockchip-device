@@ -7,18 +7,16 @@ export RK_UBOOT_DEFCONFIG=rk3568
 # Uboot image format type: fit(flattened image tree)
 export RK_UBOOT_FORMAT_TYPE=fit
 # Kernel defconfig
-# export RK_KERNEL_DEFCONFIG=rockchip_linux_defconfig
 export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 # Kernel defconfig fragment
 export RK_KERNEL_DEFCONFIG_FRAGMENT=rk3568_nvr.config
 # Kernel dts   rk3568-nvr-demo-v10-linux   rk3568-evb1-ddr4-v10-linux
-export RK_KERNEL_DTS=rk3568-firefly-aiojd4
+export RK_KERNEL_DTS=rk3568-firefly-aioj
 # boot image type
 export RK_BOOT_IMG=boot.img
 # kernel image path
 export RK_KERNEL_IMG=kernel/arch/arm64/boot/Image
 # kernel image format type: fit(flattened image tree)
-#export RK_KERNEL_FIT_ITS=boot.its
 export RK_KERNEL_FIT_ITS=bootramdisk.its
 # parameter for GPT table
 export RK_PARAMETER=parameter-buildroot-fit.txt

@@ -10,7 +10,7 @@ export RK_UBOOT_DEFCONFIG=firefly-rk3568
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 # Kernel dts
-export RK_KERNEL_DTS=firefly-rk3568-aiojd4
+export RK_KERNEL_DTS=firefly-rk3568-aioj
 # packagefile for make update image 
 export RK_PACKAGE_FILE=rk356x-package-file
 

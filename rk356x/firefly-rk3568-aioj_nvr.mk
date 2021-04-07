@@ -6,4 +6,4 @@ CUR_DIR=`dirname $CMD`
 source $CUR_DIR/firefly-rk3568-nvr-buildroot.mk
 
 # Kernel dts
-export RK_KERNEL_DTS=rk3568-firefly-aiojd4
+export RK_KERNEL_DTS=rk3568-firefly-aioj
