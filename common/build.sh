@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export LC_ALL=C
+export LD_LIBRARY_PATH=
 unset RK_CFG_TOOLCHAIN
 
 err_handler() {
@@ -104,6 +105,30 @@ if [ ! -d "$TOP_DIR/rockdev/pack" ];then
 	mkdir -p rockdev/pack
 fi
 
+function prebuild_uboot()
+{
+	UBOOT_COMPILE_COMMANDS="\
+			${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG} \
+			${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG} \
+			${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG} \
+			${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}"
+	UBOOT_COMPILE_COMMANDS="$(echo $UBOOT_COMPILE_COMMANDS)"
+
+	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
+		UBOOT_COMPILE_COMMANDS="--spl-new $UBOOT_COMPILE_COMMANDS"
+		UBOOT_COMPILE_COMMANDS="$(echo $UBOOT_COMPILE_COMMANDS)"
+	fi
+
+	if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
+		UBOOT_COMPILE_COMMANDS=" \
+			--boot_img $(cd $TOP_DIR && realpath ./rockdev/boot.img) \
+			--burn-key-hash $UBOOT_COMPILE_COMMANDS \
+			${RK_ROLLBACK_INDEX_BOOT:+--rollback-index-boot $RK_ROLLBACK_INDEX_BOOT} \
+			${RK_ROLLBACK_INDEX_UBOOT:+--rollback-index-uboot $RK_ROLLBACK_INDEX_UBOOT} "
+		UBOOT_COMPILE_COMMANDS="$(echo $UBOOT_COMPILE_COMMANDS)"
+	fi
+}
+
 function usagekernel()
 {
 	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
@@ -116,30 +141,19 @@ function usagekernel()
 function usageuboot()
 {
 	check_config RK_UBOOT_DEFCONFIG || return 0
+	prebuild_uboot
 
 	cd u-boot
 	echo "cd u-boot"
-	if [ -f "configs/$RK_UBOOT_DEFCONFIG_FRAGMENT" ]; then
+	if [ -n "$RK_UBOOT_DEFCONFIG_FRAGMENT" ]; then
 		if [ -f "configs/${RK_UBOOT_DEFCONFIG}_defconfig" ]; then
 			echo "make ${RK_UBOOT_DEFCONFIG}_defconfig $RK_UBOOT_DEFCONFIG_FRAGMENT"
 		else
 			echo "make ${RK_UBOOT_DEFCONFIG}.config $RK_UBOOT_DEFCONFIG_FRAGMENT"
 		fi
-		echo "./make.sh \
-			${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG} \
-			${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG} \
-			${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG} \
-			${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}"
+		echo "./make.sh $UBOOT_COMPILE_COMMANDS"
 	else
-		echo "./make.sh $RK_UBOOT_DEFCONFIG" \
-			"${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG}" \
-			"${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG}" \
-			"${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG}" \
-			"${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}"
-	fi
-
-	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
-		echo "./make.sh --spl"
+		echo "./make.sh $RK_UBOOT_DEFCONFIG $UBOOT_COMPILE_COMMANDS"
 	fi
 
 	if [ "$RK_IDBLOCK_UPDATE_SPL" = "true" ]; then
@@ -301,25 +315,24 @@ function build_pkg() {
 		pkg_final_target=${pkg_final_target%%.mk*}
 		pkg_final_target_upper=${pkg_final_target^^}
 		pkg_final_target_upper=${pkg_final_target_upper//-/_}
-		if grep "${pkg_final_target_upper}_SITE.*$target_pkg" $it &>/dev/null; then
+		if grep "${pkg_final_target_upper}_SITE.*$target_pkg$" $it &>/dev/null; then
 			pkg_mk=$it
 			pkg_config_in=$(dirname $pkg_mk)/Config.in
 			pkg_br=BR2_PACKAGE_$pkg_final_target_upper
-			break
-		fi
-	done
 
-	for cfg in RK_CFG_BUILDROOT RK_CFG_RAMBOOT RK_CFG_RECOVERY RK_CFG_PCBA
-	do
-		if eval [ \$$cfg ] ;then
-			pkg_cfg=$( eval "echo \$$cfg" )
-			if grep -wq ${pkg_br}=y buildroot/output/$pkg_cfg/.config; then
-				echo "Found $pkg_br in buildroot/output/$pkg_cfg/.config "
-				make ${pkg_final_target}-dirclean O=buildroot/output/$pkg_cfg
-				make ${pkg_final_target}-rebuild O=buildroot/output/$pkg_cfg
-			else
-				echo "[SKIP BUILD $target_pkg] NOT Found ${pkg_br}=y in buildroot/output/$pkg_cfg/.config"
-			fi
+			for cfg in RK_CFG_BUILDROOT RK_CFG_RAMBOOT RK_CFG_RECOVERY RK_CFG_PCBA
+			do
+				if eval [ \$$cfg ] ;then
+					pkg_cfg=$( eval "echo \$$cfg" )
+					if grep -wq ${pkg_br}=y buildroot/output/$pkg_cfg/.config; then
+						echo "Found $pkg_br in buildroot/output/$pkg_cfg/.config "
+						make ${pkg_final_target}-dirclean O=buildroot/output/$pkg_cfg
+						make ${pkg_final_target}-rebuild O=buildroot/output/$pkg_cfg
+					else
+						echo "[SKIP BUILD $target_pkg] NOT Found ${pkg_br}=y in buildroot/output/$pkg_cfg/.config"
+					fi
+				fi
+			done
 		fi
 	done
 
@@ -327,47 +340,46 @@ function build_pkg() {
 }
 
 function build_uboot(){
-	if [ -z $RK_UBOOT_DEFCONFIG ]; then
-		return;
-	fi
-	echo "============Start build uboot============"
+	check_config RK_UBOOT_DEFCONFIG || return 0
+	prebuild_uboot
+
+	echo "============Start building uboot============"
 	echo "TARGET_UBOOT_CONFIG=$RK_UBOOT_DEFCONFIG"
 	echo "========================================="
 
 	cd u-boot
 	rm -f *_loader_*.bin
+	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
+		rm -f *spl.bin
+	fi
+	if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
+		rm -f $TOP_DIR/u-boot/boot.img
+	fi
 
-	if [ -f "configs/$RK_UBOOT_DEFCONFIG_FRAGMENT" ]; then
+	if [ -n "$RK_UBOOT_DEFCONFIG_FRAGMENT" ]; then
 		if [ -f "configs/${RK_UBOOT_DEFCONFIG}_defconfig" ]; then
 			make ${RK_UBOOT_DEFCONFIG}_defconfig $RK_UBOOT_DEFCONFIG_FRAGMENT
 		else
 			make ${RK_UBOOT_DEFCONFIG}.config $RK_UBOOT_DEFCONFIG_FRAGMENT
 		fi
-		./make.sh \
-			${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG} \
-			${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG} \
-			${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG} \
-			${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}
+		./make.sh $UBOOT_COMPILE_COMMANDS
 	else
 		./make.sh $RK_UBOOT_DEFCONFIG \
-			${RK_TRUST_INI_CONFIG:+../rkbin/RKTRUST/$RK_TRUST_INI_CONFIG} \
-			${RK_SPL_INI_CONFIG:+../rkbin/RKBOOT/$RK_SPL_INI_CONFIG} \
-			${RK_UBOOT_SIZE_CONFIG:+--sz-uboot $RK_UBOOT_SIZE_CONFIG} \
-			${RK_TRUST_SIZE_CONFIG:+--sz-trust $RK_TRUST_SIZE_CONFIG}
-	fi
-
-	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
-		rm -f *spl.bin
-		./make.sh --spl
+			$UBOOT_COMPILE_COMMANDS
 	fi
 
 	if [ "$RK_IDBLOCK_UPDATE_SPL" = "true" ]; then
 		./make.sh --idblock --spl
 	fi
-	
+
+	if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
+		ln -rsf $TOP_DIR/u-boot/boot.img $TOP_DIR/rockdev/
+	fi
+
 	finish_build
 }
 
+# TODO: build_spl can be replaced by build_uboot with define RK_LOADER_UPDATE_SPL
 function build_spl(){
 	check_config RK_SPL_DEFCONFIG || return 0
 
@@ -545,18 +557,18 @@ function build_yocto(){
 }
 
 function build_debian(){
+	ARCH=${RK_DEBIAN_ARCH:-${RK_ARCH}}
+	case $ARCH in
+		arm|armhf) ARCH=armhf ;;
+		*) ARCH=arm64 ;;
+	esac
+
+	echo "=========Start building debian for $ARCH========="
+
 	cd debian
-
-	if [ "$RK_ARCH" == "arm" ]; then
-		ARCH=armhf
-	fi
-	if [ "$RK_ARCH" == "arm64" ]; then
-		ARCH=arm64
-	fi
-
-	if [ ! -e linaro-stretch-alip-*.tar.gz ]; then
-		echo "\033[36m Run mk-base-debian.sh first \033[0m"
-		RELEASE=stretch TARGET=desktop ARCH=$ARCH ./mk-base-debian.sh
+	if [ ! -e linaro-buster-$ARCH.tar.gz ]; then
+		RELEASE=buster TARGET=desktop ARCH=$ARCH ./mk-base-debian.sh
+		ln -rsf linaro-buster-alip-*.tar.gz linaro-buster-$ARCH.tar.gz
 	fi
 
 	VERSION=debug ARCH=$ARCH ./mk-rootfs-stretch.sh
@@ -688,12 +700,17 @@ function build_all(){
 	echo "TARGET_RAMBOOT_CONFIG=$RK_CFG_RAMBOOT"
 	echo "============================================"
 
-	#note: if build spl, it will delete loader.bin in uboot directory,
-	# so can not build uboot and spl at the same time.
-	if [ -z $RK_SPL_DEFCONFIG ]; then
-		build_uboot
-	else
-		build_spl
+	# NOTE: On secure boot-up world, if the images build with fit(flattened image tree)
+	#       we will build kernel and ramboot firstly,
+	#       and then copy images into u-boot to sign the images.
+	if [ "$RK_RAMDISK_SECURITY_BOOTUP" != "true" ];then
+		#note: if build spl, it will delete loader.bin in uboot directory,
+		# so can not build uboot and spl at the same time.
+		if [ -z $RK_SPL_DEFCONFIG ]; then
+			build_uboot
+		else
+			build_spl
+		fi
 	fi
 
 	build_loader
@@ -702,6 +719,16 @@ function build_all(){
 	build_rootfs ${RK_ROOTFS_SYSTEM:-buildroot}
 	build_recovery
 	build_ramboot
+
+	if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
+		#note: if build spl, it will delete loader.bin in uboot directory,
+		# so can not build uboot and spl at the same time.
+		if [ -z $RK_SPL_DEFCONFIG ]; then
+			build_uboot
+		else
+			build_spl
+		fi
+	fi
 
 	finish_build
 }
