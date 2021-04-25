@@ -23,7 +23,7 @@ export RK_BOOT_IMG=zboot.img
 # kernel image path
 export RK_KERNEL_IMG=kernel/arch/arm/boot/zImage
 # parameter for GPT table
-export RK_PARAMETER=parameter-buildroot-fit.txt
+export RK_PARAMETER=parameter-facial-gate.txt
 # Buildroot config
 export RK_CFG_BUILDROOT=firefly_rv1126_rv1109_uvcc
 # Recovery config
