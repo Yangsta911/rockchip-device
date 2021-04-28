@@ -27,7 +27,9 @@ export RK_PARAMETER=parameter-facial-gate.txt
 # Buildroot config
 export RK_CFG_BUILDROOT=firefly_rv1126_rv1109_uvcc
 # Recovery config
-export RK_CFG_RECOVERY=
+export RK_CFG_RECOVERY=rockchip_rv1126_rv1109_recovery
+# Recovery image format type: fit(flattened image tree)
+export RK_RECOVERY_FIT_ITS=boot4recovery.its
 # ramboot config
 export RK_CFG_RAMBOOT=
 # Pcba config
@@ -53,7 +55,7 @@ export RK_OEM_DIR=oem_firefly_uvcc
 #userdata config
 export RK_USERDATA_DIR=userdata_normal
 #misc image
-export RK_MISC=
+export RK_MISC=wipe_all-misc.img
 #choose enable distro module
 export RK_DISTRO_MODULE=
 # Define package-file for update.img
