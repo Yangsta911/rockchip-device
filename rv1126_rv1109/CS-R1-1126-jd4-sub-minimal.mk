@@ -58,3 +58,5 @@ export RK_DISTRO_MODULE=
 export RK_BOARD_PRE_BUILD_SCRIPT=app-build.sh
 # Define package-file for update.img
 export RK_PACKAGE_FILE=rv1126_rv1109-package-file
+# update spl
+export RK_LOADER_UPDATE_SPL=true
