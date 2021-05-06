@@ -60,3 +60,5 @@ export RK_MISC=wipe_all-misc.img
 export RK_DISTRO_MODULE=
 # Define package-file for update.img
 export RK_PACKAGE_FILE=rv1126_rv1109-package-file-uvc
+# update spl
+export RK_LOADER_UPDATE_SPL=true
