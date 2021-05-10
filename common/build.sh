@@ -761,8 +761,8 @@ function gen_file_name() {
 	typeset -u board
 	board=$(basename $(readlink ${BOARD_CONFIG}))
 	board=${board%%.MK}
-	rootfs=$(ls -l $TOP_DIR/rockdev/ | grep rootfs.img | awk -F '/' '{print $(NF)}'|awk -F '.img' '{print $1}')
-	board=${board}-${rootfs}-GPT
+	rootfs=$(ls -l $TOP_DIR/rockdev/ | grep rootfs.img | awk -F '/' '{print $(NF)}'|awk -F '_' '{print $2}')
+	board=${board}${rootfs}-GPT
 
 	if [ -n "$1" ];then
 		board=$board-$1
@@ -771,7 +771,7 @@ function gen_file_name() {
 	echo -e "File name is \e[36m $board \e[0m"
 	read -t 10 -e -p "Rename the file? [N|y]" ANS || :
 	ANS=${ANS:-n}
-
+	
 	case $ANS in
 			Y|y|yes|YES|Yes) rename=1;;
 			N|n|no|NO|No) rename=0;;
@@ -788,7 +788,7 @@ function gen_file_name() {
 
 function build_sdbootimg(){
 	packm="unpack"
-	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage
+	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage 
 	[[ -n "$1" ]] && packm="pack"
 
 	gen_file_name SDBOOT
@@ -988,16 +988,16 @@ function build_save(){
 
 function build_updateimg(){
 	packm="unpack"
-	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage
+	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage 
 	[[ -n "$1" ]] && packm="pack"
 
-	gen_file_name
+	gen_file_name 
 
 	if [ $packm == "pack" ];then
 		cd $TOP_DIR/rockdev \
 		&& ./version.sh $IMGNAME init $2 && cd -
 	fi
-
+	
 	IMAGE_PATH=$TOP_DIR/rockdev
 	PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware
 
@@ -1027,7 +1027,7 @@ function build_updateimg(){
 		fi
 		mv update.img $IMAGE_PATH
 	fi
-
+	
 	mv $IMAGE_PATH/update.img $IMAGE_PATH/pack/$IMGNAME
 	rm -rf $IMAGE_PATH/update.img
 	if [ $? -eq 0 ]; then
@@ -1106,8 +1106,8 @@ for option in ${OPTIONS}; do
 			else
 				echo -e "\e[31m error: $SD_PARAMETER not found! \e[0m"
 			fi
-
-		    MKUPDATE_FILE=${RK_TARGET_PRODUCT}-mkupdate.sh
+    
+		    MKUPDATE_FILE=${RK_TARGET_PRODUCT}-mkupdate.sh 
 		    if [[ x"$MKUPDATE_FILE" != x-mkupdate.sh ]];then
 				PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware/rockdev/
 				cd $PACK_TOOL_DIR
