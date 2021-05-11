@@ -367,7 +367,11 @@ function build_uboot(){
 		./make.sh $RK_UBOOT_DEFCONFIG \
 			$UBOOT_COMPILE_COMMANDS
 	fi
-
+	
+	if [ "$RK_LOADER_UPDATE_TPL" = "true" ]; then
+		./make.sh --tpl
+	fi
+	
 	if [ "$RK_IDBLOCK_UPDATE_SPL" = "true" ]; then
 		./make.sh --idblock --spl
 	fi
