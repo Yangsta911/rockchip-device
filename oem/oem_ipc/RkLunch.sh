@@ -83,7 +83,7 @@ if [ $HasDisplay -eq 1 ]; then
 	else
 		if [ -z "$QUICKDISPLAY" ]; then
 			if [ $HasAudio -eq 1 ]; then
-				mediaserver -c /oem/usr/share/mediaserver/rv1109/ipc-display.conf &
+				mediaserver -c /oem/usr/share/mediaserver/rv1109/ipc-display-firefly.conf &
 			else
 				mediaserver -c /oem/usr/share/mediaserver/rv1109/ipc-display-without-audio.conf &
 			fi
