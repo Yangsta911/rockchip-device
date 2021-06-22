@@ -150,11 +150,7 @@ check_partition_size() {
 			rootfs|system_[ab])
 				if [ -f $ROOTFS_IMG ]
 				then
-					if [ $rootfs_part_size_bytes -lt `du -bD $ROOTFS_IMG | awk '{print $1}'` ]
-					then
-						echo -e "\e[31m error: rootfs image size exceed parameter! \e[0m"
-						return -1
-					fi
+					echo "mkupdate.sh will resize the rootfs partition."
 				fi
 			;;
 		esac
