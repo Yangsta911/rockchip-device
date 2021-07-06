@@ -279,8 +279,6 @@ function build_info(){
 
 	cd kernel
 	make ARCH=$RK_ARCH dtbs -j$RK_JOBS
-
-	build_check_power_domain
 }
 
 function build_check_power_domain(){
@@ -519,8 +517,6 @@ function build_kernel(){
 			$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS \
 			$TOP_DIR/kernel/ramdisk.img
 	fi
-
-	build_check_power_domain
 
 	finish_build
 }
@@ -1140,8 +1136,6 @@ function build_allsave(){
 	build_firmware
 	build_updateimg
 	build_save
-
-	build_check_power_domain
 
 	finish_build
 }
