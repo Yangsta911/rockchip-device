@@ -301,9 +301,16 @@ function build_check_power_domain(){
 	tmp_io_domain_file=`mktemp`
 	tmp_regulator_microvolt_file=`mktemp`
 	tmp_final_target=`mktemp`
+	tmp_grep_file=`mktemp`
 
 	dtc -I dtb -O dts -o ${dump_kernel_dtb_file} ${kernel_file_dtb_dts}.dtb 2>/dev/null
-	grep -Pzo "io-domains\s*{(\n|\w|-|;|=|<|>|\"|_|\s|,)*};" $dump_kernel_dtb_file | grep -a supply > $tmp_io_domain_file
+	if ! grep -Pzo "io-domains\s*{(\n|\w|-|;|=|<|>|\"|_|\s|,)*};" $dump_kernel_dtb_file 1>$tmp_grep_file 2>/dev/null; then
+		echo "Not Found io-domains in ${kernel_file_dtb_dts}.dts"
+		rm -f $tmp_grep_file
+		return 0
+	fi
+	grep -a supply $tmp_grep_file > $tmp_io_domain_file
+	rm -f $tmp_grep_file
 	awk '{print "phandle = " $3}' $tmp_io_domain_file > $tmp_phandle_file
 
 
@@ -393,7 +400,7 @@ function build_pkg() {
 		pkg_final_target=${pkg_final_target%%.mk*}
 		pkg_final_target_upper=${pkg_final_target^^}
 		pkg_final_target_upper=${pkg_final_target_upper//-/_}
-		if grep "${pkg_final_target_upper}_SITE.*$target_pkg$" $it &>/dev/null; then
+		if grep "${pkg_final_target_upper}_SITE.*$target_pkg" $it &>/dev/null; then
 			pkg_mk=$it
 			pkg_config_in=$(dirname $pkg_mk)/Config.in
 			pkg_br=BR2_PACKAGE_$pkg_final_target_upper
@@ -404,8 +411,8 @@ function build_pkg() {
 					pkg_cfg=$( eval "echo \$$cfg" )
 					if grep -wq ${pkg_br}=y buildroot/output/$pkg_cfg/.config; then
 						echo "Found $pkg_br in buildroot/output/$pkg_cfg/.config "
-						make ${pkg_final_target}-dirclean O=buildroot/output/$pkg_cfg
-						make ${pkg_final_target}-rebuild O=buildroot/output/$pkg_cfg
+						make -C buildroot/output/$pkg_cfg ${pkg_final_target}-dirclean O=buildroot/output/$pkg_cfg
+						make -C buildroot/output/$pkg_cfg ${pkg_final_target}-rebuild O=buildroot/output/$pkg_cfg
 					else
 						echo "[SKIP BUILD $target_pkg] NOT Found ${pkg_br}=y in buildroot/output/$pkg_cfg/.config"
 					fi

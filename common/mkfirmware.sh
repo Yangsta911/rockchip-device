@@ -124,14 +124,16 @@ check_partition_size() {
 		part_name=${PART_NAME_NEED_TO_CHECK##*:}
 		case $part_name in
 			uboot|uboot_[ab])
-				if [ $uboot_part_size_bytes -lt `du -b $UBOOT_IMG | awk '{print $1}'` ]
+				uboot_img=`realpath $ROCKDEV/uboot.img`
+				if [ $uboot_part_size_bytes -lt `du -b $uboot_img | awk '{print $1}'` ]
 				then
 					echo -e "\e[31m error: uboot image size exceed parameter! \e[0m"
 					return -1
 				fi
 			;;
 			boot|boot_[ab])
-				if [ $boot_part_size_bytes -lt `du -b $BOOT_IMG | awk '{print $1}'` ]
+				boot_img=`realpath $ROCKDEV/boot.img`
+				if [ $boot_part_size_bytes -lt `du -b $boot_img | awk '{print $1}'` ]
 				then
 					echo -e "\e[31m error: boot image size exceed parameter! \e[0m"
 					return -1
@@ -148,7 +150,8 @@ check_partition_size() {
 				fi
 			;;
 			rootfs|system_[ab])
-				if [ -f $ROOTFS_IMG ]
+				rootfs_img=`realpath $ROCKDEV/rootfs.img`
+				if [ -f $rootfs_img ]
 				then
 					echo "mkupdate.sh will resize the rootfs partition."
 				fi
