@@ -453,6 +453,10 @@ function build_uboot(){
 			$UBOOT_COMPILE_COMMANDS
 	fi
 	
+	if [ "$RK_IDBLOCK_UPDATE" = "true" ]; then
+		./make.sh --idblock
+	fi
+
 	if [ "$RK_LOADER_UPDATE_TPL" = "true" ]; then
 		./make.sh --tpl
 	fi

@@ -13,6 +13,8 @@ export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 export RK_KERNEL_DTS=firefly-rk3566-aiojd4
 # packagefile for make update image 
 export RK_PACKAGE_FILE=rk356x-package-file
+# build idblock
+export RK_IDBLOCK_UPDATE=true
 
 # sd_parameter for GPT table
 export RK_SD_PARAMETER=parameter-recovery.txt

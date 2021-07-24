@@ -15,6 +15,8 @@ export RK_KERNEL_DTS=firefly-rk3566-aiojd4
 export RK_PARAMETER=parameter-ubuntu-fit.txt
 # packagefile for make update image
 export RK_PACKAGE_FILE=rk356x-ubuntu-package-file
+# build idblock
+export RK_IDBLOCK_UPDATE=true
 
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
