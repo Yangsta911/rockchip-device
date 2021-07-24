@@ -241,6 +241,7 @@ function usage()
 	echo "cleanall           -clean uboot, kernel, rootfs, recovery"
 	echo "firmware           -pack all the image we need to boot up system"
 	echo "updateimg          -pack update image"
+	echo "rawimg             -pack raw image"
 	echo "otapackage         -pack ab update otapackage image (update_ota.img)"
 	echo "sdpackage          -pack update sdcard package image (update_sdcard.img)"
 	echo "save               -save images, patches, commands used to debug"
@@ -879,12 +880,12 @@ function gen_file_name() {
 }
 
 
-function build_sdbootimg(){
+function build_rawimg(){
 	packm="unpack"
 	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage 
 	[[ -n "$1" ]] && packm="pack"
 
-	gen_file_name SDBOOT
+	gen_file_name RAW
 
 	if [ $packm == "pack" ];then
 		cd rockdev && ./version.sh $IMGNAME init && cd -
@@ -907,23 +908,23 @@ function build_sdbootimg(){
 		mv update.img $IMAGE_PATH/update_ab.img
 		ln -fs $source_package_file_name package-file
 	else
-		echo "Make update.img"
+		echo "Make raw.img"
 
 		if [ -f "$RK_PACKAGE_FILE" ]; then
 			source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
 			ln -fs "$RK_PACKAGE_FILE" package-file
-			./mkupdate.sh
+			./mkrawimg.sh
 			ln -fs $source_package_file_name package-file
 		else
-			cd $PACK_TOOL_DIR/rockdev && ./mkupdate.sh && cd -
+			cd $PACK_TOOL_DIR/rockdev && ./mkrawimg.sh && cd -
 		fi
-	mv $PACK_TOOL_DIR/rockdev/update.img $IMAGE_PATH/pack/$IMGNAME
-	rm -rf $IMAGE_PATH/update.img
+	mv $PACK_TOOL_DIR/rockdev/raw.img $IMAGE_PATH/pack/$IMGNAME
+	rm -rf $IMAGE_PATH/raw.img
 	if [ $? -eq 0 ]; then
-	   echo "Make update image ok!"
+	   echo "Make raw image ok!"
 	   echo -e "\e[36m $IMAGE_PATH/pack/$IMGNAME \e[0m"
 	else
-	   echo "Make update image failed!"
+	   echo "Make raw image failed!"
 	   exit 1
 	fi
 
@@ -1227,6 +1228,7 @@ for option in ${OPTIONS}; do
 		cleanall) build_cleanall ;;
 		firmware) build_firmware ;;
 		updateimg) build_updateimg ;;
+		rawimg) build_rawimg ;;
 		otapackage) build_otapackage ;;
 		sdpackage) build_sdcard_package ;;
 		toolchain) build_toolchain ;;
