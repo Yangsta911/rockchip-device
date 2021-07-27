@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -e
 COMMON_DIR=$(cd `dirname $0`; pwd)
 if [ -h $0 ]
 then
