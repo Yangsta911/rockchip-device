@@ -34,6 +34,7 @@ else
 RECOVERY_IMG=$ROCKDEV/recovery.img
 fi
 IDBLOADER_IMG=$TOP_DIR/u-boot/idbloader.img
+IDBLOCK_BIN=$TOP_DIR/u-boot/idblock.bin
 if which fakeroot; then
 FAKEROOT_TOOL="`which fakeroot`"
 else
@@ -270,6 +271,13 @@ if [ -f $IDBLOADER_IMG ]
 then
         echo -n "create idbloader.img..."
         ln -s -f $IDBLOADER_IMG $ROCKDEV/idbloader.img
+        echo "done."
+fi
+
+if [ -f $IDBLOCK_BIN ]
+then
+        echo -n "create idblock.bin..."
+        ln -s -f $IDBLOCK_BIN $ROCKDEV/idblock.bin
         echo "done."
 fi
 
