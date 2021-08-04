@@ -235,6 +235,7 @@ function usage()
 	echo "yocto              -build yocto rootfs"
 	echo "debian             -build debian9 stretch rootfs"
 	echo "distro             -build debian10 buster rootfs"
+        echo "openwrt            -build openwrt rootfs"
 	echo "pcba               -build pcba"
 	echo "recovery           -build recovery"
 	echo "all                -build uboot, kernel, rootfs, recovery image"
@@ -693,13 +694,30 @@ function build_distro(){
 	fi
 }
 
+function build_openwrt(){
+        check_config RK_OPENWRT_DEFCONFIG || return 0
+        check_config RK_OPENWRT_VERSION_SELECT || return 0
+
+	echo "===========Start building $RK_OPENWRT_VERSION_SELECT==========="
+	echo "RK_OPENWRT_DEFCONFIG=$RK_OPENWRT_DEFCONFIG"
+	echo "========================================"
+
+	/usr/bin/time -f "you take %E to build $RK_OPENWRT_VERSION_SELECT" $COMMON_DIR/mk-openwrt.sh $RK_OPENWRT_VERSION_SELECT $RK_OPENWRT_DEFCONFIG 
+	if [ $? -eq 0 ]; then
+		echo "====Build $RK_OPENWRT_VERSION_SELECT ok!===="
+	else
+		echo "====Build $RK_OPENWRT_VERSION_SELECT failed!===="
+		exit 1
+	fi
+}
+
 function build_rootfs(){
 	check_config RK_ROOTFS_IMG || return 0
 
 	RK_ROOTFS_DIR=.rootfs
 	ROOTFS_IMG=${RK_ROOTFS_IMG##*/}
 
-	if [ ${RK_ROOTFS_SYSTEM} != "ubuntu" ]; then
+	if [ "$RK_ROOTFS_SYSTEM" != "ubuntu" ]; then
 		rm -rf $RK_ROOTFS_IMG $RK_ROOTFS_DIR
 		mkdir -p ${RK_ROOTFS_IMG%/*} $RK_ROOTFS_DIR
 	fi
@@ -717,6 +735,10 @@ function build_rootfs(){
 			build_distro
 			ROOTFS_IMG=distro/output/images/rootfs.$RK_ROOTFS_TYPE
 			;;
+                openwrt)
+                        build_openwrt
+                        ROOTFS_IMG=openwrt_sdk/$RK_OPENWRT_VERSION_SELECT/build_dir/target-aarch64_generic_musl/linux-firefly_armv8/root.ext4
+                        ;;
 		*)
 			if [ -n $RK_CFG_BUILDROOT ];then
 				build_buildroot
@@ -1237,7 +1259,7 @@ for option in ${OPTIONS}; do
 		loader) build_loader ;;
 		kernel) build_kernel ;;
 		modules) build_modules ;;
-		rootfs|buildroot|debian|distro|yocto) build_rootfs $option ;;
+		rootfs|buildroot|debian|distro|yocto|openwrt) build_rootfs $option ;;
 		pcba) build_pcba ;;
 		ramboot) build_ramboot ;;
 		recovery) build_recovery ;;
