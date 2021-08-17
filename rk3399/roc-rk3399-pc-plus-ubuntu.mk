@@ -10,7 +10,7 @@ export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 #export RK_KERNEL_DEFCONFIG=firefly_roc-rk3399-pc_defconfig
 
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=roc-rk3399-pc
+export RK_UBOOT_DEFCONFIG=roc-rk3399-pc-plus
 
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-roc-pc-plus
