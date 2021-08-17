@@ -534,6 +534,71 @@ function build_kernel(){
 	finish_build
 }
 
+function build_kerneldeb(){
+	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
+
+	echo "============Start building kernel deb============"
+	echo "TARGET_ARCH          =$RK_ARCH"
+	echo "TARGET_KERNEL_CONFIG =$RK_KERNEL_DEFCONFIG"
+	echo "TARGET_KERNEL_DTS    =$RK_KERNEL_DTS"
+	echo "TARGET_KERNEL_CONFIG_FRAGMENT =$RK_KERNEL_DEFCONFIG_FRAGMENT"
+	echo "=========================================="
+	pwd
+	cd kernel
+	make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT
+	make ARCH=$RK_ARCH bindeb-pkg RK_KERNEL_DTS=$RK_KERNEL_DTS -j$RK_JOBS
+	finish_build
+}
+
+
+function build_extboot(){
+	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
+
+	echo "============Start building kernel============"
+	echo "TARGET_ARCH          =$RK_ARCH"
+	echo "TARGET_KERNEL_CONFIG =$RK_KERNEL_DEFCONFIG"
+	echo "TARGET_KERNEL_DTS    =$RK_KERNEL_DTS"
+	echo "TARGET_KERNEL_CONFIG_FRAGMENT =$RK_KERNEL_DEFCONFIG_FRAGMENT"
+	echo "=========================================="
+	pwd
+	cd kernel
+	make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT
+	make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS
+	if [ -f "$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS" ]; then
+		$COMMON_DIR/mk-fitimage.sh $TOP_DIR/kernel/$RK_BOOT_IMG \
+			$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS \
+			$TOP_DIR/kernel/ramdisk.img
+	fi
+
+	echo -e "\e[36m Generate extLinuxBoot image start\e[0m"
+
+	EXTBOOT_IMG=${TOP_DIR}/kernel/extboot.img
+	EXTBOOT_DIR=${TOP_DIR}/kernel/extboot
+	rm -rf ${EXTBOOT_DIR} && mkdir -p ${EXTBOOT_DIR}/extlinux
+
+    KERNEL_VERSION=$(cat $TOP_DIR/kernel/include/config/kernel.release)
+	echo "label $RK_KERNEL_DTS linux-$KERNEL_VERSION" > $EXTBOOT_DIR/extlinux/extlinux.conf
+
+    cp ${TOP_DIR}/$RK_KERNEL_IMG $EXTBOOT_DIR/Image-$KERNEL_VERSION
+	echo -e "\tkernel /Image-$KERNEL_VERSION" >> $EXTBOOT_DIR/extlinux/extlinux.conf
+
+    cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/rockchip/${RK_KERNEL_DTS}.dtb $EXTBOOT_DIR
+	echo -e "\tfdt /${RK_KERNEL_DTS}.dtb" >> $EXTBOOT_DIR/extlinux/extlinux.conf
+
+    if [[ -e ${TOP_DIR}/kernel/ramdisk.img ]]; then
+        cp ${TOP_DIR}/kernel/ramdisk.img $EXTBOOT_DIR/initrd-$KERNEL_VERSION
+        echo -e "\tinitrd /initrd-$KERNEL_VERSION" >> $EXTBOOT_DIR/extlinux/extlinux.conf
+    fi
+
+    cp ${TOP_DIR}/kernel/.config $EXTBOOT_DIR/config-$KERNEL_VERSION
+    cp ${TOP_DIR}/kernel/System.map $EXTBOOT_DIR/System.map-$KERNEL_VERSION
+
+    rm -rf $EXTBOOT_IMG && truncate -s 100M $EXTBOOT_IMG
+    fakeroot mkfs.ext4 -Fq -L "boot" -d $EXTBOOT_DIR $EXTBOOT_IMG
+
+	finish_build
+}
+
 function build_modules(){
 	check_config RK_KERNEL_DEFCONFIG || return 0
 
@@ -1258,6 +1323,8 @@ for option in ${OPTIONS}; do
 		uboot) build_uboot ;;
 		loader) build_loader ;;
 		kernel) build_kernel ;;
+		extboot) build_extboot ;;
+		kerneldeb) build_kerneldeb ;;
 		modules) build_modules ;;
 		rootfs|buildroot|debian|distro|yocto|openwrt) build_rootfs $option ;;
 		pcba) build_pcba ;;
