@@ -235,7 +235,7 @@ function usage()
 	echo "yocto              -build yocto rootfs"
 	echo "debian             -build debian9 stretch rootfs"
 	echo "distro             -build debian10 buster rootfs"
-        echo "openwrt            -build openwrt rootfs"
+    echo "openwrt            -build openwrt rootfs"
 	echo "pcba               -build pcba"
 	echo "recovery           -build recovery"
 	echo "all                -build uboot, kernel, rootfs, recovery image"
@@ -760,8 +760,8 @@ function build_distro(){
 }
 
 function build_openwrt(){
-        check_config RK_OPENWRT_DEFCONFIG || return 0
-        check_config RK_OPENWRT_VERSION_SELECT || return 0
+    check_config RK_OPENWRT_DEFCONFIG || return 0
+    check_config RK_OPENWRT_VERSION_SELECT || return 0
 
 	echo "===========Start building $RK_OPENWRT_VERSION_SELECT==========="
 	echo "RK_OPENWRT_DEFCONFIG=$RK_OPENWRT_DEFCONFIG"

@@ -21,11 +21,8 @@ cd $OPENWRT_DIR
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
-if [ ! -f .config ]; then
-	cp "$OPENWRT_CONFIG_PATH" .config && make defconfig
-else
-	echo "using .config file"
-fi
+echo "using $OPENWRT_DEFCOFNIG"
+cp "$OPENWRT_CONFIG_PATH" .config && make defconfig
 
 make download -j$(nproc)
 find dl -size -1024c -exec ls -l {} \;
