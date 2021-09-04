@@ -15,4 +15,4 @@ export RK_KERNEL_DTS=rk3568-firefly-roc-pc
 # Openwrt version select
 export RK_OPENWRT_VERSION_SELECT=openwrt
 # Openwrt defconfig
-export RK_OPENWRT_DEFCONFIG=ROC-3568-PC_config
+export RK_OPENWRT_DEFCONFIG=rk356x_config

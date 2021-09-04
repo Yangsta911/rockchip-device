@@ -17,7 +17,7 @@ export RK_IDBLOCK_UPDATE=true
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
 # recovery ramdisk
-export RK_RECOVERY_RAMDISK=rk356x-recovery-arm64.cpio.gz
+export RK_RECOVERY_RAMDISK=rk356x-recovery-arm64-raw.cpio.gz
 # Set userdata partition type
 export RK_USERDATA_FS_TYPE=ext4
 # kernel image format type: fit(flattened image tree)
@@ -26,7 +26,7 @@ export RK_KERNEL_FIT_ITS=bootramdisk.its
 # Buildroot config
 export RK_CFG_BUILDROOT=
 # Recovery config
-export RK_CFG_RECOVERY=rockchip_rk356x_recovery_raw
+export RK_CFG_RECOVERY=
 #OEM config
 export RK_OEM_DIR=
 #userdata config
