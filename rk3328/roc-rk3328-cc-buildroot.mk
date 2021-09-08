@@ -7,3 +7,5 @@ source $CUR_DIR/firefly-rk3328-buildroot.mk
 
 # Kernel dts
 export RK_KERNEL_DTS=rk3328-roc-cc
+# DRM version
+export RK_DRM_VERSION=2

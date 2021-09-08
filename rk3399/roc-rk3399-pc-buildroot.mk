@@ -10,3 +10,7 @@ export RK_UBOOT_DEFCONFIG=roc-rk3399-pc
 
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-roc-pc
+# DRM version
+export RK_DRM_VERSION=2
+# DRM version
+export RK_DRM_VERSION=2
