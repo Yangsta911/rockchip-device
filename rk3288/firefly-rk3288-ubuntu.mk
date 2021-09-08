@@ -11,6 +11,8 @@ export RK_UBOOT_DEFCONFIG=firefly-rk3288
 export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 # Kernel dts
 export RK_KERNEL_DTS=rk3288-firefly
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=FIREFLY_RK3288
 # parameter for GPT table
 export RK_PARAMETER=parameter-ubuntu.txt
 # packagefile for pack image files
