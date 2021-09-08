@@ -1238,6 +1238,12 @@ function build_updateimg(){
 	   exit 1
 	fi
 
+    [ -z "$RK_PRODUCT_MODEL" ] && RK_PRODUCT_MODEL=${RK_KERNEL_DTS}
+    [ -z "$RK_DRM_VERSION" ] && RK_DRM_VERSION=1
+    [[ "${RK_TARGET_PRODUCT^^}" == "RK356*" ]]  && RK_DRM_VERSION=100
+    command -v ffgenswv.bin > /dev/null 2>&1 && \
+    ffgenswv.bin -b ${RK_TARGET_PRODUCT^^} -m ${RK_PRODUCT_MODEL^^} -V ${RK_DRM_VERSION} -u $IMAGE_PATH/pack/$IMGNAME
+
 	finish_build
 }
 
