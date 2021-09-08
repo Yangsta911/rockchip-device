@@ -10,8 +10,6 @@ export RK_UBOOT_FORMAT_TYPE=fit
 export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 # Kernel defconfig fragment
 export RK_KERNEL_DEFCONFIG_FRAGMENT=rk3568_nvr.config
-# Kernel dts   rk3568-nvr-demo-v10-linux   rk3568-evb1-ddr4-v10-linux
-export RK_KERNEL_DTS=rk3568-firefly-aioj
 # boot image type
 export RK_BOOT_IMG=boot.img
 # kernel image path
