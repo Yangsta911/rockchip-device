@@ -11,6 +11,8 @@ export RK_UBOOT_DEFCONFIG=evb-px30
 export RK_KERNEL_DEFCONFIG=px30_linux_defconfig
 # Kernel dts
 export RK_KERNEL_DTS=px30-firefly
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=PX30
 # parameter for GPT table
 export RK_PARAMETER=parameter-ubuntu.txt
 # packagefile for make update image 

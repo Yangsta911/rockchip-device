@@ -11,6 +11,8 @@ export RK_UBOOT_DEFCONFIG=evb-px30
 export RK_KERNEL_DEFCONFIG=px30_linux_defconfig
 # Kernel dts
 export RK_KERNEL_DTS=px30-firefly
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=PX30
 # packagefile for make update image 
 export RK_PACKAGE_FILE=px30-package-file
 
