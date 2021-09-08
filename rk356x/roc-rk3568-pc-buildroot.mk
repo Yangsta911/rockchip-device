@@ -7,3 +7,5 @@ source $CUR_DIR/firefly-rk3568-buildroot.mk
 
 # Kernel dts
 export RK_KERNEL_DTS=rk3568-firefly-roc-pc
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=ROC_RK3568_PC
