@@ -24,6 +24,8 @@ export RK_ROOTFS_TYPE=ext4
 export RK_ROOTFS_IMG=ubuntu_rootfs/rk356x_ubuntu_rootfs.img
 # recovery ramdisk
 export RK_RECOVERY_RAMDISK=rk356x-recovery-arm64.cpio.gz
+# recovery ramdisk raw
+export RK_RECOVERY_RAMDISK_RAW=rk356x-recovery-arm64-raw.cpio.gz
 # Set userdata partition type
 export RK_USERDATA_FS_TYPE=ext4
 # kernel image format type: fit(flattened image tree)

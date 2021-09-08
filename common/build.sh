@@ -978,6 +978,21 @@ function build_rawimg(){
 		cd rockdev && ./version.sh $IMGNAME init && cd -
 	fi
 
+	if [ -n "$RK_RECOVERY_RAMDISK_RAW" ]; then
+		local mk_path=$(realpath $BOARD_CONFIG)
+		sed -i '$a\'"export RK_RECOVERY_RAMDISK=$RK_RECOVERY_RAMDISK_RAW" $mk_path
+		sed -i '$a\'"export RK_CFG_RECOVERY=" $mk_path
+		if [ -n "$TOP_DIR/rockdev/recovery.img" ]; then
+			mv $TOP_DIR/rockdev/recovery.img $TOP_DIR/rockdev/recovery.img_bk
+		fi
+		build_recovery
+		sed -i "/export RK_RECOVERY_RAMDISK=$RK_RECOVERY_RAMDISK_RAW/d" $mk_path
+		sed -i "/export RK_CFG_RECOVERY=/d" $mk_path
+	else
+		echo "Not found RK_RECOVERY_RAMDISK_RAW!"
+		exit 1
+	fi
+
 	IMAGE_PATH=$TOP_DIR/rockdev
 	PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware
 
@@ -1007,6 +1022,10 @@ function build_rawimg(){
 		fi
 	mv $PACK_TOOL_DIR/rockdev/raw.img $IMAGE_PATH/pack/$IMGNAME
 	rm -rf $IMAGE_PATH/raw.img
+	if [ -n "$TOP_DIR/rockdev/recovery.img_bk" ]; then
+		mv $TOP_DIR/rockdev/recovery.img_bk $TOP_DIR/rockdev/recovery.img
+	fi
+
 	if [ $? -eq 0 ]; then
 	   echo "Make raw image ok!"
 	   echo -e "\e[36m $IMAGE_PATH/pack/$IMGNAME \e[0m"
