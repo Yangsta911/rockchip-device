@@ -8,5 +8,5 @@ source $CUR_DIR/px30-ubuntu.mk
 # Kernel dts
 export RK_KERNEL_DTS=px30-firefly-lvds
 # PRODUCT MODEL
-export RK_PRODUCT_MODEL=PX30
+export RK_PRODUCT_MODEL=CORE_PX30_JD4
 
