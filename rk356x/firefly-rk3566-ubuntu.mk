@@ -10,7 +10,7 @@ export RK_UBOOT_DEFCONFIG=firefly-rk3566
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 # Kernel dts
-export RK_KERNEL_DTS=firefly-rk3566-aiojd4
+export RK_KERNEL_DTS=rk3566-firefly-aiojd4
 # parameter for GPT table
 export RK_PARAMETER=parameter-ubuntu-fit.txt
 # packagefile for make update image

@@ -3,7 +3,7 @@
 CMD=`realpath $BASH_SOURCE`
 CUR_DIR=`dirname $CMD`
 
-source $CUR_DIR/firefly-rk356x_openwrt.mk
+source $CUR_DIR/firefly-rk356x-openwrt.mk
 
 # Uboot defconfig
 export RK_UBOOT_DEFCONFIG=firefly-rk3566

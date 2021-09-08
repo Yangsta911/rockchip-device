@@ -3,9 +3,9 @@
 CMD=`realpath $BASH_SOURCE`
 CUR_DIR=`dirname $CMD`
 
-source $CUR_DIR/firefly-rk3568_ubuntu.mk
+source $CUR_DIR/firefly-rk3566-ubuntu.mk
 
 # Kernel dts
-export RK_KERNEL_DTS=rk3568-firefly-roc-pc
+export RK_KERNEL_DTS=rk3566-firefly-roc-pc
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=station_linux_defconfig
