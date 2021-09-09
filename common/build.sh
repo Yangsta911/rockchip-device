@@ -800,10 +800,10 @@ function build_rootfs(){
 			build_distro
 			ROOTFS_IMG=distro/output/images/rootfs.$RK_ROOTFS_TYPE
 			;;
-                openwrt)
-                        build_openwrt
-                        ROOTFS_IMG=openwrt_sdk/$RK_OPENWRT_VERSION_SELECT/build_dir/target-aarch64_generic_musl/linux-firefly_armv8/root.ext4
-                        ;;
+		openwrt)
+			build_openwrt
+			ROOTFS_IMG=openwrt_sdk/$RK_OPENWRT_VERSION_SELECT/build_dir/target-aarch64_generic_musl/linux-firefly_armv8/root.ext4
+			;;
 		*)
 			if [ -n $RK_CFG_BUILDROOT ];then
 				build_buildroot

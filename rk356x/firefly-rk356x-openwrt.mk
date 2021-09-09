@@ -17,7 +17,9 @@ export RK_IDBLOCK_UPDATE=true
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
 # recovery ramdisk
-export RK_RECOVERY_RAMDISK=rk356x-recovery-arm64-raw.cpio.gz
+export RK_RECOVERY_RAMDISK=rk356x-recovery-arm64.cpio.gz
+# recovery ramdisk raw 
+export RK_RECOVERY_RAMDISK_RAW=rk356x-recovery-arm64-raw.cpio.gz
 # Set userdata partition type
 export RK_USERDATA_FS_TYPE=ext4
 # kernel image format type: fit(flattened image tree)
@@ -30,4 +32,4 @@ export RK_CFG_RECOVERY=
 #OEM config
 export RK_OEM_DIR=
 #userdata config
-export RK_USERDATA_DIR=userdata_empty
+export RK_USERDATA_DIR=

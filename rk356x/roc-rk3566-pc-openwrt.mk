@@ -17,4 +17,4 @@ export RK_PRODUCT_MODEL=ROC_RK3566_PC
 # Openwrt version select
 export RK_OPENWRT_VERSION_SELECT=openwrt
 # Openwrt defconfig
-export RK_OPENWRT_DEFCONFIG=ROC-3566-PC_config
+export RK_OPENWRT_DEFCONFIG=rk356x_config
