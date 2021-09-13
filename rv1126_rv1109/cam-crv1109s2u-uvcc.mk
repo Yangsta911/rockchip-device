@@ -62,3 +62,5 @@ export RK_DISTRO_MODULE=
 export RK_PACKAGE_FILE=rv1126_rv1109-package-file-uvc
 # update spl
 export RK_LOADER_UPDATE_SPL=true
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=CAM_CRV1126S2U

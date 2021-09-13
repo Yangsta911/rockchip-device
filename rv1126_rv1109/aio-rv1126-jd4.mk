@@ -19,3 +19,5 @@ export RK_ROOTFS_TYPE=ext4
 export RK_OEM_DIR=oem_ipc_firefly
 # update spl
 export RK_LOADER_UPDATE_SPL=true
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=AIO_1126_JD4

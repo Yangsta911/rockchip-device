@@ -8,3 +8,6 @@ source $CUR_DIR/cam-crv1109s2u-uvcc.mk
 
 # Buildroot config
 export RK_CFG_BUILDROOT=firefly_rv1126_rv1109_rkmedia_uvcc
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=CAM_CRV1126S2U

@@ -58,3 +58,5 @@ export RK_DISTRO_MODULE=
 export RK_BOARD_PRE_BUILD_SCRIPT=app-build.sh
 # update spl
 export RK_LOADER_UPDATE_SPL=true
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=CAM_CRV1126S2U

@@ -11,3 +11,6 @@ export RK_KERNEL_DTS=rv1126-firefly-jd4
 
 # Buildroot config
 export RK_CFG_BUILDROOT=firefly_rv1126_rv1109_rkmedia_uvcc
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=AIO_1126_JD4

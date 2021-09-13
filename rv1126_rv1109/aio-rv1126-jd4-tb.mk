@@ -15,3 +15,6 @@ export RK_KERNEL_DEFCONFIG=rv1126_firefly_defconfig
 export RK_KERNEL_DTS=rv1126-firefly-jd4-tb
 
 export RK_CFG_RAMBOOT=firefly_rv1126_tb
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=AIO_1126_JD4
