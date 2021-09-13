@@ -7,3 +7,6 @@ source $CUR_DIR/firefly-rk3399-ubuntu.mk
 
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-firefly-face-mipi8
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=FACE_3399

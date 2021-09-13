@@ -16,3 +16,6 @@ export RK_KERNEL_DTS=rk3399-roc-pc-exp
 
 # DRM version
 export RK_DRM_VERSION=2
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=ROC_3399_PC

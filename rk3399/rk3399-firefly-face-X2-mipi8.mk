@@ -9,3 +9,6 @@ source $CUR_DIR/firefly-rk3399-ubuntu.mk
 export RK_KERNEL_DTS=rk3399-firefly-face-X2-mipi8
 export RK_KERNEL_DEFCONFIG=firefly_face_x2_linux_defconfig
 
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=FACE_3399

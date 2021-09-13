@@ -10,3 +10,6 @@ export RK_KERNEL_DEFCONFIG=firefly_linux_docker_defconfig
 
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-firefly-CS-R1-jd4-sub
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=CORE_3399_JD4

@@ -8,3 +8,6 @@ source $CUR_DIR/firefly-rk3399-ubuntu.mk
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-firefly-csr2-main
 export RK_ROOTFS_IMG=ubunturootfs/UBUNTU_18.04_CSR2_Main_DESKTOP.img
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=CORE_3399J
