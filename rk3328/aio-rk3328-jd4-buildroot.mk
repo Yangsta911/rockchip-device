@@ -7,3 +7,6 @@ source $CUR_DIR/firefly-rk3328-buildroot.mk
 
 # Kernel dts
 export RK_KERNEL_DTS=rk3328-firefly-aiojd4
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=AIO_3328_JD4

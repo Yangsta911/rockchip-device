@@ -9,3 +9,6 @@ source $CUR_DIR/firefly-rk3328-ubuntu.mk
 export RK_KERNEL_DTS=rk3328-firefly-aiojd4
 
 #export RK_ROOTFS_IMG=rootfs/rk3328-ubuntu1804-arm64-rootfs.img
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=AIO_3328_JD4

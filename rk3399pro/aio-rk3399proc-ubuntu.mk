@@ -35,3 +35,6 @@ export RK_OEM_DIR=
 export RK_USERDATA_DIR=
 # rootfs_system
 export RK_ROOTFS_SYSTEM=ubuntu
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=AIO_3399PROC

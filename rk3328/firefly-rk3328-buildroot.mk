@@ -20,3 +20,6 @@ export RK_SD_PARAMETER=parameter-recovery.txt
 export RK_SD_PACKAGE_FILE=rk3328-recovery-package-file
 
 export RK_USERDATA_FS_TYPE=ext4
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=FIREFLY_3328
