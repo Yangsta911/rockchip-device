@@ -5,6 +5,9 @@ CUR_DIR=`dirname $CMD`
 
 source $CUR_DIR/firefly-rk3399-ubuntu.mk
 
+# Uboot defconfig
+export RK_UBOOT_DEFCONFIG=CS-R1_main-rk3399-JD4
+
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-firefly-CS-R1-jd4-main
 
