@@ -39,7 +39,7 @@ function choose_target_board()
 {
 	echo
 	echo "You're building on Linux"
-	echo "Lunch menu...pick a combo:"
+	echo "Launch menu...pick a combo:"
 	echo ""
 
 	echo "0. default BoardConfig.mk"
@@ -52,7 +52,7 @@ function choose_target_board()
 	if echo $INDEX | grep -vq [^0-9]; then
 		RK_BUILD_TARGET_BOARD="${RK_TARGET_BOARD_ARRAY[$INDEX]}"
 	else
-		echo "Lunching for Default BoardConfig.mk boards..."
+		echo "Launching for Default BoardConfig.mk boards..."
 		RK_BUILD_TARGET_BOARD=BoardConfig.mk
 	fi
 }
@@ -70,6 +70,31 @@ function build_select_board()
 	choose_target_board
 
 	ln -rfs $TARGET_PRODUCT_DIR/$RK_BUILD_TARGET_BOARD device/rockchip/.BoardConfig.mk
+
+	unset RK_PACKAGE_FILE
+	source $TARGET_PRODUCT_DIR/$RK_BUILD_TARGET_BOARD
+	if [[ x"$RK_PACKAGE_FILE" != x ]];then
+		PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware/rockdev/
+		cd $PACK_TOOL_DIR
+		rm -f package-file
+		ln -sf $RK_PACKAGE_FILE package-file
+	fi
+
+	if [[ x"$RK_PARAMETER" != x ]];then
+		PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
+		ln -sf $PARAMETER $ROCKDEV/parameter.txt
+	else
+		echo -e "\e[31m error: $SD_PARAMETER not found! \e[0m"
+	fi
+
+    MKUPDATE_FILE=${RK_TARGET_PRODUCT}-mkupdate.sh
+    if [[ x"$MKUPDATE_FILE" != x-mkupdate.sh ]];then
+		PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware/rockdev/
+		cd $PACK_TOOL_DIR
+		rm -f mkupdate.sh
+		ln -sf $MKUPDATE_FILE mkupdate.sh
+	fi
+
 	echo "switching to board: `realpath $BOARD_CONFIG`"
 }
 
@@ -220,7 +245,7 @@ function usage()
 	echo "Usage: build.sh [OPTIONS]"
 	echo "Available options:"
 	echo "*.mk               -switch to specified board config"
-	echo "lunch              -list current SDK boards and switch to specified board config"
+	echo "launch              -list current SDK boards and switch to specified board config"
 	echo "uboot              -build uboot"
 	echo "spl                -build spl"
 	echo "loader             -build loader"
@@ -1327,15 +1352,8 @@ for option in ${OPTIONS}; do
 				rm -f mkupdate.sh
 				ln -sf $MKUPDATE_FILE mkupdate.sh
 			fi
-
-			if [[ x"$RK_PACKAGE_FILE" != x ]];then
-				PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware/rockdev/
-				cd $PACK_TOOL_DIR
-				rm -f package-file
-				ln -sf $RK_PACKAGE_FILE package-file
-			fi
 			;;
-		lunch) build_select_board ;;
+		launch) build_select_board ;;
 		all) build_all ;;
 		save) build_save ;;
 		allsave) build_allsave ;;
