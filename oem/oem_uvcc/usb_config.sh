@@ -2,6 +2,7 @@
 
 ADB_EN=on
 DFU_EN=off
+MTP_EN=off
 if ( echo $2 |grep -q "off" ); then
 ADB_EN=off
 fi
@@ -83,11 +84,22 @@ configure_uvc_resolution_h265()
 hid_device_config()
 {
   mkdir ${USB_FUNCTIONS_DIR}/hid.usb0
-  echo 1 > ${USB_FUNCTIONS_DIR}/hid.usb0/protocol # keyboard
-  echo 1 > ${USB_FUNCTIONS_DIR}/hid.usb0/subclass
-  echo 8 > ${USB_FUNCTIONS_DIR}/hid.usb0/report_length
-  echo -ne \\x05\\x01\\x09\\x06\\xa1\\x01\\x05\\x07\\x19\\xe0\\x29\\xe7\\x15\\x00\\x25\\x01\\x75\\x01\\x95\\x08\\x81\\x02\\x95\\x01\\x75\\x08\\x81\\x03\\x95\\x05\\x75\\x01\\x05\\x08\\x19\\x01\\x29\\x05\\x91\\x02\\x95\\x01\\x75\\x03\\x91\\x03\\x95\\x06\\x75\\x08\\x15\\x00\\x25\\x65\\x05\\x07\\x19\\x00\\x29\\x65\\x81\\x00\\xc0 > ${USB_FUNCTIONS_DIR}/hid.usb0/report_desc
+  #echo 1 > ${USB_FUNCTIONS_DIR}/hid.usb0/protocol # keyboard
+  #echo 1 > ${USB_FUNCTIONS_DIR}/hid.usb0/subclass
+  echo 1 > ${USB_FUNCTIONS_DIR}/hid.usb0/report_length
+
+  #Volume Up/Down Mute Consumer Devices
+  echo -ne \\x05\\x0c\\x09\\x01\\xa1\\x01\\x15\\x00\\x25\\x01\\x09\\xe9\\x09\\xea\\x75\\x01\\x95\\x02\\x81\\x06\\x09\\xe2\\x95\\x01\\x81\\x06\\x95\\x05\\x81\\x07\\xc0 > ${USB_FUNCTIONS_DIR}/hid.usb0/report_desc
   ln -s ${USB_FUNCTIONS_DIR}/hid.usb0 ${USB_CONFIGS_DIR}/f$1
+}
+mtp_device_config()
+{
+  mkdir ${USB_FUNCTIONS_DIR}/mtp.gs0
+  echo "MTP" > ${USB_FUNCTIONS_DIR}/mtp.gs0/os_desc/interface.MTP/compatible_id
+  echo 1 > ${USB_FUNCTIONS_DIR}/../os_desc/use
+  echo "mtp on++++++ f$1"
+  ln -s ${USB_FUNCTIONS_DIR}/mtp.gs0 ${USB_CONFIGS_DIR}/f$1
+  MTP_EN=on
 }
 uvc_device_config()
 {
@@ -96,8 +108,8 @@ uvc_device_config()
   UDC=`ls /sys/class/udc/| awk '{print $1}'`
   if [ "$UDC"x = "fcc00000.dwc3"x ]; then
      echo "rk3568 uvc config dwc3"
-     echo 2 > ${USB_FUNCTIONS_DIR}/uvc.gs6/uvc_num_request
-     echo 4 > ${USB_FUNCTIONS_DIR}/uvc.gs6/streaming_maxburst
+     echo 4 > ${USB_FUNCTIONS_DIR}/uvc.gs6/uvc_num_request
+     echo 5 > ${USB_FUNCTIONS_DIR}/uvc.gs6/streaming_maxburst
   else
      echo 2 > ${USB_FUNCTIONS_DIR}/uvc.gs6/uvc_num_request
   fi
@@ -109,6 +121,7 @@ uvc_device_config()
   ##YUYV support config
   mkdir /sys/kernel/config/usb_gadget/rockchip/functions/uvc.gs6/streaming/uncompressed/u
   configure_uvc_resolution_yuyv 320 240
+  configure_uvc_resolution_yuyv 640 360
   configure_uvc_resolution_yuyv 640 480
   if [ "$UDC"x = "fcc00000.dwc3"x ]; then
     configure_uvc_resolution_yuyv 1280 720
@@ -273,8 +286,14 @@ uac2)
    ;;
 hid)
    hid_device_config 2
+   echo "uvc_hid" > ${USB_CONFIGS_DIR}/strings/0x409/configuration
    echo "config uvc and hid..."
     ;;
+mtp)
+   mtp_device_config 2
+   echo "uvc_mtp" > ${USB_CONFIGS_DIR}/strings/0x409/configuration
+   echo "config uvc and mtp..."
+   ;;
 uac1_rndis)
    #uac_device_config uac1
    mkdir /sys/kernel/config/usb_gadget/rockchip/functions/rndis.gs0
@@ -292,7 +311,7 @@ uac2_rndis)
    echo "config uvc and uac2 rndis..."
    ;;
 uac1_hid)
-   uac2_device_config uac1
+   uac1_device_config uac1
    hid_device_config 3
    echo "uvc_uac1_hid" > ${USB_CONFIGS_DIR}/strings/0x409/configuration
    echo "config uvc + uac1 + hid ..."
@@ -338,6 +357,10 @@ fi
 
 UDC=`ls /sys/class/udc/| awk '{print $1}'`
 echo $UDC > /sys/kernel/config/usb_gadget/rockchip/UDC
+
+if [ $MTP_EN = on ];then
+    start-stop-daemon --start --quiet --background --exec /usr/bin/mtp-server
+fi
 
 if [ "$1" ]; then
   pre_run_rndis $1
