@@ -12,6 +12,8 @@ export RK_UBOOT_DEFCONFIG=rv1126-firefly-emmc-tb
 
 export RK_KERNEL_DEFCONFIG=rv1126_firefly_defconfig
 
+export RK_KERNEL_DEFCONFIG_FRAGMENT=rv1126-firefly-tb.config
+
 export RK_KERNEL_DTS=rv1126-firefly-jd4-tb
 
 export RK_CFG_RAMBOOT=firefly_rv1126_tb
