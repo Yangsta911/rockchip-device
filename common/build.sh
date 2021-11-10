@@ -739,8 +739,10 @@ function build_yocto(){
 	cd yocto
 	ln -sf $RK_YOCTO_MACHINE.conf build/conf/local.conf
 	source oe-init-build-env
-	cd ..
-	bitbake core-image-minimal -r conf/include/rksdk.conf
+	LANG=en_US.UTF-8 LANGUAGE=en_US.en LC_ALL=en_US.UTF-8 \
+		bitbake core-image-minimal -r conf/include/rksdk.conf \
+		$(grep -wq "PATCHLEVEL = 19" ../../kernel/Makefile && \
+			echo "-r conf/include/kernel-4.19.conf")
 
 	if [ $? -eq 0 ]; then
 		echo "====Build yocto ok!===="
