@@ -1,5 +1,5 @@
 #! /bin/bash
-
+set -x
 set -e
 
 DEVICE_DIR=$(cd `dirname $0`; pwd)
@@ -20,7 +20,7 @@ PRODUCT_PATH=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT
 PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
 OEM_DIR=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_OEM_DIR
 USER_DATA_DIR=$TOP_DIR/device/rockchip/userdata/$RK_USERDATA_DIR
-MISC_IMG=$TOP_DIR/device/rockchip/rockimg/wipe_all-misc.img
+MISC_IMG=$TOP_DIR/device/rockchip/rockimg/$RK_MISC
 ROOTFS_IMG=$TOP_DIR/$RK_ROOTFS_IMG
 ROOTFS_IMG_SOURCE=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.$RK_ROOTFS_TYPE
 RECOVERY_IMG=$TOP_DIR/buildroot/output/$RK_CFG_RECOVERY/images/recovery.img

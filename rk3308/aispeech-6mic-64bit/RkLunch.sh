@@ -6,12 +6,16 @@ rm /tmp/test.pcm
 echo 0x60 0x40ff0050 > /sys/kernel/debug/vad/reg
 echo 0x5c 0x000e2080 > /sys/kernel/debug/vad/reg
 
+amixer cset name='DAC HPOUT Left Volume' 18
+amixer cset name='DAC HPOUT Right Volume' 18
+amixer cset name='Master Playback Volume' 40
+
 ln -s /oem/aispeech_softap_lite /data/aispeech_softap_lite
 ln -s /oem/wifi_monitor.sh /data/
 ln -s /oem/dds_client /data/dds_client
 ln -s /oem/dds_service.sh /data/
 
-export  AISPEECH_WIFI_CFG="/data/wpa_supplicant.conf"
+export  AISPEECH_WIFI_CFG="/data/cfg/wpa_supplicant.conf"
 
 #aispeech dui app information file
 export  AISPEECH_DUIKIT_APP="/data/aispeech_softap_lite/device/app.json"

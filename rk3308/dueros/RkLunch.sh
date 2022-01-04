@@ -21,12 +21,16 @@ echo 1 > /proc/sys/vm/overcommit_memory
 cd /data/
 
 # for ai-va demo
-amixer cset name='Master Volume' 120
-amixer cset name='Speaker Volume' 255
+#amixer cset name='Master Volume' 120
+#amixer cset name='Speaker Volume' 255
 
 # for evb-codec
 #amixer -c 1 cset name='DAC HPMIX Left Volume' 1
 #amixer -c 1 cset name='DAC HPMIX Right Volume' 1
+
+amixer cset name='DAC HPOUT Left Volume' 18
+amixer cset name='DAC HPOUT Right Volume' 18
+amixer cset name='Master Playback Volume' 40
 
 ifconfig lo 127.0.0.1 netmask 255.255.255.0
 

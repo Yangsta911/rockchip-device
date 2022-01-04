@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
                 os_event_group_wait_bits(event, EV_RECODER_CLOSE, true, true);
                 system("echo 0 > /sys/module/snd_soc_rockchip_vad/parameters/voice_inactive_frames");
                 system("echo mem > /sys/power/state");
-               // usleep(30 * 1000);
+//                usleep(30 * 1000);
                 dui_start_recorder();
             }   
             select(0, NULL, NULL, NULL, &tv);
