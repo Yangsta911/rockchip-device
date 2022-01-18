@@ -3,7 +3,7 @@
 # Target arch
 export RK_ARCH=arm64
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=rk3568
+export RK_UBOOT_DEFCONFIG=rk3588
 # Uboot image format type: fit(flattened image tree)
 export RK_UBOOT_FORMAT_TYPE=fit
 # Kernel defconfig
@@ -11,7 +11,7 @@ export RK_KERNEL_DEFCONFIG=rockchip_linux_defconfig
 # Kernel defconfig fragment
 export RK_KERNEL_DEFCONFIG_FRAGMENT=
 # Kernel dts
-export RK_KERNEL_DTS=rk3568-evb1-ddr4-v10-linux
+export RK_KERNEL_DTS=rk3588s-evb2-lp5-v10-linux
 # boot image type
 export RK_BOOT_IMG=boot.img
 # kernel image path
@@ -19,11 +19,11 @@ export RK_KERNEL_IMG=kernel/arch/arm64/boot/Image
 # kernel image format type: fit(flattened image tree)
 export RK_KERNEL_FIT_ITS=boot.its
 # parameter for GPT table
-export RK_PARAMETER=parameter-buildroot-orion.txt
+export RK_PARAMETER=parameter.txt
 # Buildroot config
-export RK_CFG_BUILDROOT=rockchip_orion
+export RK_CFG_BUILDROOT=rockchip_rk3588
 # Recovery config
-export RK_CFG_RECOVERY=rockchip_orion_recovery
+export RK_CFG_RECOVERY=rockchip_rk3588_recovery
 # Recovery image format type: fit(flattened image tree)
 export RK_RECOVERY_FIT_ITS=boot4recovery.its
 # ramboot config
@@ -33,11 +33,11 @@ export RK_CFG_PCBA=
 # Build jobs
 export RK_JOBS=12
 # target chip
-export RK_TARGET_PRODUCT=orion
+export RK_TARGET_PRODUCT=rk3588
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
 # yocto machine
-export RK_YOCTO_MACHINE=
+export RK_YOCTO_MACHINE=rockchip-rk3588-evb
 # rootfs image path
 export RK_ROOTFS_IMG=rockdev/rootfs.${RK_ROOTFS_TYPE}
 # Set ramboot image type

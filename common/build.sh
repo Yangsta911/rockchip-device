@@ -146,7 +146,7 @@ function prebuild_uboot()
 
 	if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
 		UBOOT_COMPILE_COMMANDS=" \
-			--boot_img $(cd $TOP_DIR && realpath ./rockdev/boot.img) \
+			--boot_img $TOP_DIR/u-boot/boot.img \
 			--burn-key-hash $UBOOT_COMPILE_COMMANDS \
 			${RK_ROLLBACK_INDEX_BOOT:+--rollback-index-boot $RK_ROLLBACK_INDEX_BOOT} \
 			${RK_ROLLBACK_INDEX_UBOOT:+--rollback-index-uboot $RK_ROLLBACK_INDEX_UBOOT} "
@@ -389,6 +389,27 @@ function build_check_power_domain(){
 	rm -f $dump_kernel_dtb_file
 }
 
+function build_check_cross_compile(){
+	ARCH=${RK_KERNEL_ARCH:-${RK_ARCH}}
+	case $ARCH in
+	arm|armhf)
+		if [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf" ]; then
+		CROSS_COMPILE=$TOP_DIR/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf/bin/arm-linux-gnueabihf-
+		export CROSS_COMPILE=$CROSS_COMPILE
+		fi
+		;;
+	arm64|aarch64)
+		if [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/aarch64/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu" ]; then
+		CROSS_COMPILE=$TOP_DIR/prebuilts/gcc/linux-x86/aarch64/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+		export CROSS_COMPILE=$CROSS_COMPILE
+		fi
+		;;
+	*)
+		echo "the $ARCH not supported for now, please check it again\n"
+		;;
+	esac
+}
+
 function build_check(){
 	local build_depend_cfg="build-depend-tools.txt"
 	common_product_build_tools="$TOP_DIR/device/rockchip/common/$build_depend_cfg"
@@ -468,13 +489,19 @@ function build_uboot(){
 	echo "TARGET_UBOOT_CONFIG=$RK_UBOOT_DEFCONFIG"
 	echo "========================================="
 
+	if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
+		if [ -n "$RK_CFG_RAMBOOT" ];then
+			build_ramboot
+		else
+			build_kernel
+		fi
+		cp -f $TOP_DIR/rockdev/boot.img $TOP_DIR/u-boot/boot.img
+	fi
+
 	cd u-boot
 	rm -f *_loader_*.bin
 	if [ "$RK_LOADER_UPDATE_SPL" = "true" ]; then
 		rm -f *spl.bin
-	fi
-	if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
-		rm -f $TOP_DIR/u-boot/boot.img
 	fi
 
 	if [ -n "$RK_UBOOT_DEFCONFIG_FRAGMENT" ]; then
@@ -556,6 +583,9 @@ function build_kernel(){
 	echo "TARGET_KERNEL_CONFIG_FRAGMENT =$RK_KERNEL_DEFCONFIG_FRAGMENT"
 	echo "=========================================="
 	pwd
+
+	build_check_cross_compile
+
 	cd kernel
 	make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT
 	make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS
@@ -563,6 +593,11 @@ function build_kernel(){
 		$COMMON_DIR/mk-fitimage.sh $TOP_DIR/kernel/$RK_BOOT_IMG \
 			$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_KERNEL_FIT_ITS \
 			$TOP_DIR/kernel/ramdisk.img
+	fi
+
+	if [ -f "$TOP_DIR/kernel/$RK_BOOT_IMG" ]; then
+		mkdir -p $TOP_DIR/rockdev
+		ln -sf  $TOP_DIR/kernel/$RK_BOOT_IMG $TOP_DIR/rockdev/boot.img
 	fi
 
 	finish_build
@@ -595,6 +630,7 @@ function build_extboot(){
 	echo "TARGET_KERNEL_CONFIG_FRAGMENT =$RK_KERNEL_DEFCONFIG_FRAGMENT"
 	echo "=========================================="
 	pwd
+
 	cd kernel
 	make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT
 	make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS
@@ -641,13 +677,14 @@ function build_modules(){
 	echo "TARGET_KERNEL_CONFIG =$RK_KERNEL_DEFCONFIG"
 	echo "TARGET_KERNEL_CONFIG_FRAGMENT =$RK_KERNEL_DEFCONFIG_FRAGMENT"
 	echo "=================================================="
-	cd $TOP_DIR/kernel && make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT && make ARCH=$RK_ARCH modules -j$RK_JOBS && cd -
-	if [ $? -eq 0 ]; then
-		echo "====Build kernel ok!===="
-	else
-		echo "====Build kernel failed!===="
-		exit 1
-	fi
+
+	build_check_cross_compile
+
+	cd kernel
+	make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT
+	make ARCH=$RK_ARCH modules -j$RK_JOBS
+
+	finish_build
 }
 
 function build_toolchain(){
@@ -718,13 +755,22 @@ function build_multi-npu_boot(){
 	echo "=========Start building multi-npu boot========="
 	echo "TARGET_RAMBOOT_CONFIG=$RK_CFG_RAMBOOT"
 	echo "====================================="
-	/usr/bin/time -f "you take %E to build multi-npu boot" $COMMON_DIR/mk-multi-npu_boot.sh
-	if [ $? -eq 0 ]; then
-		echo "====Build multi-npu boot ok!===="
-	else
-		echo "====Build multi-npu boot failed!===="
-		exit 1
-	fi
+
+	/usr/bin/time -f "you take %E to build multi-npu boot" \
+		$COMMON_DIR/mk-multi-npu_boot.sh
+
+	finish_build
+}
+
+function kernel_version(){
+	VERSION_KEYS="VERSION PATCHLEVEL"
+	VERSION=""
+
+	for k in $VERSION_KEYS; do
+		v=$(grep "^$k = " $1/Makefile | cut -d' ' -f3)
+		VERSION=${VERSION:+${VERSION}.}$v
+	done
+	echo $VERSION
 }
 
 function build_yocto(){
@@ -734,22 +780,16 @@ function build_yocto(){
 	echo "TARGET_MACHINE=$RK_YOCTO_MACHINE"
 	echo "====================================="
 
-	export LANG=en_US.UTF-8 LANGUAGE=en_US.en LC_ALL=en_US.UTF-8
+	KERNEL_VERSION=$(kernel_version kernel/)
 
 	cd yocto
 	ln -sf $RK_YOCTO_MACHINE.conf build/conf/local.conf
 	source oe-init-build-env
 	LANG=en_US.UTF-8 LANGUAGE=en_US.en LC_ALL=en_US.UTF-8 \
 		bitbake core-image-minimal -r conf/include/rksdk.conf \
-		$(grep -wq "PATCHLEVEL = 19" ../../kernel/Makefile && \
-			echo "-r conf/include/kernel-4.19.conf")
+		-r conf/include/kernel-$KERNEL_VERSION.conf
 
-	if [ $? -eq 0 ]; then
-		echo "====Build yocto ok!===="
-	else
-		echo "====Build yocto failed!===="
-		exit 1
-	fi
+	finish_build
 }
 
 function build_debian(){
