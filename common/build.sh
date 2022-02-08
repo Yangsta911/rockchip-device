@@ -258,8 +258,8 @@ function usage()
 	echo "ramboot            -build ramboot image"
 	echo "multi-npu_boot     -build boot image for multi-npu board"
 	echo "yocto              -build yocto rootfs"
-	echo "debian             -build debian9 stretch rootfs"
-	echo "distro             -build debian10 buster rootfs"
+	echo "debian             -build debian rootfs"
+	echo "distro             -build distro rootfs"
     echo "openwrt            -build openwrt rootfs"
 	echo "pcba               -build pcba"
 	echo "recovery           -build recovery"
@@ -390,22 +390,22 @@ function build_check_power_domain(){
 }
 
 function build_check_cross_compile(){
-	ARCH=${RK_KERNEL_ARCH:-${RK_ARCH}}
-	case $ARCH in
+
+	case $RK_ARCH in
 	arm|armhf)
 		if [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf" ]; then
-		CROSS_COMPILE=$TOP_DIR/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf/bin/arm-linux-gnueabihf-
+			CROSS_COMPILE=$(realpath $TOP_DIR)/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf/bin/arm-linux-gnueabihf-
 		export CROSS_COMPILE=$CROSS_COMPILE
 		fi
 		;;
 	arm64|aarch64)
 		if [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/aarch64/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu" ]; then
-		CROSS_COMPILE=$TOP_DIR/prebuilts/gcc/linux-x86/aarch64/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
+			CROSS_COMPILE=$(realpath $TOP_DIR)/prebuilts/gcc/linux-x86/aarch64/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-
 		export CROSS_COMPILE=$CROSS_COMPILE
 		fi
 		;;
 	*)
-		echo "the $ARCH not supported for now, please check it again\n"
+		echo "the $RK_ARCH not supported for now, please check it again\n"
 		;;
 	esac
 }
@@ -483,6 +483,7 @@ function build_pkg() {
 
 function build_uboot(){
 	check_config RK_UBOOT_DEFCONFIG || return 0
+	build_check_cross_compile
 	prebuild_uboot
 
 	echo "============Start building uboot============"
@@ -511,6 +512,12 @@ function build_uboot(){
 			make ${RK_UBOOT_DEFCONFIG}.config $RK_UBOOT_DEFCONFIG_FRAGMENT
 		fi
 		./make.sh $UBOOT_COMPILE_COMMANDS
+	elif [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf" ]; then
+		./make.sh $RK_UBOOT_DEFCONFIG \
+			$UBOOT_COMPILE_COMMANDS CROSS_COMPILE=$CROSS_COMPILE
+	elif [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/aarch64/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu" ]; then
+		./make.sh $RK_UBOOT_DEFCONFIG \
+			$UBOOT_COMPILE_COMMANDS CROSS_COMPILE=$CROSS_COMPILE
 	else
 		./make.sh $RK_UBOOT_DEFCONFIG \
 			$UBOOT_COMPILE_COMMANDS
@@ -802,21 +809,22 @@ function build_debian(){
 	echo "=========Start building debian for $ARCH========="
 
 	cd debian
-	if [ ! -e linaro-buster-$ARCH.tar.gz ]; then
-		RELEASE=buster TARGET=desktop ARCH=$ARCH ./mk-base-debian.sh
-		ln -rsf linaro-buster-alip-*.tar.gz linaro-buster-$ARCH.tar.gz
+	if [ ! -e linaro-$RK_DEBIAN_VERSON-$ARCH.tar.gz ]; then
+		RELEASE=$RK_DEBIAN_VERSION TARGET=desktop ARCH=$ARCH ./mk-base-debian.sh
+		ln -rsf linaro-$RK_DEBIAN_VERSION-alip-*.tar.gz linaro-$RK_DEBIAN_VERSION-$ARCH.tar.gz
 	fi
 
-	VERSION=debug ARCH=$ARCH ./mk-rootfs-stretch.sh
+	VERSION=debug ARCH=$ARCH ./mk-rootfs-$RK_DEBIAN_VERSION.sh
 
 	./mk-image.sh
 	cd ..
 	if [ $? -eq 0 ]; then
-		echo "====Build Debian9 ok!===="
+		echo "====Build Debian ok!===="
 	else
-		echo "====Build Debian9 failed!===="
+		echo "====Build Debian failed!===="
 		exit 1
 	fi
+	finish_build
 }
 
 function build_distro(){
