@@ -4162,9 +4162,9 @@
             },
             {
                 "id": 1,
-                "name": "telecontrolID",
+                "name": "ircutSwitch",
                 "ro": "false",
-                "value": "88"
+                "value": "0"
             },
             {
                 "id": 2,
