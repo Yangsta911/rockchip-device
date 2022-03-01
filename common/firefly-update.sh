@@ -19,7 +19,7 @@ current_branch="current"
 firefly_branch="$SOC/firefly"
 rockchip_branch="$SOC/rockchip"
 firefly="firefly-linux"
-public="gitlab"
+gitlab="firefly-gitlab"
 
 ALL_OFF="\e[0m"
 BOLD="\e[1m"
@@ -105,7 +105,7 @@ function push_firefly(){
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
 		if git branch | grep -q $firefly_branch; then
-			echo gitt push $firefly $firefly_branch:$bra
+			gitt push $firefly $firefly_branch:$bra
 		else
 			exit -1
 		fi
@@ -349,6 +349,38 @@ function tags_remote(){
 	rm -rf $err_list
 }
 
+function gitlab_remote_init(){
+	project_list
+	tag=$1
+	err_list=".gitlab_remote_init.list"
+	if [ -f "$err_list" ];then
+		echo -e "${YELLOW}注意：本次从上次执行失败的仓库开始继续执行! $pro ${ALL_OFF}"
+		while_file="$err_list"
+	else
+		while_file="$list_path"
+		cp $list_path $err_list
+	fi
+
+	while read line
+	do
+		pro=$(echo $line | awk -F ' ' '{print $1}')
+		bra=$(echo $line | awk -F ' ' '{print $2}')
+		cd $pro
+		
+		if git remote -v | grep -q $firefly; then
+			url=$(git remote -v | grep $firefly | awk -F ' ' '{print $2}' | uniq | sed "s/.*rk-linux\/\(.*\)*/\1/")
+			url="git@gitlab.com:firefly-linux/$url"
+			gitt remote add $gitlab $url
+		else
+			exit -1
+		fi
+
+		cd - > /dev/null
+		sed -i "1d" $err_list
+	done < $while_file
+	rm -rf $err_list
+}
+
 function reset_manifest(){
 	if [ x"$1" != x ] && [ "$1" == "-a" ];then
 		all=true
@@ -382,7 +414,7 @@ function reset_manifest(){
 
 
 function pull_firefly(){
-	repo sync -cd
+	repo sync -cd --no-tags
 	if [ "$?" != "0" ];then
 		exit -1
 	fi
@@ -506,6 +538,7 @@ function usage(){
 	echo "不常用："
 	echo "$0 tags-local-firefly tag - 本地 SOC/firefly 分支打标签"
 	echo "$0 tags-remote tag - 推送标签到远程 firefly-linux"
+	echo "$0 gitlab-remote-init - 初始化外部仓库 remote"
 }
 
 para=$1
@@ -584,7 +617,8 @@ elif [ "$para" == "tags-remote" ];then
 	tags_remote $tag
 elif [ "$para" == "reset" ];then
 	reset_manifest $2
-
+elif [ "$para" == "gitlab-remote-init" ];then
+	gitlab_remote_init $2
 else 
 	usage
 fi
