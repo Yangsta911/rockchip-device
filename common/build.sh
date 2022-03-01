@@ -670,8 +670,8 @@ function build_extboot(){
     cp ${TOP_DIR}/kernel/.config $EXTBOOT_DIR/config-$KERNEL_VERSION
     cp ${TOP_DIR}/kernel/System.map $EXTBOOT_DIR/System.map-$KERNEL_VERSION
 
-    rm -rf $EXTBOOT_IMG && truncate -s 100M $EXTBOOT_IMG
-    fakeroot mkfs.ext4 -Fq -L "boot" -d $EXTBOOT_DIR $EXTBOOT_IMG
+    rm -rf $EXTBOOT_IMG && truncate -s 64M $EXTBOOT_IMG
+    fakeroot ${TOP_DIR}/device/rockchip/common/mkfs.ext4 -Fq -L "boot" -d $EXTBOOT_DIR $EXTBOOT_IMG
 
 	finish_build
 }
