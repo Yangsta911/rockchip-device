@@ -115,6 +115,34 @@ function push_firefly(){
 	rm -rf $err_list
 }
 
+function push_gitlab(){
+	project_list
+	err_list=".push_gitlab.list"
+	if [ -f "$err_list" ];then
+		echo -e "${YELLOW}注意：本次从上次执行失败的仓库开始继续执行! $pro ${ALL_OFF}"
+		while_file="$err_list"
+	else
+		while_file="$list_path"
+		cp $list_path $err_list
+	fi
+
+	while read line
+	do
+		pro=$(echo $line | awk -F ' ' '{print $1}')
+		bra=$(echo $line | awk -F ' ' '{print $2}')
+		cd $pro
+		if git branch | grep -q $firefly_branch; then
+			gitt push $gitlab $firefly_branch:$bra
+		else
+			exit -1
+		fi
+		cd - > /dev/null
+		sed -i "1d" $err_list
+	done < $while_file
+	rm -rf $err_list
+}
+
+
 function create_release(){
 	project_list
 	release=$1
@@ -287,10 +315,10 @@ function push_branch(){
 }
 
 
-function tags_local_firefly(){
+function tag_local_firefly(){
 	project_list
 	tag=$1
-	err_list=".tags_local_firefly.list"
+	err_list=".tag_local_firefly.list"
 	if [ -f "$err_list" ];then
 		echo -e "${YELLOW}注意：本次从上次执行失败的仓库开始继续执行! $pro ${ALL_OFF}"
 		while_file="$err_list"
@@ -318,10 +346,10 @@ function tags_local_firefly(){
 	rm -rf $err_list
 }
 
-function tags_remote(){
+function tag_firefly(){
 	project_list
 	tag=$1
-	err_list=".tags_remote.list"
+	err_list=".tag_firefly.list"
 	if [ -f "$err_list" ];then
 		echo -e "${YELLOW}注意：本次从上次执行失败的仓库开始继续执行! $pro ${ALL_OFF}"
 		while_file="$err_list"
@@ -342,6 +370,37 @@ function tags_remote(){
 			exit -1
 		fi
 		gitt push $firefly $tag
+
+		cd - > /dev/null
+		sed -i "1d" $err_list
+	done < $while_file
+	rm -rf $err_list
+}
+
+function tag_gitlab(){
+	project_list
+	tag=$1
+	err_list=".tag_gitlab.list"
+	if [ -f "$err_list" ];then
+		echo -e "${YELLOW}注意：本次从上次执行失败的仓库开始继续执行! $pro ${ALL_OFF}"
+		while_file="$err_list"
+	else
+		while_file="$list_path"
+		cp $list_path $err_list
+	fi
+
+	while read line
+	do
+		pro=$(echo $line | awk -F ' ' '{print $1}')
+		bra=$(echo $line | awk -F ' ' '{print $2}')
+		cd $pro
+		
+		if git branch | grep -q $firefly_branch; then
+			gitt checkout $firefly_branch
+		else
+			exit -1
+		fi
+		gitt push $gitlab $tag
 
 		cd - > /dev/null
 		sed -i "1d" $err_list
@@ -523,7 +582,8 @@ function usage(){
 	echo "$0 pull-rockchip - 更新本地 SOC/rockchip 分支，SOC/rockchip 是上游更新分支没有经过任何改动"
 	echo "$0 merge-rockchip - Merge SOC/rockchip 到 SOC/firefly"
 	echo "$0 pull-firefly - 更新本地 SOC/firefly 分支，repo sync -c 更新后的最新提交"
-	echo "$0 push-firefly - 更新远程 SOC/firefly 分支"
+	echo "$0 push-firefly - 更新远程(内部) SOC/firefly 分支"
+	echo "$0 push-gitlab - 更新远程(外部) SOC/firefly 分支"
 	echo "$0 reset [-a] - 回退到某 manifest xml 版本"
 	
 	echo ""
@@ -531,13 +591,17 @@ function usage(){
 	echo "$0 create-release release_branch - 根据当前 SOC/firefly 创建临时 release 版本"
 	echo "$0 tag-release release_branch tag - 发布分支上打上标签"
 	echo "$0 delete-release-branch release_branch - 删除本地和远程的分支"
+	echo "$0 tag-firefly tag - 推送标签到远程(内部) firefly-linux"
+	echo "$0 tag-gitlab tag - 推送标签到远程(外部) firefly-linux"
+	
+	echo ""
+	echo "发布阶段调试："
 	echo "$0 pull-branch branch - 拉取分支，但是所有仓库分支必须同名"
 	echo "$0 push-branch branch - 推送分支，但是所有仓库分支必须同名"
 	
-	echo " "
+	echo ""
 	echo "不常用："
-	echo "$0 tags-local-firefly tag - 本地 SOC/firefly 分支打标签"
-	echo "$0 tags-remote tag - 推送标签到远程 firefly-linux"
+	echo "$0 tag-local-firefly tag - 本地 SOC/firefly 分支打标签"
 	echo "$0 gitlab-remote-init - 初始化外部仓库 remote"
 }
 
@@ -551,6 +615,8 @@ elif [ "$para" == "pull-firefly" ];then
 	pull_firefly $2
 elif [ "$para" == "push-firefly" ];then
 	push_firefly
+elif [ "$para" == "push-gitlab" ];then
+	push_gitlab
 elif [ "$para" == "create-release" ];then
 	if [ x"$2" == x ];then
 		usage
@@ -597,7 +663,7 @@ elif [ "$para" == "tag-release" ];then
 	fi
 
 	tag_release $branch $tag
-elif [ "$para" == "tags-local-firefly" ];then
+elif [ "$para" == "tag-local-firefly" ];then
 	if [ x"$2" == x ];then
 		usage
 		exit -1
@@ -605,8 +671,8 @@ elif [ "$para" == "tags-local-firefly" ];then
 		tag=$2
 	fi
 
-	tags_local_firefly $tag
-elif [ "$para" == "tags-remote" ];then
+	tag_local_firefly $tag
+elif [ "$para" == "tag-firefly" ];then
 	if [ x"$2" == x ];then
 		usage
 		exit -1
@@ -614,7 +680,17 @@ elif [ "$para" == "tags-remote" ];then
 		tag=$2
 	fi
 
-	tags_remote $tag
+	tag_firefly $tag
+elif [ "$para" == "tag-gitlab" ];then
+	if [ x"$2" == x ];then
+		usage
+		exit -1
+	else
+		tag=$2
+	fi
+
+	tag_gitlab $tag
+
 elif [ "$para" == "reset" ];then
 	reset_manifest $2
 elif [ "$para" == "gitlab-remote-init" ];then
