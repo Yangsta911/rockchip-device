@@ -501,7 +501,9 @@ function pull_firefly(){
 		cd $pro
 		
 		if $force ;then 
-			gitt branch -D $firefly_branch
+			if git branch | grep -q $firefly_branch;then
+				gitt branch -D $firefly_branch
+			fi
 			gitt checkout -b $firefly_branch
 		else
 			if git branch | grep -q repo_sync; then
