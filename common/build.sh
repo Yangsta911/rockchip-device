@@ -254,6 +254,7 @@ function usage()
 	echo "toolchain          -build toolchain"
 	echo "extboot            -build extlinux boot.img, boot from EFI partition"
 	echo "rootfs             -build default rootfs, currently build buildroot as default"
+	echo "rootfs_inst_mods   -install kernel modules to rootfs image"
 	echo "buildroot          -build buildroot rootfs"
 	echo "ramboot            -build ramboot image"
 	echo "multi-npu_boot     -build boot image for multi-npu board"
@@ -690,6 +691,19 @@ function build_modules(){
 	cd kernel
 	make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT
 	make ARCH=$RK_ARCH modules -j$RK_JOBS
+	MODS_DIR=ko
+	rm -rf $MODS_DIR
+	make ARCH=$RK_ARCH INSTALL_MOD_PATH=$MODS_DIR modules_install
+
+	finish_build
+}
+
+function build_rootfs_install_modules(){
+	build_modules || return 0
+
+	ROOTFS_IMAGE=$TOP_DIR/rockdev/rootfs.img
+	MODS_DIR=ko
+	fakeroot ${TOP_DIR}/device/rockchip/common/overwr-ext4 -d lib/modules -a kernel/$MODS_DIR $ROOTFS_IMAGE
 
 	finish_build
 }
@@ -1432,6 +1446,7 @@ for option in ${OPTIONS}; do
 		extboot) build_extboot ;;
 		kerneldeb) build_kerneldeb ;;
 		modules) build_modules ;;
+		rootfs_inst_mods) build_rootfs_install_modules ;;
 		rootfs|buildroot|debian|distro|yocto|openwrt) build_rootfs $option ;;
 		pcba) build_pcba ;;
 		ramboot) build_ramboot ;;
