@@ -703,7 +703,7 @@ function build_rootfs_install_modules(){
 
 	ROOTFS_IMAGE=$TOP_DIR/rockdev/rootfs.img
 	MODS_DIR=ko
-	fakeroot ${TOP_DIR}/device/rockchip/common/overwr-ext4 -d lib/modules -a kernel/$MODS_DIR $ROOTFS_IMAGE
+	fakeroot ${COMMON_DIR}/overwr-ext4 -d lib/modules -a kernel/$MODS_DIR $ROOTFS_IMAGE
 
 	finish_build
 }
