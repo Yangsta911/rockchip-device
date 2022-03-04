@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#其他平台可能需要修改此处	
+#其他平台可能需要修改此处
 version=$(readlink -f .repo/manifest.xml | awk -F '/' '{print $NF}')
 SOC=$(echo $version | awk -F '_' '{print $1}')
 if [ "$SOC" == "rv1126" ];then
@@ -66,11 +66,11 @@ function project_list(){
 		manifest_file="$manifest_file $save_file"
 	done
 	cd - > /dev/null
-	
+
 	rm -rf $list_path
 	for i in $manifest_file
 	do
-		cat .repo/manifests/$i | grep "<project"  | while read line
+		cat .repo/manifests/$i | grep -v "<!--"| grep "<project"  | while read line
 		do
 	        	check=$(echo $line | grep "path=")
 	        	if [ x"$check" == x ];then
@@ -78,7 +78,7 @@ function project_list(){
 	        	else
 	               		pro=$(echo $line | grep "<project" | awk -F 'path' '{print $2}'| awk -F '"' '{print $2}')
 	        	fi
-	
+
 	        	branch=$(echo $line | grep "<project" | awk -F 'dest-branch' '{print $2}'| awk -F '"' '{print $2}')
         		if [ x"$branch" == x ];then
 				branch=$SOC/firefly
@@ -160,7 +160,7 @@ function create_release(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
+
 		if git branch | grep -q $firefly_branch; then
 			gitt checkout $firefly_branch
 			gitt branch $release
@@ -168,8 +168,8 @@ function create_release(){
 		else
 			exit -1
 		fi
-		
-		
+
+
 		cd - > /dev/null
 		sed -i "1d" $err_list
 	done < $while_file
@@ -194,7 +194,7 @@ function tag_release(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
+
 		if git branch | grep -q $branch; then
 			gitt checkout $branch
 			gitt tag $tag
@@ -205,8 +205,8 @@ function tag_release(){
 		else
 			exit -1
 		fi
-		
-		
+
+
 		cd - > /dev/null
 		sed -i "1d" $err_list
 	done < $while_file
@@ -230,7 +230,7 @@ function delete_release(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
+
 		if git branch | grep -q $firefly_branch; then
 			gitt checkout $firefly_branch
 		else
@@ -241,7 +241,7 @@ function delete_release(){
 			echo -e "# ${RED}ERR: Please check if the branch has been merged!${ALL_OFF}"
 			exit -1
 		fi
-		
+
 		gitt branch -D $branch
 		gitt push $firefly :$branch
 
@@ -268,15 +268,15 @@ function pull_branch(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
+
 		if git branch | grep -q $branch; then
 			gitt checkout $branch
 			gitt pull $firefly $branch:$branch
 		else
 			exit -1
 		fi
-		
-		
+
+
 		cd - > /dev/null
 		sed -i "1d" $err_list
 	done < $while_file
@@ -300,14 +300,14 @@ function push_branch(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
+
 		if git branch | grep -q $branch; then
 			gitt push $firefly $branch:$branch
 		else
 			exit -1
 		fi
-		
-		
+
+
 		cd - > /dev/null
 		sed -i "1d" $err_list
 	done < $while_file
@@ -332,7 +332,7 @@ function tag_local_firefly(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
+
 		if git branch | grep -q $firefly_branch; then
 			gitt checkout $firefly_branch
 		else
@@ -363,7 +363,7 @@ function tag_firefly(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
+
 		if git branch | grep -q $firefly_branch; then
 			gitt checkout $firefly_branch
 		else
@@ -394,7 +394,7 @@ function tag_gitlab(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
+
 		if git branch | grep -q $firefly_branch; then
 			gitt checkout $firefly_branch
 		else
@@ -425,7 +425,7 @@ function gitlab_remote_init(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
+
 		if git remote -v | grep -q $firefly; then
 			url=$(git remote -v | grep $firefly | awk -F ' ' '{print $2}' | uniq | sed "s/.*rk-linux\/\(.*\)*/\1/")
 			url="git@gitlab.com:firefly-linux/$url"
@@ -443,10 +443,10 @@ function gitlab_remote_init(){
 function reset_manifest(){
 	if [ x"$1" != x ] && [ "$1" == "-a" ];then
 		all=true
-	else 
+	else
 		all=false
 	fi
-	
+
 	manifest_path=".repo/manifests/"
 	val=$(echo $version | awk -F '_' '{print $1}')
 	cd $manifest_path
@@ -455,7 +455,7 @@ function reset_manifest(){
 	else
 		xml_file=( $(find -name "*.xml"| grep $val | grep -v old | sort) )
 	fi
-	echo ${xml_file[@]}| xargs -n1 | awk -F '/' '{print $NF}' | sed "=" | sed "N;s/\n/. /" 
+	echo ${xml_file[@]}| xargs -n1 | awk -F '/' '{print $NF}' | sed "=" | sed "N;s/\n/. /"
 	read -p "Which would you like? [0]: " INDEX
 	INDEX=$((${INDEX:-0} - 1))
 	if echo $INDEX | grep -vq [^0-9]; then
@@ -465,7 +465,7 @@ function reset_manifest(){
 	fi
 	cd - > /dev/null
 
-	cd .repo 
+	cd .repo
 	ln -sf manifests/$xml manifest.xml
 	cd - > /dev/null
 }
@@ -477,10 +477,10 @@ function pull_firefly(){
 	if [ "$?" != "0" ];then
 		exit -1
 	fi
-	
+
 	if [ x"$1" != x ] && [ "$1" == "-f" ];then
 		force=true
-	else 
+	else
 		force=false
 	fi
 
@@ -493,14 +493,14 @@ function pull_firefly(){
 		while_file="$list_path"
 		cp $list_path $err_list
 	fi
-	
+
 	while read line
 	do
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
-		if $force ;then 
+
+		if $force ;then
 			if git branch | grep -q $firefly_branch;then
 				gitt branch -D $firefly_branch
 			fi
@@ -529,7 +529,7 @@ function pull_rockchip(){
 		while_file="$list_path"
 		cp $list_path $err_list
 	fi
-	
+
 	while read line
 	do
 		pro=$(echo $line | awk -F ' ' '{print $1}')
@@ -541,7 +541,7 @@ function pull_rockchip(){
 			gitt fetch $firefly $rockchip_branch
 			gitt checkout -b $rockchip_branch $firefly/$rockchip_branch
 		fi
-		
+
 		cd - > /dev/null
 		sed -i "1d" $err_list
 	done < $while_file
@@ -558,20 +558,20 @@ function merge_rockchip(){
 		while_file="$list_path"
 		cp $list_path $err_list
 	fi
-	
+
 	while read line
 	do
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
+
 		if git branch | grep -q $rockchip_branch; then
 			gitt checkout $firefly_branch
 			gitt merge --no-ff $rockchip_branch
 		else
 			exit -1
 		fi
-		
+
 		cd - > /dev/null
 		sed -i "1d" $err_list
 	done < $while_file
@@ -587,7 +587,7 @@ function usage(){
 	echo "$0 push-firefly - 更新远程(内部) SOC/firefly 分支"
 	echo "$0 push-gitlab - 更新远程(外部) SOC/firefly 分支"
 	echo "$0 reset [-a] - 回退到某 manifest xml 版本"
-	
+
 	echo ""
 	echo "发布使用："
 	echo "$0 create-release release_branch - 根据当前 SOC/firefly 创建临时 release 版本"
@@ -595,12 +595,12 @@ function usage(){
 	echo "$0 delete-release-branch release_branch - 删除本地和远程的分支"
 	echo "$0 tag-firefly tag - 推送标签到远程(内部) firefly-linux"
 	echo "$0 tag-gitlab tag - 推送标签到远程(外部) firefly-linux"
-	
+
 	echo ""
 	echo "发布阶段调试："
 	echo "$0 pull-branch branch - 拉取分支，但是所有仓库分支必须同名"
 	echo "$0 push-branch branch - 推送分支，但是所有仓库分支必须同名"
-	
+
 	echo ""
 	echo "不常用："
 	echo "$0 tag-local-firefly tag - 本地 SOC/firefly 分支打标签"
@@ -610,7 +610,7 @@ function usage(){
 para=$1
 
 if [ "$para" == "pull-rockchip" ];then
-	pull_rockchip	
+	pull_rockchip
 elif [ "$para" == "merge-rockchip" ];then
 	merge_rockchip
 elif [ "$para" == "pull-firefly" ];then
@@ -697,6 +697,6 @@ elif [ "$para" == "reset" ];then
 	reset_manifest $2
 elif [ "$para" == "gitlab-remote-init" ];then
 	gitlab_remote_init $2
-else 
+else
 	usage
 fi
