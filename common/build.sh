@@ -1034,34 +1034,63 @@ function build_firmware(){
 
 
 function gen_file_name() {
-	day=$(date +%Y%m%d)
-	time=$(date +%H%M)
+	local day=$(date +%Y%m%d)
+	local time=$(date +%H%M)
+	#add any os name to this array
+	local os_all="buildroot debian ubuntu openwrt UnionTech UniKylin centos"
 
-	typeset -u board
-	board=$(basename $(readlink ${BOARD_CONFIG}))
-	board=${board%%.MK}
-	rootfs=$(ls -l $TOP_DIR/rockdev/ | grep rootfs.img | awk -F '/' '{print $(NF)}'|awk -F '_' '{print $2}')
-	board=${board}${rootfs}-GPT
+	local model=$(basename $(realpath ${BOARD_CONFIG}) .mk)
+	local os_mk=$(echo $model | egrep -io ${os_all// /|})
+	# Set the string before os name in the BOARD_CONFIG file name as the model name
+	[[ -n "$os_mk" ]] && model=${model/-$os_mk*/}
+	IMGNAME=$model
 
-	if [ -n "$1" ];then
-		board=$board-$1
+	local rootfs=$(basename $(realpath $TOP_DIR/rockdev/rootfs.img))
+	local real_os=$(echo $rootfs | egrep -io ${os_all// /|})
+	if [[ -n "$real_os" ]]; then
+		# Set the string before first "-" in the rootfs file name as the system name
+		full_os=${rootfs/-*/}
+		old_format=$(echo $full_os | grep -io $RK_TARGET_PRODUCT)
+		if [[ -n "$old_format" ]]; then
+			echo "The rootfs file names need to be renamed in this format OSVERSION-xxxx.img"
+			echo "The string before first \"-\" in the rootfs file name as the system name"
+			full_os=${full_os/$old_format*/}
+			full_os=$(echo $full_os | sed -n 's/[_-]*$//p')
+			[[ -n "$full_os" ]] && real_os=$full_os
+		fi
+	else
+		real_os=$os_mk
+	fi
+	IMGNAME+=_${real_os}
+
+	local sdk_version=""
+	local manifest=$(realpath ${TOP_DIR}/.repo/manifest.xml)
+	if [[ -f $manifest ]]; then
+		manifest=$(basename $(realpath ${TOP_DIR}/.repo/manifest.xml) .xml)
+		sdk_version=$(echo $manifest | sed -n 's/.*[-_]\([vV][0-9.a-zA-Z]*\).*/\1/p')
+		IMGNAME+=_${sdk_version}
 	fi
 
-	echo -e "File name is \e[36m $board \e[0m"
+	if [ -n "$1" ];then
+		IMGNAME+=_$1
+	fi
+
+	IMGNAME=${IMGNAME^^}
+
+	echo -e "File name is \e[36m $IMGNAME\e[0m"
 	read -t 10 -e -p "Rename the file? [N|y]" ANS || :
 	ANS=${ANS:-n}
-	
+
 	case $ANS in
 			Y|y|yes|YES|Yes) rename=1;;
 			N|n|no|NO|No) rename=0;;
 			*) rename=0;;
 	esac
 	if [[ ${rename} == "1" ]]; then
-		read -e -p "Enter new file name: " IMGNAME
-		IMGNAME=$IMGNAME
+		read -e -p "Enter new file name: " -i $IMGNAME newname
+		IMGNAME=$newname
 	fi
-	IMGNAME=${IMGNAME:-$board}
-	IMGNAME=${IMGNAME}-${day}-${time}.img
+	IMGNAME+=_${day}-${time}.img
 }
 
 
