@@ -427,7 +427,7 @@ function gitlab_remote_init(){
 		cd $pro
 
 		if git remote -v | grep -q $firefly; then
-			url=$(git remote -v | grep $firefly | awk -F ' ' '{print $2}' | uniq | sed "s/.*rk-linux\/\(.*\)*/\1/")
+			url=$(git remote -v | grep $firefly | grep -v $gitlab | awk -F ' ' '{print $2}' | uniq | sed "s/.*rk-linux\/\(.*\)*/\1/")
 			url="git@gitlab.com:firefly-linux/$url"
 			gitt remote add $gitlab $url
 		else
