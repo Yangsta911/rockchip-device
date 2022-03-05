@@ -1036,32 +1036,36 @@ function build_firmware(){
 function gen_file_name() {
 	local day=$(date +%Y%m%d)
 	local time=$(date +%H%M)
-	#add any os name to this array
 	local os_all="buildroot debian ubuntu openwrt UnionTech UniKylin centos"
 
 	local model=$(basename $(realpath ${BOARD_CONFIG}) .mk)
-	local os_mk=$(echo $model | egrep -io ${os_all// /|})
+	local os_mk=$(echo $model | egrep -io ${os_all// /|} || true)
 	# Set the string before os name in the BOARD_CONFIG file name as the model name
 	[[ -n "$os_mk" ]] && model=${model/-$os_mk*/}
-	IMGNAME=$model
+	IMGNAME=${model^^}
 
+	# Set the string before first "_" in the rootfs file name as the system name
+	# OSName_xxxx_vx.x.x.img"
 	local rootfs=$(basename $(realpath $TOP_DIR/rockdev/rootfs.img))
-	local real_os=""
-	if real_os=$(echo $rootfs | egrep -io ${os_all// /|}); then
-		# Set the string before first "-" in the rootfs file name as the system name
-		full_os=${rootfs/-*/}
-		old_format=$(echo $full_os | grep -io $RK_TARGET_PRODUCT)
-		if [[ -n "$old_format" ]]; then
-			echo "The rootfs file names need to be renamed in this format OSVERSION-xxxx.img"
-			echo "The string before first \"-\" in the rootfs file name as the system name"
-			full_os=${full_os/$old_format*/}
-			full_os=$(echo $full_os | sed -n 's/[_-]*$//p')
-			[[ -n "$full_os" ]] && real_os=$full_os
-		fi
-	else
-		real_os=$os_mk
+	#remove suffix, get string before first "-" or "_"
+	local os_name=$(echo ${rootfs%.*} | sed 's/[-_].*//')
+	os_name=${os_name^^}
+	if [[ $os_name == "ROOTFS" ]] || [[ $os_name == "SYSTEM" ]]; then
+		os_name=${os_mk^^}
 	fi
-	IMGNAME+=_${real_os}
+
+	os_version=$(echo $rootfs | sed -n 's/.*[-_]\([vV][0-9.a-zA-Z]*\(\-[0-9]\{1,\}\)\{,1\}\)[-_\.].*/\1/p')
+	if [[ -z "$os_version" ]]; then
+		#get date string in rootfs as rootfs version
+		os_version=$(echo $rootfs | sed -n 's/.*[-_]\(20[0-9]\{2,\}[-_.0-9]*\)[-_.].*/\1/p')
+	fi
+	if [[ -n "$os_version" ]]; then
+		os_version=${os_version,,}
+		os_version=${os_version/v/r}
+		os_version=$(echo $os_version | sed 's/[-_]/\./g')
+	fi
+
+	IMGNAME+=_${os_name}${os_version}
 
 	local sdk_version=""
 	local manifest=$(realpath ${TOP_DIR}/.repo/manifest.xml)
@@ -1072,10 +1076,8 @@ function gen_file_name() {
 	fi
 
 	if [ -n "$1" ];then
-		IMGNAME+=_$1
+		IMGNAME+=_${1^^}
 	fi
-
-	IMGNAME=${IMGNAME^^}
 
 	echo -e "File name is \e[36m $IMGNAME\e[0m"
 	read -t 10 -e -p "Rename the file? [N|y]" ANS || :
@@ -1318,7 +1320,7 @@ function build_updateimg(){
 	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage 
 	[[ -n "$1" ]] && packm="pack"
 
-	gen_file_name 
+	gen_file_name
 
 	if [ $packm == "pack" ];then
 		cd $TOP_DIR/rockdev \
