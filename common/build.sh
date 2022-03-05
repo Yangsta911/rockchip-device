@@ -1034,8 +1034,8 @@ function build_firmware(){
 
 
 function gen_file_name() {
-	local day=$(date +%Y%m%d)
-	local time=$(date +%H%M)
+	local day=$(date +%y%m%d)
+	#local time=$(date +%H%M)
 	local os_all="buildroot debian ubuntu openwrt UnionTech UniKylin centos"
 
 	local model=$(basename $(realpath ${BOARD_CONFIG}) .mk)
@@ -1049,10 +1049,16 @@ function gen_file_name() {
 	local rootfs=$(basename $(realpath $TOP_DIR/rockdev/rootfs.img))
 	#remove suffix, get string before first "-" or "_"
 	local os_name=$(echo ${rootfs%.*} | sed 's/[-_].*//')
-	os_name=${os_name^^}
-	if [[ $os_name == "ROOTFS" ]] || [[ $os_name == "SYSTEM" ]]; then
-		os_name=${os_mk^^}
+	if [[ ${os_name^^} == "ROOTFS" ]] || [[ ${os_name^^} == "SYSTEM" ]]; then
+		os_name=${os_mk}
 	fi
+
+	#Uper first letter
+	IMGNAME+=_$(echo ${os_name,,} | sed 's/./\u&/')
+
+	#local os_mode=$(echo $rootfs | egrep -io "desktop|minimal|server" || true)
+	local os_mode=$(echo $rootfs | egrep -io "minimal|server" || true)
+	[[ -n "$os_mode" ]] && IMGNAME+=-$(echo ${os_mode,,} | sed 's/./\u&/')
 
 	os_version=$(echo $rootfs | sed -n 's/.*[-_]\([vV][0-9.a-zA-Z]*\(\-[0-9]\{1,\}\)\{,1\}\)[-_\.].*/\1/p')
 	if [[ -z "$os_version" ]]; then
@@ -1061,11 +1067,10 @@ function gen_file_name() {
 	fi
 	if [[ -n "$os_version" ]]; then
 		os_version=${os_version,,}
-		os_version=${os_version/v/r}
-		os_version=-$(echo $os_version | sed 's/[-_]/\./g')
+		#delete . - _ v
+		os_version=$(echo $os_version | sed 's/[-_\.v]//g')
+		IMGNAME+=-${os_version}
 	fi
-
-	IMGNAME+=_${os_name}${os_version}
 
 	local sdk_version=""
 	local manifest=$(realpath ${TOP_DIR}/.repo/manifest.xml)
@@ -1076,8 +1081,11 @@ function gen_file_name() {
 	fi
 
 	if [ -n "$1" ];then
-		IMGNAME+=_${1^^}
+		IMGNAME+=_${1}
 	fi
+
+	#IMGNAME+=_${day}-${time}.img
+	IMGNAME+=_${day}.img
 
 	echo -e "File name is \e[36m $IMGNAME\e[0m"
 	read -t 10 -e -p "Rename the file? [N|y]" ANS || :
@@ -1092,7 +1100,6 @@ function gen_file_name() {
 		read -e -p "Enter new file name: " -i $IMGNAME newname
 		IMGNAME=$newname
 	fi
-	IMGNAME+=_${day}-${time}.img
 }
 
 
