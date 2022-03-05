@@ -29,6 +29,9 @@ YELLOW="${BOLD}\e[33m"
 BLUE="${BOLD}\e[34m"
 pwd_path=""
 
+#ignore error
+IERRORS="no"
+
 function gitt(){
 	pro=$(pwd)
 	if [ "$pwd_path" != "$pro" ];then
@@ -48,7 +51,10 @@ function gitt(){
 	if [ "$ret" != "0" ];then
 		echo -e -n "${BOLD}# ${ALL_OFF}"
 		echo -e "${RED}ERR: $ret ${ALL_OFF}"
-		exit -1
+
+		if [ "$IERRORS" = "no" ];then
+			exit -1
+		fi
 	else
 		echo -e -n "${BOLD}# ${ALL_OFF}"
 		echo -e "${GREEN}PAS: $ret ${ALL_OFF}"
@@ -583,7 +589,7 @@ function usage(){
 	echo "常用："
 	echo "$0 pull-rockchip - 更新本地 SOC/rockchip 分支，SOC/rockchip 是上游更新分支没有经过任何改动"
 	echo "$0 merge-rockchip - Merge SOC/rockchip 到 SOC/firefly"
-	echo "$0 pull-firefly - 更新本地 SOC/firefly 分支，repo sync -c 更新后的最新提交"
+	echo "$0 pull-firefly [-f] - 更新本地 SOC/firefly 分支，repo sync -c 更新后的最新提交, -f 强制合并到本地分支"
 	echo "$0 push-firefly - 更新远程(内部) SOC/firefly 分支"
 	echo "$0 push-gitlab - 更新远程(外部) SOC/firefly 分支"
 	echo "$0 reset [-a] - 回退到某 manifest xml 版本"
@@ -605,6 +611,11 @@ function usage(){
 	echo "不常用："
 	echo "$0 tag-local-firefly tag - 本地 SOC/firefly 分支打标签"
 	echo "$0 gitlab-remote-init - 初始化外部仓库 remote"
+
+	echo -e "\nEnvironment variable："
+	echo -e "\t\t\tdefault value\t\tnotes"
+	echo -e "\tIERRORS\t\tno\t\tIgnore errors when set to yes"
+
 }
 
 para=$1
