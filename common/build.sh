@@ -1053,6 +1053,8 @@ function gen_file_name() {
 		os_name=${os_mk}
 	fi
 
+	[[ -z "$os_name" ]] && os_name="Linux"
+
 	#Uper first letter
 	IMGNAME+=_$(echo ${os_name,,} | sed 's/./\u&/')
 
@@ -1068,7 +1070,8 @@ function gen_file_name() {
 	if [[ -n "$os_version" ]]; then
 		os_version=${os_version,,}
 		#delete . - _ v
-		os_version=$(echo $os_version | sed 's/[-_\.v]//g')
+		os_version=${os_version/v/r}
+		os_version=$(echo $os_version | sed 's/[-_\.]//g')
 		IMGNAME+=-${os_version}
 	fi
 
