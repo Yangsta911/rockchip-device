@@ -1046,8 +1046,8 @@ function gen_file_name() {
 	IMGNAME=$model
 
 	local rootfs=$(basename $(realpath $TOP_DIR/rockdev/rootfs.img))
-	local real_os=$(echo $rootfs | egrep -io ${os_all// /|})
-	if [[ -n "$real_os" ]]; then
+	local real_os=""
+	if real_os=$(echo $rootfs | egrep -io ${os_all// /|}); then
 		# Set the string before first "-" in the rootfs file name as the system name
 		full_os=${rootfs/-*/}
 		old_format=$(echo $full_os | grep -io $RK_TARGET_PRODUCT)
