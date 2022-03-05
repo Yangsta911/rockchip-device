@@ -1062,7 +1062,7 @@ function gen_file_name() {
 	if [[ -n "$os_version" ]]; then
 		os_version=${os_version,,}
 		os_version=${os_version/v/r}
-		os_version=$(echo $os_version | sed 's/[-_]/\./g')
+		os_version=-$(echo $os_version | sed 's/[-_]/\./g')
 	fi
 
 	IMGNAME+=_${os_name}${os_version}
