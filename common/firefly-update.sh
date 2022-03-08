@@ -87,7 +87,10 @@ function project_list(){
 
 	        	branch=$(echo $line | grep "<project" | awk -F 'dest-branch' '{print $2}'| awk -F '"' '{print $2}')
         		if [ x"$branch" == x ];then
-				branch=$SOC/firefly
+	        		branch=$(echo $line | grep "<project" | awk -F 'revision' '{print $2}'| awk -F '"' '{print $2}')
+        			if [ x"$branch" == x ];then
+					branch=$SOC/firefly
+				fi
 			fi
 			echo $pro $branch >> $list_path
 		done
