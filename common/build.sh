@@ -661,7 +661,8 @@ function build_extboot(){
 	echo -e "\tkernel /Image-$KERNEL_VERSION" >> $EXTBOOT_DIR/extlinux/extlinux.conf
 
     cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/rockchip/${RK_KERNEL_DTS}.dtb $EXTBOOT_DIR
-	echo -e "\tfdt /${RK_KERNEL_DTS}.dtb" >> $EXTBOOT_DIR/extlinux/extlinux.conf
+    ln -sf ${RK_KERNEL_DTS}.dtb $EXTBOOT_DIR/rk-kernel.dtb
+    echo -e "\tfdt /${RK_KERNEL_DTS}.dtb" >> $EXTBOOT_DIR/extlinux/extlinux.conf
 
     if [[ -e ${TOP_DIR}/kernel/ramdisk.img ]]; then
         cp ${TOP_DIR}/kernel/ramdisk.img $EXTBOOT_DIR/initrd-$KERNEL_VERSION
