@@ -10,4 +10,4 @@ export RK_KERNEL_DEFCONFIG_FRAGMENT=firefly-linux.config
 export RK_PARAMETER=parameter-firefly.txt
 
 # Kernel dts
-export RK_KERNEL_DTS=firefly-iboard-3588
+export RK_KERNEL_DTS=rk3588-firefly-itx-3588j
