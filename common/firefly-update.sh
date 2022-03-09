@@ -14,7 +14,7 @@ fi
 ##################
 
 list_path=".project.list"
-all_cmd="repo forall -c"
+all_cmd=".repo/repo/repo forall -c"
 current_branch="current"
 firefly_branch="$SOC/firefly"
 rockchip_branch="$SOC/rockchip"
@@ -482,7 +482,7 @@ function reset_manifest(){
 
 
 function pull_firefly(){
-	repo sync -cd --no-tags
+	.repo/repo/repo sync -cd --no-tags
 	if [ "$?" != "0" ];then
 		exit -1
 	fi
