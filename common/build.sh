@@ -993,7 +993,12 @@ function build_all(){
 	fi
 
 	build_loader
-	build_kernel
+	if [ "$FF_EXTBOOT" = "true" ]; then
+		build_extboot
+	else
+		build_kernel
+	fi
+	
 	build_toolchain && \
 	build_rootfs ${RK_ROOTFS_SYSTEM:-buildroot}
 	build_recovery

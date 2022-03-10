@@ -14,3 +14,6 @@ export RK_KERNEL_DTS=rk3588-firefly-itx-3588j
 
 # Set userdata partition type
 export RK_USERDATA_FS_TYPE=ext4
+
+# Set extboot
+export FF_EXTBOOT=true
