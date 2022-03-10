@@ -11,3 +11,6 @@ export RK_PARAMETER=parameter-firefly.txt
 
 # Kernel dts
 export RK_KERNEL_DTS=rk3588-firefly-itx-3588j
+
+# Set userdata partition type
+export RK_USERDATA_FS_TYPE=ext4

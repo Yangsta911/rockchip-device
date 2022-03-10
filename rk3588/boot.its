@@ -35,6 +35,19 @@
             };
         };
 
+		ramdisk {
+			data = /incbin/("kernel/ramdisk.img");
+			type = "ramdisk";
+			arch = "arm64";
+			os = "linux";
+			compression = "none";
+			load = <0xffffff02>;
+
+			hash {
+				algo = "sha256";
+			};
+		};
+
         resource {
             data = /incbin/("kernel/resource.img");
             type = "multi";
@@ -54,13 +67,14 @@
             rollback-index = <0x00>;
             fdt = "fdt";
             kernel = "kernel";
+            ramdisk = "ramdisk";
             multi = "resource";
 
             signature {
                 algo = "sha256,rsa2048";
                 padding = "pss";
                 key-name-hint = "dev";
-                sign-images = "fdt", "kernel", "multi";
+                sign-images = "fdt", "kernel", "ramdisk", "multi";
             };
         };
     };
