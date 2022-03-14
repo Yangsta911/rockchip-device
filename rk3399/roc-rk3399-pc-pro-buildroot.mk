@@ -5,9 +5,11 @@ CUR_DIR=`dirname $CMD`
 
 source $CUR_DIR/firefly-rk3399-buildroot.mk
 
+# recovery ramdisk raw
+export RK_RECOVERY_RAMDISK_RAW=recovery-arm64-raw.cpio.gz
+
 # Uboot defconfig
 export RK_UBOOT_DEFCONFIG=roc-rk3399-pc-plus
-
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-roc-pc-pro
 # DRM version
