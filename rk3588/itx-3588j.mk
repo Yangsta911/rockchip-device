@@ -17,3 +17,6 @@ export RK_USERDATA_FS_TYPE=ext4
 
 # Set extboot
 export FF_EXTBOOT=true
+
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=FIREFLY_3588
