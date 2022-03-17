@@ -614,6 +614,8 @@ function build_kernel(){
 function build_kerneldeb(){
 	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
 
+	build_check_cross_compile
+
 	echo "============Start building kernel deb============"
 	echo "TARGET_ARCH          =$RK_ARCH"
 	echo "TARGET_KERNEL_CONFIG =$RK_KERNEL_DEFCONFIG"
