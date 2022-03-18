@@ -7,7 +7,7 @@ source $CUR_DIR/BoardConfig.mk
 export RK_KERNEL_DEFCONFIG_FRAGMENT=firefly-linux.config
 
 # parameter for GPT table
-export RK_PARAMETER=parameter-firefly.txt
+export RK_PARAMETER=parameter-ubuntu-fit.txt
 
 # Kernel dts
 export RK_KERNEL_DTS=rk3588-firefly-itx-3588j
