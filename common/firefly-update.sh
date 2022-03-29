@@ -461,6 +461,9 @@ function bundle(){
 		cd - > /dev/null
 		sed -i "1d" $err_list
 	done < $while_file
+	cp device/rockchip/common/bundle_update.sh $bundle_dir -p
+	cp $list_path $bundle_dir -p
+
 	rm -rf $err_list
 }
 
