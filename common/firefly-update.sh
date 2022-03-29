@@ -33,7 +33,7 @@ pwd_path=""
 IERRORS="no"
 
 function gitt(){
-	pro=$(pwd)
+	local pro=$(pwd)
 	if [ "$pwd_path" != "$pro" ];then
 		pwd_path=$pro
 		echo -e "${BOLD}#####################################################${ALL_OFF}"
@@ -417,6 +417,54 @@ function tag_gitlab(){
 	rm -rf $err_list
 }
 
+function bundle(){
+	project_list
+	tag1=$1
+	tag2=$2
+	err_list=".bundle.list"
+	if [ -f "$err_list" ];then
+		echo -e "${YELLOW}注意：本次从上次执行失败的仓库开始继续执行! $pro ${ALL_OFF}"
+		while_file="$err_list"
+	else
+		while_file="$list_path"
+		cp $list_path $err_list
+	fi
+	bundle_dir=$(pwd)
+	_tag1=$(echo $tag1 | awk -F '_' '{print $NF}')
+	_tag2=$(echo $tag2 | awk -F '_' '{print $NF}')
+	
+	bundle="$SOC-$_tag1-to-$_tag2"
+
+	bundle_dir="$bundle_dir/$bundle"
+	rm -rf $bundle_dir
+	mkdir $bundle_dir
+
+	while read line
+	do
+		pro=$(echo $line | awk -F ' ' '{print $1}')
+		bra=$(echo $line | awk -F ' ' '{print $2}')
+		cd $pro
+		if git branch | grep -q $firefly_branch; then
+			gitt checkout $firefly_branch
+		else
+			exit -1
+		fi
+		if git log --pretty=format:"%Creset%d" -1 | grep $tag1;then
+			gitt bundle create $bundle.bundle -1 $tag2
+		else
+			gitt bundle create $bundle.bundle $tag1..$tag2
+		fi
+
+		mkdir -p $bundle_dir/$pro
+		mv $bundle.bundle $bundle_dir/$pro
+
+		cd - > /dev/null
+		sed -i "1d" $err_list
+	done < $while_file
+	rm -rf $err_list
+}
+
+
 function gitlab_remote_init(){
 	project_list
 	tag=$1
@@ -614,6 +662,7 @@ function usage(){
 	echo "不常用："
 	echo "$0 tag-local-firefly tag - 本地 SOC/firefly 分支打标签"
 	echo "$0 gitlab-remote-init - 初始化外部仓库 remote"
+	echo "$0 bundle tag1 tag2 - 生成整个 repo tag1 to tag2 的 bundle"
 
 	echo -e "\nEnvironment variable："
 	echo -e "\t\t\tdefault value\t\tnotes"
@@ -707,6 +756,16 @@ elif [ "$para" == "tag-gitlab" ];then
 
 	tag_gitlab $tag
 
+elif [ "$para" == "bundle" ];then
+	if [ x"$2" == x ] && [ x"$3" == x ];then
+		usage
+		exit -1
+	else
+		tag1=$2
+		tag2=$3
+	fi
+
+	bundle $tag1 $tag2
 elif [ "$para" == "reset" ];then
 	reset_manifest $2
 elif [ "$para" == "gitlab-remote-init" ];then
