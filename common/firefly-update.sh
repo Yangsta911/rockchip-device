@@ -450,7 +450,8 @@ function bundle(){
 			exit -1
 		fi
 		if git log --pretty=format:"%Creset%d" -1 | grep $tag1;then
-			gitt bundle create $bundle.bundle -1 $tag2
+			cd - > /dev/null
+			continue
 		else
 			gitt bundle create $bundle.bundle $tag1..$tag2
 		fi

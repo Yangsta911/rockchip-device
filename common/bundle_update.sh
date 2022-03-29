@@ -76,12 +76,17 @@ function update_bundle(){
 		fi
 		_tag=$(git tag | grep $tag1 | awk -F "$tag1" '{print $1}')
 		_tag="${_tag}${tag2}"
-		if git branch | grep -q $SOC/firefly;then
-			gitt pull $BUNDLE_DIR/$pro/$bundle $_tag:$SOC/firefly
-			gitt checkout $SOC/firefly
-		else 
-			gitt fetch $BUNDLE_DIR/$pro/$bundle $_tag:$SOC/firefly
-			gitt checkout $SOC/firefly
+
+		if [ -f "$BUNDLE_DIR/$pro/$bundle" ];then
+			if git branch | grep -q $SOC/firefly;then
+				gitt pull $BUNDLE_DIR/$pro/$bundle $_tag:$SOC/firefly
+				gitt checkout $SOC/firefly
+			else 
+				gitt fetch $BUNDLE_DIR/$pro/$bundle $_tag:$SOC/firefly
+				gitt checkout $SOC/firefly
+			fi
+		else
+			gitt tag $_tag
 		fi
 		cd - > /dev/null
 		sed -i "1d" $err_list
