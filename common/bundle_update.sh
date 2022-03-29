@@ -78,6 +78,7 @@ function update_bundle(){
 		_tag="${_tag}${tag2}"
 		if git branch | grep -q $SOC/firefly;then
 			gitt pull $BUNDLE_DIR/$pro/$bundle $_tag:$SOC/firefly
+			gitt checkout $SOC/firefly
 		else 
 			gitt fetch $BUNDLE_DIR/$pro/$bundle $_tag:$SOC/firefly
 			gitt checkout $SOC/firefly
