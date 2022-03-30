@@ -1158,6 +1158,7 @@ function build_rawimg(){
 	else
 		echo "Make raw.img"
 
+		${TOP_DIR}/device/rockchip/common/misc-wr --firmware $IMAGE_PATH/misc.img $IMGNAME
 		if [ -f "$RK_PACKAGE_FILE" ]; then
 			source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
 			ln -fs "$RK_PACKAGE_FILE" package-file
@@ -1363,6 +1364,7 @@ function build_updateimg(){
 	else
 		echo "Make update.img"
 
+		${TOP_DIR}/device/rockchip/common/misc-wr --firmware $IMAGE_PATH/misc.img $IMGNAME
 		if [ -f "$RK_PACKAGE_FILE" ]; then
 			source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
 			ln -fs "$RK_PACKAGE_FILE" package-file
