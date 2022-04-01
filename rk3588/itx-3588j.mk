@@ -20,3 +20,9 @@ export FF_EXTBOOT=true
 
 # PRODUCT MODEL
 export RK_PRODUCT_MODEL=FIREFLY_3588
+
+# recovery ramdisk
+export RK_RECOVERY_RAMDISK=rk356x-recovery-arm64.cpio.gz
+
+# Recovery config
+export RK_CFG_RECOVERY=
