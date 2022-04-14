@@ -974,8 +974,8 @@ function build_recovery(){
 	fi
 
 
-	ln -rsf buildroot/output/$RK_CFG_RECOVERY/images/recovery.img \
-		rockdev/recovery.img
+#	ln -rsf buildroot/output/$RK_CFG_RECOVERY/images/recovery.img \
+#		rockdev/recovery.img
 
 	finish_build
 }
