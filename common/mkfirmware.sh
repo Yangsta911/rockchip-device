@@ -212,6 +212,10 @@ fi
 
 if [ $RK_MISC ]
 then
+	if [ -f $TOP_DIR/device/rockchip/rockimg/misc.img ]; then
+		MISC_IMG=$TOP_DIR/device/rockchip/rockimg/misc.img
+	fi
+
 	if [ -f $MISC_IMG ]
 	then
 		echo -n "create misc.img..."
@@ -353,6 +357,16 @@ if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
 	then
 	        echo -n "Enable ramdisk security bootup, create boot.img..."
 	        ln -rsf $TOP_DIR/u-boot/boot.img $ROCKDEV/boot.img
+		if [ -e ${ROCKDEV}/recovery.img ]; then
+			echo "Enable ramdisk security bootup, create recovery.img..."
+		        ln -rsf $TOP_DIR/u-boot/recovery.img $ROCKDEV/recovery.img
+		fi
+
+		if [ -e $TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/images/security-system.img ]; then
+			echo "Enable ramdisk security bootup, create rootfs.img..."
+		        ln -rsf $TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/images/security-system.img $ROCKDEV/rootfs.img
+		fi
+
 	        echo "done."
 	else
 		echo "warning: $TOP_DIR/u-boot/boot.img  not found!"

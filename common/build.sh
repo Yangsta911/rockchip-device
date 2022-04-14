@@ -144,10 +144,15 @@ function prebuild_uboot()
 		UBOOT_COMPILE_COMMANDS="$(echo $UBOOT_COMPILE_COMMANDS)"
 	fi
 
+	if [ "$RK_SECURITY_OTP_DEBUG" != "true" ]; then
+		UBOOT_COMPILE_COMMANDS="$UBOOT_COMPILE_COMMANDS --burn-key-hash"
+	fi
+
 	if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
 		UBOOT_COMPILE_COMMANDS=" \
 			--boot_img $TOP_DIR/u-boot/boot.img \
-			--burn-key-hash $UBOOT_COMPILE_COMMANDS \
+			--recovery_img $TOP_DIR/u-boot/recovery.img \
+			$UBOOT_COMPILE_COMMANDS \
 			${RK_ROLLBACK_INDEX_BOOT:+--rollback-index-boot $RK_ROLLBACK_INDEX_BOOT} \
 			${RK_ROLLBACK_INDEX_UBOOT:+--rollback-index-uboot $RK_ROLLBACK_INDEX_UBOOT} "
 		UBOOT_COMPILE_COMMANDS="$(echo $UBOOT_COMPILE_COMMANDS)"
@@ -278,7 +283,11 @@ function usage()
 	echo "app/<pkg>          -build packages in the dir of app/*"
 	echo "external/<pkg>     -build packages in the dir of external/*"
 	echo ""
-	echo "Default option is 'allff'."
+	echo "createkeys         -create secureboot root keys"
+	echo "security-rootfs    -build rootfs and some relevant images with security paramter (just for dm-v)"
+	echo "security-boot      -build boot with security paramter"
+	echo ""
+	echo "Default option is 'allsave'."
 }
 
 function build_info(){
@@ -341,6 +350,20 @@ function build_check_power_domain(){
 	tmp_grep_file=`mktemp`
 
 	dtc -I dtb -O dts -o ${dump_kernel_dtb_file} ${kernel_file_dtb_dts}.dtb 2>/dev/null
+
+	if [ "$RK_SYSTEM_CHECK_METHOD" = "DM-E" ] ; then
+		if ! grep "compatible = \"linaro,optee-tz\";" $dump_kernel_dtb_file > /dev/null 2>&1 ; then
+			echo "Please add: "
+			echo "        optee: optee {"
+			echo "                compatible = \"linaro,optee-tz\";"
+			echo "                method = \"smc\";"
+			echo "                status = \"okay\";"
+			echo "        }"
+			echo "To your dts file"
+			return -1;
+		fi
+	fi
+
 	if ! grep -Pzo "io-domains\s*{(\n|\w|-|;|=|<|>|\"|_|\s|,)*};" $dump_kernel_dtb_file 1>$tmp_grep_file 2>/dev/null; then
 		echo "Not Found io-domains in ${kernel_file_dtb_dts}.dts"
 		rm -f $tmp_grep_file
@@ -497,7 +520,12 @@ function build_uboot(){
 		else
 			build_kernel
 		fi
+
+		if [ -n "$RK_CFG_RECOVERY" ]; then
+			build_recovery
+		fi
 		cp -f $TOP_DIR/rockdev/boot.img $TOP_DIR/u-boot/boot.img
+		cp -f $TOP_DIR/rockdev/recovery.img $TOP_DIR/u-boot/recovery.img || true
 	fi
 
 	cd u-boot
@@ -538,6 +566,7 @@ function build_uboot(){
 
 	if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
 		ln -rsf $TOP_DIR/u-boot/boot.img $TOP_DIR/rockdev/
+		ln -rsf $TOP_DIR/u-boot/recovery.img $TOP_DIR/rockdev/ || true
 	fi
 
 	finish_build
@@ -826,7 +855,7 @@ function build_debian(){
 	echo "=========Start building debian for $ARCH========="
 
 	cd debian
-	if [ ! -e linaro-$RK_DEBIAN_VERSON-$ARCH.tar.gz ]; then
+	if [ ! -e linaro-$RK_DEBIAN_VERSION-alip-*.tar.gz ]; then
 		RELEASE=$RK_DEBIAN_VERSION TARGET=desktop ARCH=$ARCH ./mk-base-debian.sh
 		ln -rsf linaro-$RK_DEBIAN_VERSION-alip-*.tar.gz linaro-$RK_DEBIAN_VERSION-$ARCH.tar.gz
 	fi
@@ -945,6 +974,9 @@ function build_recovery(){
 	fi
 
 
+	ln -rsf buildroot/output/$RK_CFG_RECOVERY/images/recovery.img \
+		rockdev/recovery.img
+
 	finish_build
 }
 
@@ -965,6 +997,81 @@ function build_pcba(){
 		echo "====Build pcba failed!===="
 		exit 1
 	fi
+}
+
+BOOT_FIXED_CONFIGS="
+	CONFIG_BLK_DEV_DM
+	CONFIG_DM_CRYPT
+	CONFIG_BLK_DEV_CRYPTOLOOP
+	CONFIG_DM_VERITY"
+
+UBOOT_FIXED_CONFIGS="
+	CONFIG_FIT_SIGNATURE
+	CONFIG_SPL_FIT_SIGNATURE"
+
+RECOVERY_FIXED_CONFIGS="
+	BR2_PACKAGE_RECOVERY_UPDATEENGINEBIN"
+
+function defconfig_check() {
+	# 1. defconfig 2. fixed config
+	echo debug-$1
+	for i in $2
+	do
+		echo "look for $i"
+		result=$(cat $1 | grep "${i}=y" -w || echo "No found")
+		if [ "$result" = "No found" ]; then
+			echo "${i} Not found"
+			return -1;
+		fi
+	done
+	return 0
+}
+
+function find_string_in_config(){
+	result=$(cat "$2" | grep "$1" || echo "No found")
+	if [ "$result" = "No found" ]; then
+		echo "No found $1 in $2"
+		return -1;
+	fi
+	return 0;
+}
+
+function check_security_condition(){
+	# check security enabled
+	test -z "$RK_SYSTEM_CHECK_METHOD" && return 0
+
+	if [ ! -d u-boot/keys ]; then
+		echo "ERROR: No root keys(u-boot/keys) found in u-boot"
+		echo "       Create it by ./build.sh createkeys or move your key to it"
+		return -1
+	fi
+
+	if [ "$RK_SYSTEM_CHECK_METHOD" = "DM-E" ]; then
+		if [ ! -e u-boot/keys/root_passwd ]; then
+			echo "ERROR: No root passwd(u-boot/keys/root_passwd) found in u-boot"
+			echo "       echo your root key for sudo to u-boot/keys/root_passwd"
+			echo "       some operations need supper user permission when create encrypt image"
+			return -1
+		fi
+
+		if [ ! -e u-boot/keys/system_enc_key ]; then
+			echo "ERROR: No enc key(u-boot/keys/system_enc_key) found in u-boot"
+			echo "       Create it by ./build.sh createkeys or move your key to it"
+			return -1
+		fi
+
+		BOOT_FIXED_CONFIGS="${BOOT_FIXED_CONFIGS}
+				   CONFIG_TEE
+				   CONFIG_OPTEE"
+		defconfig_check buildroot/configs/${RK_CFG_RECOVERY}_defconfig "$RECOVERY_FIXED_CONFIGS"
+		find_string_in_config "BR2_ROOTFS_OVERLAY=\".*board/rockchip/common/security-recovery-overlay" "buildroot/configs/${RK_CFG_RECOVERY}_defconfig"
+		find_string_in_config "#include \".*tee.config\"" "buildroot/configs/${RK_CFG_RECOVERY}_defconfig"
+	fi
+
+	echo "check kernel defconfig"
+	defconfig_check kernel/arch/$RK_ARCH/configs/$RK_KERNEL_DEFCONFIG "$BOOT_FIXED_CONFIGS"
+	echo "check uboot defconfig"
+	defconfig_check u-boot/configs/${RK_UBOOT_DEFCONFIG}_defconfig "$UBOOT_FIXED_CONFIGS"
 }
 
 function build_all(){
@@ -995,6 +1102,7 @@ function build_all(){
 		fi
 	fi
 
+	check_security_condition
 	build_loader
 	if [ "$FF_EXTBOOT" = "true" ]; then
 		build_extboot
@@ -1422,6 +1530,18 @@ function build_allsave(){
 	finish_build
 }
 
+function create_keys() {
+	test -d u-boot/keys && echo "ERROR: u-boot/keys has existed" && return -1
+
+	mkdir u-boot/keys -p
+	./rkbin/tools/rk_sign_tool kk --bits 2048 --out u-boot/keys
+	ln -s privateKey.pem u-boot/keys/dev.key
+	ln -s publicKey.pem u-boot/keys/dev.pubkey
+	openssl req -batch -new -x509 -key u-boot/keys/dev.key -out u-boot/keys/dev.crt
+
+	openssl rand -out u-boot/keys/system_enc_key -hex 32
+}
+
 #=========================
 # build targets
 #=========================
@@ -1510,6 +1630,28 @@ for option in ${OPTIONS}; do
 		multi-npu_boot) build_multi-npu_boot ;;
 		info) build_info ;;
 		app/*|external/*) build_pkg $option ;;
+		createkeys) create_keys ;;
+		security-rootfs)
+			if [ "$RK_RAMDISK_SECURITY_BOOTUP" != "true" ]; then
+				echo "No security paramter found in .BoardConfig.mk"
+				exit 0
+			fi
+
+			build_rootfs
+			build_ramboot
+			build_uboot
+			echo "please update rootfs.img / boot.img / uboot.img"
+			;;
+		security-boot)
+			if [ "$RK_RAMDISK_SECURITY_BOOTUP" != "true" ]; then
+				echo "No security paramter found in .BoardConfig.mk"
+				exit 0
+			fi
+
+			build_kernel
+			build_ramboot
+			build_uboot
+			;;
 		*) usage ;;
 	esac
 done
