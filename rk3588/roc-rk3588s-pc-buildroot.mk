@@ -6,6 +6,9 @@ source $CUR_DIR/BoardConfig.mk
 # Kernel defconfig fragment
 export RK_KERNEL_DEFCONFIG_FRAGMENT=firefly-linux.config
 
+# Uboot_defconfig_fragment
+export RK_UBOOT_DEFCONFIG_FRAGMENT=firefly-linux.config
+
 # parameter for GPT table
 export RK_PARAMETER=parameter-ubuntu-fit.txt
 
