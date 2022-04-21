@@ -15,6 +15,8 @@ export RK_PACKAGE_FILE=rk356x-package-file
 export RK_IDBLOCK_UPDATE=true
 # update spl
 export RK_LOADER_UPDATE_SPL=true
+#Set extboot
+export FF_EXTBOOT=true
 
 # sd_parameter for GPT table
 export RK_SD_PARAMETER=parameter-recovery.txt
