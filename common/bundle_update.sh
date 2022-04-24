@@ -68,6 +68,7 @@ function update_bundle(){
 		if git tag | grep -q $tag1;then
 			if git tag | grep -q $tag2;then
 				echo -e "${YELLOW}WARN: already updated ${ALL_OFF}"
+				sed -i "1d" $err_list
 				continue
 			fi
 		else

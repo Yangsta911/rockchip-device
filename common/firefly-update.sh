@@ -422,13 +422,6 @@ function bundle(){
 	tag1=$1
 	tag2=$2
 	err_list=".bundle.list"
-	if [ -f "$err_list" ];then
-		echo -e "${YELLOW}注意：本次从上次执行失败的仓库开始继续执行! $pro ${ALL_OFF}"
-		while_file="$err_list"
-	else
-		while_file="$list_path"
-		cp $list_path $err_list
-	fi
 	bundle_dir=$(pwd)
 	_tag1=$(echo $tag1 | awk -F '_' '{print $NF}')
 	_tag2=$(echo $tag2 | awk -F '_' '{print $NF}')
@@ -436,9 +429,15 @@ function bundle(){
 	bundle="$SOC-$_tag1-to-$_tag2"
 
 	bundle_dir="$bundle_dir/$bundle"
-	rm -rf $bundle_dir
-	mkdir $bundle_dir
-
+	if [ -f "$err_list" ];then
+		echo -e "${YELLOW}注意：本次从上次执行失败的仓库开始继续执行! $pro ${ALL_OFF}"
+		while_file="$err_list"
+	else
+		rm -rf $bundle_dir
+		mkdir $bundle_dir
+		while_file="$list_path"
+		cp $list_path $err_list
+	fi
 	while read line
 	do
 		pro=$(echo $line | awk -F ' ' '{print $1}')
@@ -451,6 +450,7 @@ function bundle(){
 		fi
 		if git log --pretty=format:"%Creset%d" -1 | grep $tag1;then
 			cd - > /dev/null
+			sed -i "1d" $err_list
 			continue
 		else
 			gitt bundle create $bundle.bundle $tag1..$tag2
