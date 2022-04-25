@@ -6,7 +6,7 @@ source $CUR_DIR/roc-rk3588s-pc-buildroot.mk
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
 # rootfs image path
-export RK_ROOTFS_IMG=ubuntu_rootfs/rootfs.img
+export RK_ROOTFS_IMG=ubuntu_rootfs/Ubuntu20.04-Gnome_RK3588_v2.11-52a_20220421.img
 
 # Buildroot config
 export RK_CFG_BUILDROOT=
