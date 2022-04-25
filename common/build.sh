@@ -675,7 +675,7 @@ function build_extboot(){
 	cd kernel
 	make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT
 	make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS
-
+	
 	echo -e "\e[36m Generate extLinuxBoot image start\e[0m"
 
 	EXTBOOT_IMG=${TOP_DIR}/kernel/extboot.img
@@ -683,14 +683,33 @@ function build_extboot(){
 	rm -rf ${EXTBOOT_DIR} && mkdir -p ${EXTBOOT_DIR}/extlinux
 
     KERNEL_VERSION=$(cat $TOP_DIR/kernel/include/config/kernel.release)
-	echo "label $RK_KERNEL_DTS linux-$KERNEL_VERSION" > $EXTBOOT_DIR/extlinux/extlinux.conf
+	echo "label rk-kernel.dtb linux-$KERNEL_VERSION" > $EXTBOOT_DIR/extlinux/extlinux.conf
 
     cp ${TOP_DIR}/$RK_KERNEL_IMG $EXTBOOT_DIR/Image-$KERNEL_VERSION
 	echo -e "\tkernel /Image-$KERNEL_VERSION" >> $EXTBOOT_DIR/extlinux/extlinux.conf
 
-    cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/rockchip/${RK_KERNEL_DTS}.dtb $EXTBOOT_DIR
+    if [ -f $CFG_DIR/$RK_TARGET_PRODUCT/.dtblist ];then
+	dtblist=$(cat $CFG_DIR/$RK_TARGET_PRODUCT/.dtblist)
+	for i in $dtblist
+	do
+		if [ "$RK_ARCH" == "arm64" ];then
+			make ARCH=$RK_ARCH rockchip/$i.dtb -j$RK_JOBS
+			cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/rockchip/$i.dtb $EXTBOOT_DIR 
+		else
+			make ARCH=$RK_ARCH $i.dtb -j$RK_JOBS
+			cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/$i.dtb $EXTBOOT_DIR 
+		fi
+	done
+    fi
+    
+    if [ "$RK_ARCH" == "arm64" ];then
+    	cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/rockchip/${RK_KERNEL_DTS}.dtb $EXTBOOT_DIR
+    else
+    	cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/${RK_KERNEL_DTS}.dtb $EXTBOOT_DIR
+    fi
     ln -sf ${RK_KERNEL_DTS}.dtb $EXTBOOT_DIR/rk-kernel.dtb
-    echo -e "\tfdt /${RK_KERNEL_DTS}.dtb" >> $EXTBOOT_DIR/extlinux/extlinux.conf
+
+    echo -e "\tfdt /rk-kernel.dtb" >> $EXTBOOT_DIR/extlinux/extlinux.conf
 
     if [[ -e ${TOP_DIR}/kernel/ramdisk.img ]]; then
         cp ${TOP_DIR}/kernel/ramdisk.img $EXTBOOT_DIR/initrd-$KERNEL_VERSION
