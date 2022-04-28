@@ -116,7 +116,7 @@ TARGET_PRODUCT="$TOP_DIR/device/rockchip/.target_product"
 TARGET_PRODUCT_DIR=$(realpath ${TARGET_PRODUCT})
 
 unset_board_config_all
-[ -L "$BOARD_CONFIG" ] && source $BOARD_CONFIG
+[ -L "$BOARD_CONFIG" ] && source $BOARD_CONFIG || true
 source $TOP_DIR/device/rockchip/common/Version.mk
 CFG_DIR=$TOP_DIR/device/rockchip
 ROCKDEV=$TOP_DIR/rockdev
