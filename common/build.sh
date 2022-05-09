@@ -722,7 +722,7 @@ function build_extboot(){
 
     make ARCH=$RK_ARCH INSTALL_MOD_STRIP=1 INSTALL_MOD_PATH=$EXTBOOT_DIR modules_install
 
-    rm -rf $EXTBOOT_IMG && truncate -s 64M $EXTBOOT_IMG
+    rm -rf $EXTBOOT_IMG && truncate -s 128M $EXTBOOT_IMG
     fakeroot ${TOP_DIR}/device/rockchip/common/mkfs.ext4 -Fq -L "boot" -d $EXTBOOT_DIR $EXTBOOT_IMG
 
 	finish_build
