@@ -540,7 +540,13 @@ function build_uboot(){
 		else
 			make ${RK_UBOOT_DEFCONFIG}.config $RK_UBOOT_DEFCONFIG_FRAGMENT
 		fi
-		./make.sh $UBOOT_COMPILE_COMMANDS
+		
+		if [ -n "$CROSS_COMPILE" ];then
+		        ./make.sh $UBOOT_COMPILE_COMMANDS CROSS_COMPILE=$CROSS_COMPILE
+		else
+		        ./make.sh $UBOOT_COMPILE_COMMANDS
+		fi
+
 	elif [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf" ]; then
 		./make.sh $RK_UBOOT_DEFCONFIG \
 			$UBOOT_COMPILE_COMMANDS CROSS_COMPILE=$CROSS_COMPILE
