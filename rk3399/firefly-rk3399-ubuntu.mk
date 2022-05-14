@@ -7,6 +7,8 @@ source $CUR_DIR/BoardConfig.mk
 
 # Uboot defconfig
 export RK_UBOOT_DEFCONFIG=firefly-rk3399
+# Eneble security otp debug
+export RK_SECURITY_OTP_DEBUG=true
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 # Kernel dts
