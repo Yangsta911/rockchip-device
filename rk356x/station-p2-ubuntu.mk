@@ -11,3 +11,5 @@ export RK_KERNEL_DTS=rk3568-firefly-roc-pc
 export RK_KERNEL_DEFCONFIG=station_linux_defconfig
 # PRODUCT MODEL
 export RK_PRODUCT_MODEL=ROC_RK3568_PC
+# Add firmware information to misc.img
+export RK_MISC_WR=true

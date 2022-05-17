@@ -13,3 +13,6 @@ export RK_KERNEL_DTS=rk3399-roc-pc-plus
 
 # PRODUCT MODEL
 export RK_PRODUCT_MODEL=ROC_3399_PC_PLUS
+
+# Add firmware information to misc.img
+export RK_MISC_WR=true
