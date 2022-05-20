@@ -342,6 +342,7 @@ function usage()
 	echo "cleanall           -clean uboot, kernel, rootfs, recovery"
 	echo "firmware           -pack all the image we need to boot up system"
 	echo "updateimg          -pack update image"
+	echo "pupdateimg         -pack the image, add release information and compress the 7z format"
 	echo "rawimg             -pack raw image"
 	echo "otapackage         -pack ab update otapackage image (update_ota.img)"
 	echo "sdpackage          -pack update sdcard package image (update_sdcard.img)"
@@ -625,7 +626,7 @@ function build_uboot(){
 		else
 			make ${RK_UBOOT_DEFCONFIG}.config $RK_UBOOT_DEFCONFIG_FRAGMENT
 		fi
-		
+
 		if [ -n "$CROSS_COMPILE" ];then
 		        ./make.sh $UBOOT_COMPILE_COMMANDS CROSS_COMPILE=$CROSS_COMPILE
 		else
@@ -642,7 +643,7 @@ function build_uboot(){
 		./make.sh $RK_UBOOT_DEFCONFIG \
 			$UBOOT_COMPILE_COMMANDS
 	fi
-	
+
 	if [ "$RK_IDBLOCK_UPDATE" = "true" ]; then
 		./make.sh --idblock
 	fi
@@ -650,7 +651,7 @@ function build_uboot(){
 	if [ "$RK_LOADER_UPDATE_TPL" = "true" ]; then
 		./make.sh --tpl
 	fi
-	
+
 	if [ "$RK_IDBLOCK_UPDATE_SPL" = "true" ]; then
 		./make.sh --idblock --spl
 	fi
@@ -728,7 +729,7 @@ function build_kernel(){
 		mkdir -p $TOP_DIR/rockdev
 		ln -sf  $TOP_DIR/kernel/$RK_BOOT_IMG $TOP_DIR/rockdev/boot.img
 	fi
-	
+
 	if [ "$RK_RAMDISK_SECURITY_BOOTUP" = "true" ];then
 		cp $TOP_DIR/kernel/$RK_BOOT_IMG \
 			$TOP_DIR/u-boot/boot.img
@@ -775,7 +776,7 @@ function build_extboot(){
 	cd kernel
 	make ARCH=$RK_ARCH $RK_KERNEL_DEFCONFIG $RK_KERNEL_DEFCONFIG_FRAGMENT
 	make ARCH=$RK_ARCH $RK_KERNEL_DTS.img -j$RK_JOBS
-	
+
 	echo -e "\e[36m Generate extLinuxBoot image start\e[0m"
 
 	EXTBOOT_IMG=${TOP_DIR}/kernel/extboot.img
@@ -794,14 +795,14 @@ function build_extboot(){
 	do
 		if [ "$RK_ARCH" == "arm64" ];then
 			make ARCH=$RK_ARCH rockchip/$i.dtb -j$RK_JOBS
-			cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/rockchip/$i.dtb $EXTBOOT_DIR 
+			cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/rockchip/$i.dtb $EXTBOOT_DIR
 		else
 			make ARCH=$RK_ARCH $i.dtb -j$RK_JOBS
-			cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/$i.dtb $EXTBOOT_DIR 
+			cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/$i.dtb $EXTBOOT_DIR
 		fi
 	done
     fi
-    
+
     if [ "$RK_ARCH" == "arm64" ];then
     	cp ${TOP_DIR}/kernel/arch/${RK_ARCH}/boot/dts/rockchip/${RK_KERNEL_DTS}.dtb $EXTBOOT_DIR
     else
@@ -1002,7 +1003,7 @@ function build_openwrt(){
 	echo "RK_OPENWRT_DEFCONFIG=$RK_OPENWRT_DEFCONFIG"
 	echo "========================================"
 
-	/usr/bin/time -f "you take %E to build $RK_OPENWRT_VERSION_SELECT" $COMMON_DIR/mk-openwrt.sh $RK_OPENWRT_VERSION_SELECT $RK_OPENWRT_DEFCONFIG 
+	/usr/bin/time -f "you take %E to build $RK_OPENWRT_VERSION_SELECT" $COMMON_DIR/mk-openwrt.sh $RK_OPENWRT_VERSION_SELECT $RK_OPENWRT_DEFCONFIG
 	if [ $? -eq 0 ]; then
 		echo "====Build $RK_OPENWRT_VERSION_SELECT ok!===="
 	else
@@ -1250,7 +1251,7 @@ function build_all(){
 	else
 		build_kernel
 	fi
-	
+
 	build_toolchain && \
 	build_rootfs ${RK_ROOTFS_SYSTEM:-buildroot}
 	build_recovery
@@ -1354,14 +1355,19 @@ function gen_file_name() {
 	IMGNAME+=_${day}.img
 
 	echo -e "File name is \e[36m $IMGNAME\e[0m"
-	read -t 10 -e -p "Rename the file? [N|y]" ANS || :
-	ANS=${ANS:-n}
+	if [ "$rename" == "0" ];then
+		:
+	else
+		read -t 10 -e -p "Rename the file? [N|y]" ANS || :
+		ANS=${ANS:-n}
 
-	case $ANS in
-			Y|y|yes|YES|Yes) rename=1;;
-			N|n|no|NO|No) rename=0;;
-			*) rename=0;;
-	esac
+		case $ANS in
+				Y|y|yes|YES|Yes) rename=1;;
+				N|n|no|NO|No) rename=0;;
+				*) rename=0;;
+		esac
+	fi
+
 	if [[ ${rename} == "1" ]]; then
 		read -e -p "Enter new file name: " -i $IMGNAME newname
 		IMGNAME=$newname
@@ -1371,7 +1377,7 @@ function gen_file_name() {
 
 function build_rawimg(){
 	packm="unpack"
-	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage 
+	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage
 	[[ -n "$1" ]] && packm="pack"
 
 	gen_file_name RAW
@@ -1591,7 +1597,7 @@ function build_save(){
 
 function build_updateimg(){
 	packm="unpack"
-	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage 
+	[[ -n "$1" ]] && [[ $1 != "-p" ]] && usage
 	[[ -n "$1" ]] && packm="pack"
 
 	gen_file_name
@@ -1600,7 +1606,7 @@ function build_updateimg(){
 		cd $TOP_DIR/rockdev \
 		&& ./version.sh $IMGNAME init $2 && cd -
 	fi
-	
+
 	IMAGE_PATH=$TOP_DIR/rockdev
 	PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware
 
@@ -1631,7 +1637,7 @@ function build_updateimg(){
 		fi
 		mv update.img $IMAGE_PATH
 	fi
-	
+
 	mv $IMAGE_PATH/update.img $IMAGE_PATH/pack/$IMGNAME
 	rm -rf $IMAGE_PATH/update.img
 	if [ $? -eq 0 ]; then
@@ -1658,6 +1664,117 @@ function build_updateimg(){
 	fi
 
 	finish_build
+}
+
+function ZH_parse_json(){
+	local val
+	local JSON_PATH=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/firefly.json
+	local README_FILE="README_ZH.txt"
+
+cat << EOF > ${README_FILE}
+ _____ _           __ _
+|  ___(_)_ __ ___ / _| |_   _
+| |_  | | '__/ _ \ |_| | | | |
+|  _| | | | |  __/  _| | |_| |
+|_|   |_|_|  \___|_| |_|\__, |
+                        |___/
+
+* 固件名称 $IMGNAME
+* 官网 www.t-firefly.com  |  www.t-chip.com.cn
+* 技术支持 service@t-firefly.com
+* 开源社区 https://dev.t-firefly.com/portal.php?mod=topic&topicid=11
+
+EOF
+	if [ ! -f $JSON_PATH ]; then
+		echo "没有json文件"
+		return 0
+	fi
+
+	# RK_PRODUCT_MODEL
+	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")"`
+	if [ -z "$val" ]; then
+		echo "没有RK_PRODUCT_MODEL,退出"
+		return 0
+	fi
+
+
+	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.BOARD_WIKI.ZH"`
+	if [ -n "$val" ] && [ $val != "null" ]; then
+		echo "获取固件的升级方法和板子的开发指南，请查看官方Wiki:" >> ${README_FILE}
+		echo -e "$val\n" >> ${README_FILE}
+	fi
+
+	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FW_Changelog.ZH"`
+
+	if [ -n "$val" ] && [ $val != "null" ]; then
+		echo "固件更新日志：" >> ${README_FILE}
+		echo -e "$val\n" >> ${README_FILE}
+	fi
+}
+
+
+
+function EN_parse_json(){
+	local val
+	local JSON_PATH=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/firefly.json
+	local README_FILE="README_EN.txt"
+
+cat << EOF > ${README_FILE}
+ _____ _           __ _
+|  ___(_)_ __ ___ / _| |_   _
+| |_  | | '__/ _ \ |_| | | | |
+|  _| | | | |  __/  _| | |_| |
+|_|   |_|_|  \___|_| |_|\__, |
+                        |___/
+
+* Firmware name $IMGNAME
+* Official website https://en.t-firefly.com/  |  www.t-chip.com.cn
+* Technical Support service@t-firefly.com
+* Forums https://bbs.t-firefly.com/forum.php?mod=forumdisplay&fid=100
+
+EOF
+
+	if [ ! -f $JSON_PATH ]; then
+		echo "没有json文件"
+		return 0
+	fi
+
+	# RK_PRODUCT_MODEL
+	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")"`
+	if [ -z "$val" ]; then
+		echo "没有RK_PRODUCT_MODEL,退出"
+		return 0
+	fi
+
+
+	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.BOARD_WIKI.ZH"`
+	if [ -n "$val" ] && [ $val != "null" ]; then
+		echo "For firmware upgrade method and board development guide, please check the official Wiki:" >> ${README_FILE}
+		echo -e "$val\n" >> ${README_FILE}
+	fi
+
+	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FW_Changelog.ZH"`
+	if [ -n "$val" ] && [ $val != "null" ]; then
+		echo "Firmware update log:" >> ${README_FILE}
+		echo -e "$val\n" >> ${README_FILE}
+	fi
+}
+
+function build_pupdateimg(){
+	# Use automatic naming instead of manual naming
+	rename=0
+	build_updateimg
+
+	ZH_parse_json
+	EN_parse_json
+
+	#pack
+	local pack_dir=`echo $IMAGE_PATH/pack/${IMGNAME}.7z | awk -F '.img' '{print $1}'`
+	rm $pack_dir -rf
+	mkdir $pack_dir -p
+	mv $IMAGE_PATH/pack/$IMGNAME README_EN.txt README_ZH.txt $pack_dir
+
+	7z a ${pack_dir}.7z ${pack_dir}
 }
 
 
@@ -1749,8 +1866,8 @@ for option in ${OPTIONS}; do
 			else
 				echo -e "\e[31m error: $SD_PARAMETER not found! \e[0m"
 			fi
-    
-		    MKUPDATE_FILE=${RK_TARGET_PRODUCT}-mkupdate.sh 
+
+		    MKUPDATE_FILE=${RK_TARGET_PRODUCT}-mkupdate.sh
 		    if [[ x"$MKUPDATE_FILE" != x-mkupdate.sh ]];then
 				PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware/rockdev/
 				cd $PACK_TOOL_DIR
@@ -1767,6 +1884,7 @@ for option in ${OPTIONS}; do
 		cleanall) build_cleanall ;;
 		firmware) build_firmware ;;
 		updateimg) build_updateimg ;;
+		pupdateimg) build_pupdateimg ;;
 		rawimg) build_rawimg ;;
 		otapackage) build_otapackage ;;
 		sdpackage) build_sdcard_package ;;

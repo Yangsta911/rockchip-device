@@ -1,0 +1,66 @@
+[
+    {
+        "RK_PRODUCT_MODEL": "FIREFLY_3399",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Firefly-RK3399/",
+            "EN": "https://wiki.t-firefly.com/en/Firefly-RK3399/"
+        },
+        "FW_Changelog": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Firefly-RK3399/FW_Changelog.html",
+            "EN": "https://wiki.t-firefly.com/en/Firefly-RK3399/FW_Changelog.html"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "AIO-3399J",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399J/preface.html",
+            "EN": "https://wiki.t-firefly.com/en/AIO-3399J/preface.html"
+        },
+        "FW_Changelog": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399J/FW_Changelog.html",
+            "EN": "https://wiki.t-firefly.com/en/AIO-3399J/FW_Changelog.html"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "CORE_3399_JD4",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3399-JD4/preface.html",
+            "EN": "https://wiki.t-firefly.com/en/Core-3399-JD4/preface.html"
+        },
+        "FW_Changelog": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3399-JD4/FW_Changelog.html",
+            "EN": "https://wiki.t-firefly.com/en/Core-3399-JD4/FW_Changelog.html"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "AIO_3399C",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399C/preface.html",
+            "EN": "https://wiki.t-firefly.com/en/AIO-3399C/preface.html"
+        },
+        "FW_Changelog": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399C/FW_Changelog.html",
+            "EN": "https://wiki.t-firefly.com/en/AIO-3399C/FW_Changelog.html"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "AIO_3399C_AI",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399C/preface.html",
+            "EN": "https://wiki.t-firefly.com/en/AIO-3399C/preface.html"
+        },
+        "FW_Changelog": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399C/FW_Changelog.html",
+            "EN": "https://wiki.t-firefly.com/en/AIO-3399C/FW_Changelog.html"
+        }
+    }
+]
