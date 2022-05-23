@@ -115,9 +115,12 @@ BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
 TARGET_PRODUCT="$TOP_DIR/device/rockchip/.target_product"
 TARGET_PRODUCT_DIR=$(realpath ${TARGET_PRODUCT})
 
+if [ ! -L "$BOARD_CONFIG" -a  "$1" != "lunch" ]; then
+        build_select_board
+fi
 unset_board_config_all
-[ -L "$BOARD_CONFIG" ] && source $BOARD_CONFIG || true
-source $TOP_DIR/device/rockchip/common/Version.mk
+[ -L "$BOARD_CONFIG" ] && source $BOARD_CONFIG
+
 CFG_DIR=$TOP_DIR/device/rockchip
 ROCKDEV=$TOP_DIR/rockdev
 PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
@@ -1753,7 +1756,7 @@ for option in ${OPTIONS}; do
 				ln -sf $MKUPDATE_FILE mkupdate.sh
 			fi
 			;;
-		launch) build_select_board ;;
+		lunch) build_select_board ;;
 		all) build_all ;;
 		save) build_save ;;
 		allsave) build_allsave ;;
