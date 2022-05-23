@@ -1084,8 +1084,10 @@ function build_recovery(){
 #	ln -rsf buildroot/output/$RK_CFG_RECOVERY/images/recovery.img \
 #		rockdev/recovery.img
 
-	cp buildroot/output/$RK_CFG_RECOVERY/images/recovery.img \
-		u-boot/recovery.img
+	if [ -n "$RK_CFG_RECOVERY" ];then
+		cp buildroot/output/$RK_CFG_RECOVERY/images/recovery.img \
+			u-boot/recovery.img
+	fi
 
 	finish_build
 }
