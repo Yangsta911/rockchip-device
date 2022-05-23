@@ -596,12 +596,11 @@ function pull_rockchip(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		if git branch | grep -q $rockchip_branch; then
-			gitt pull $firefly $rockchip_branch:$rockchip_branch
-		else
-			gitt fetch $firefly $rockchip_branch
-			gitt checkout -b $rockchip_branch $firefly/$rockchip_branch
-		fi
+		
+		gitt checkout $firefly_branch 
+		gitt branch -D $rockchip_branch 
+		gitt fetch $firefly $rockchip_branch
+		gitt checkout -b $rockchip_branch $firefly/$rockchip_branch
 
 		cd - > /dev/null
 		sed -i "1d" $err_list
