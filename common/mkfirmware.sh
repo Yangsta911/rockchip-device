@@ -49,8 +49,6 @@ if [ "$FF_EXTBOOT" = "true" ]; then
 else
 	BOOT_IMG=$TOP_DIR/kernel/$RK_BOOT_IMG
 fi
-
-BOOT_IMG=$TOP_DIR/kernel/$RK_BOOT_IMG
 LOADER=$(echo $TOP_DIR/u-boot/*_loader_v*.bin | head -1)
 SPL=$(echo $TOP_DIR/u-boot/*_loader_spl.bin | head -1)
 MKIMAGE=$SCRIPT_DIR/mk-image.sh
