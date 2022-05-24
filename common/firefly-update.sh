@@ -33,6 +33,8 @@ pwd_path=""
 PID_FILE="/tmp/.firefly.PID"
 # 多进程数目
 process_num=1
+# 超时时间
+timeout_seconds="600"
 
 #ignore error
 IERRORS="no"
@@ -535,7 +537,6 @@ function tag_gitlab_multi(){
 
 			# Remove PID
 			flock $PID_FILE -c "sed -i \"/$pid/d\" $PID_FILE"
-			echo flock $PID_FILE -c "sed -i \"/$pid/d\" $PID_FILE"
 
 			# 重新分发任务
 			echo "" >&${fifo_num}
@@ -817,7 +818,7 @@ for option in ${OPTIONS}; do
 			echo -e "进程数\t$process_num"
 			;;
 		-t*) timeout_seconds=`echo "$option"|sed  "s/-t//g"`
-			echo -e "超时时间\t$timeout_seconds"
+			echo -e "超时时间\t${timeout_seconds}"
 			;;
 		*)  ;;
 	esac
