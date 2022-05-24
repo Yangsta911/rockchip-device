@@ -29,7 +29,10 @@ YELLOW="${BOLD}\e[33m"
 BLUE="${BOLD}\e[34m"
 pwd_path=""
 
+# 存放子进程 PID 号
 PID_FILE="/tmp/.firefly.PID"
+# 多进程数目
+process_num=1
 
 #ignore error
 IERRORS="no"
@@ -500,7 +503,6 @@ function tag_gitlab_multi(){
 			# git push $gitlab $tag > /dev/null 2>&1
 			# git push $gitlab $tag
 
-			timeout_seconds=30
 			while timeout -k 1096s $timeout_seconds git push $gitlab $tag ; [ $? = 124 ]
 			do
 			echo -e "[${BLUE} $pro ${ALL_OFF}] pushing [${RED}timed out ${ALL_OFF}]"
@@ -788,7 +790,7 @@ function usage(){
 	echo "$0 delete-release-branch release_branch - 删除本地和远程的分支"
 	echo "$0 tag-firefly tag - 推送标签到远程(内部) firefly-linux"
 	echo "$0 tag-gitlab tag - 推送标签到远程(外部) firefly-linux"
-	echo "$0 tag-gitlab tag [-j数字] - 推送标签到远程(外部) firefly-linux ; -j4 代表创建4个进程加速"
+	echo "$0 tag-gitlab tag [-j数字] [-t300] - 推送标签到远程(外部) firefly-linux ; -j4 代表创建4个进程加速; -t300 进程超时时间为300秒"
 
 	echo ""
 	echo "发布阶段调试："
@@ -806,6 +808,21 @@ function usage(){
 	echo -e "\tIERRORS\t\tno\t\tIgnore errors when set to yes"
 
 }
+
+OPTIONS="${@:-allff}"
+
+for option in ${OPTIONS}; do
+	case $option in
+		-j*) process_num=`echo "$option"|sed  "s/-j//g"`
+			echo -e "进程数\t$process_num"
+			;;
+		-t*) timeout_seconds=`echo "$option"|sed  "s/-t//g"`
+			echo -e "超时时间\t$timeout_seconds"
+			;;
+		*)  ;;
+	esac
+done
+
 
 para=$1
 
@@ -891,11 +908,7 @@ elif [ "$para" == "tag-gitlab" ];then
 		tag=$2
 	fi
 
-	if [[ $3 == -j* ]];then
-		process_num=`echo "$3"|sed  "s/-j//g"`
-		if [ -z $process_num ];then
-			process_num=4   #没有指定则，默认开4进程
-		fi
+	if [[ $process_num != 1 ]];then
 		tag_gitlab_multi $tag
 	else
 		tag_gitlab $tag
