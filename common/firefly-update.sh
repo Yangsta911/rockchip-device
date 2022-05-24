@@ -417,6 +417,103 @@ function tag_gitlab(){
 	rm -rf $err_list
 }
 
+
+function tag_gitlab_multi(){
+	project_list
+	tag=$1
+	err_list=".tag_gitlab.list"
+	if [ -f "$err_list" ];then
+		echo -e "${YELLOW}注意：本次从上次执行失败的仓库开始继续执行! $pro ${ALL_OFF}"
+		while_file="$err_list"
+	else
+		while_file="$list_path"
+		cp $list_path $err_list
+	fi
+
+	while_file_num=`wc -l < $while_file`
+
+	# mkfifo
+	tempfifo="my_temp_fifo"
+	mkfifo ${tempfifo}
+	# 使文件描述符为非阻塞式,exec自动分配数值为 ${fifo_num} 的FD号
+	exec {fifo_num}<>${tempfifo}
+	rm -f ${tempfifo}
+
+	# 为文件描述符创建占位信息
+	for ((i=1;i<=${process_num};i++))
+	do
+	{
+		echo ""
+	}
+	done >&${fifo_num}
+
+	while read line
+	do
+	{
+		# 开始多任务分发
+		read -u${fifo_num}
+		{
+			sleep 0.3
+			pro=$(echo $line | awk -F ' ' '{print $1}')
+			bra=$(echo $line | awk -F ' ' '{print $2}')
+			cd $pro
+
+			echo -e "[${BLUE} $pro ${ALL_OFF}] ${YELLOW}pushing${ALL_OFF}"
+			if git branch | grep -q $firefly_branch; then
+				git checkout $firefly_branch > /dev/null 2>&1
+			else
+				echo -e "[${BLUE} $pro ${ALL_OFF}] not exited ${YELLOW}firefly_branch${ALL_OFF} ${RED}[failed]${ALL_OFF}"
+				exit -1
+			fi
+
+			# git push $gitlab $tag > /dev/null 2>&1
+			# git push $gitlab $tag
+
+			timeout_seconds=15
+			while timeout -k 3 $timeout_seconds git push $gitlab $tag ; [ $? = 124 ]
+			do
+			echo -e "[${BLUE} $pro ${ALL_OFF}] pushing [${RED}timed out ${ALL_OFF}]"
+			sleep 1.5  # Pause before retry
+			echo -e "[${BLUE} $pro ${ALL_OFF}] ${YELLOW}pushing${ALL_OFF}"
+			done
+
+
+			#cd - > /dev/null
+			cd - > /dev/null
+
+			# 处理非常痛苦的问题，输入有反斜杠
+			# sed -i "s/\//\\\\\//g" test.list
+			# sed -i "s/\//d\\\\\//g" test.list
+			#       app/QLauncher rk3399/firefly
+			# 改为：
+			#      app\/QLauncher rk3399\/firefly
+			#delete_line=`echo $line| sed  "s/\//d\\\\\/g" `
+			delete_line=`echo $line| sed  "s/\//\\\\\\\\\//g" `
+
+			# 使用文件占用锁，当$err_list被释放后执行后面的命令
+			flock $err_list -c "sed -i \"/$delete_line/d\" $err_list"
+
+			# 制作进度条
+			while_file_unfinish_num=`flock $err_list -c "wc -l < $err_list"`  # err_list 都是未完成的
+			while_file_finish_num=`expr $while_file_num - $while_file_unfinish_num`
+
+			echo -e "[${while_file_finish_num}/${while_file_num} ${BLUE} $pro ${ALL_OFF}] push tag($tag) ${GREEN}[successed]${ALL_OFF}"
+
+			# 重新分发任务
+			echo "" >&${fifo_num}
+			#echo flock $err_list -c "sed -i \"/$pro/d\" $err_list"
+		} &
+	}
+	done < $while_file
+
+	wait
+
+	# 关闭${fifo_num}管道
+	eval exec "${fifo_num}"'>'"&-"
+
+	rm -rf $err_list
+}
+
 function bundle(){
 	project_list
 	tag1=$1
@@ -425,7 +522,7 @@ function bundle(){
 	bundle_dir=$(pwd)
 	_tag1=$(echo $tag1 | awk -F '_' '{print $NF}')
 	_tag2=$(echo $tag2 | awk -F '_' '{print $NF}')
-	
+
 	bundle="$SOC-$_tag1-to-$_tag2"
 
 	bundle_dir="$bundle_dir/$bundle"
@@ -596,9 +693,9 @@ function pull_rockchip(){
 		pro=$(echo $line | awk -F ' ' '{print $1}')
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
-		
-		gitt checkout $firefly_branch 
-		gitt branch -D $rockchip_branch 
+
+		gitt checkout $firefly_branch
+		gitt branch -D $rockchip_branch
 		gitt fetch $firefly $rockchip_branch
 		gitt checkout -b $rockchip_branch $firefly/$rockchip_branch
 
@@ -655,6 +752,7 @@ function usage(){
 	echo "$0 delete-release-branch release_branch - 删除本地和远程的分支"
 	echo "$0 tag-firefly tag - 推送标签到远程(内部) firefly-linux"
 	echo "$0 tag-gitlab tag - 推送标签到远程(外部) firefly-linux"
+	echo "$0 tag-gitlab tag [-j数字] - 推送标签到远程(外部) firefly-linux ; -j4 代表创建4个进程加速"
 
 	echo ""
 	echo "发布阶段调试："
@@ -757,7 +855,15 @@ elif [ "$para" == "tag-gitlab" ];then
 		tag=$2
 	fi
 
-	tag_gitlab $tag
+	if [[ $3 == -j* ]];then
+		process_num=`echo "$3"|sed  "s/-j//g"`
+		if [ -z $process_num ];then
+			process_num=4   #没有指定则，默认开4进程
+		fi
+		tag_gitlab_multi $tag
+	else
+		tag_gitlab $tag
+	fi
 
 elif [ "$para" == "bundle" ];then
 	if [ x"$2" == x ] && [ x"$3" == x ];then
