@@ -29,6 +29,8 @@ YELLOW="${BOLD}\e[33m"
 BLUE="${BOLD}\e[34m"
 pwd_path=""
 
+PID_FILE="/tmp/.firefly.PID"
+
 #ignore error
 IERRORS="no"
 
@@ -418,6 +420,23 @@ function tag_gitlab(){
 }
 
 
+function trap_exit(){
+	# 关闭${fifo_num}管道
+	echo eval exec "${fifo_num}"'>'"&-"
+	eval exec "${fifo_num}"'>'"&-"
+
+	sleep 0.5
+	kill -s 1 $(cat $PID_FILE)
+
+	sleep 0.5
+	kill $(ps -aux | grep "timeout -k 1096s"| grep -v grep |awk -F ' ' '{print $2}')
+
+	#wait
+	#echo kill $(cat /tmp/.firefly.PID)
+
+	exit
+}
+
 function tag_gitlab_multi(){
 	project_list
 	tag=$1
@@ -447,12 +466,24 @@ function tag_gitlab_multi(){
 	}
 	done >&${fifo_num}
 
+	flock $PID_FILE -c "echo -n \"\" > $PID_FILE"
+
+	# ctrl+c kill process
+	#trap 'killall firefly-update.sh;"' int
+
+	trap trap_exit SIGINT
+
 	while read line
 	do
 	{
 		# 开始多任务分发
 		read -u${fifo_num}
 		{
+			trap "exit" 1
+			# Save PID
+			local pid=$BASHPID
+			flock $PID_FILE -c "echo $pid >> $PID_FILE"
+
 			sleep 0.3
 			pro=$(echo $line | awk -F ' ' '{print $1}')
 			bra=$(echo $line | awk -F ' ' '{print $2}')
@@ -469,13 +500,14 @@ function tag_gitlab_multi(){
 			# git push $gitlab $tag > /dev/null 2>&1
 			# git push $gitlab $tag
 
-			timeout_seconds=15
-			while timeout -k 3 $timeout_seconds git push $gitlab $tag ; [ $? = 124 ]
+			timeout_seconds=30
+			while timeout -k 1096s $timeout_seconds git push $gitlab $tag ; [ $? = 124 ]
 			do
 			echo -e "[${BLUE} $pro ${ALL_OFF}] pushing [${RED}timed out ${ALL_OFF}]"
 			sleep 1.5  # Pause before retry
 			echo -e "[${BLUE} $pro ${ALL_OFF}] ${YELLOW}pushing${ALL_OFF}"
 			done
+
 
 
 			#cd - > /dev/null
@@ -498,6 +530,10 @@ function tag_gitlab_multi(){
 			while_file_finish_num=`expr $while_file_num - $while_file_unfinish_num`
 
 			echo -e "[${while_file_finish_num}/${while_file_num} ${BLUE} $pro ${ALL_OFF}] push tag($tag) ${GREEN}[successed]${ALL_OFF}"
+
+			# Remove PID
+			flock $PID_FILE -c "sed -i \"/$pid/d\" $PID_FILE"
+			echo flock $PID_FILE -c "sed -i \"/$pid/d\" $PID_FILE"
 
 			# 重新分发任务
 			echo "" >&${fifo_num}
