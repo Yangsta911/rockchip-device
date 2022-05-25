@@ -1,0 +1,27 @@
+[
+    {
+        "RK_PRODUCT_MODEL": "CORE_3399PRO_JD4",
+        "CPU": "RK3399PRO",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/AIO-3399Pro-JD4/",
+            "EN": "https://wiki.t-firefly.com/AIO-3399Pro-JD4/"
+        },
+        "FW_Changelog": {
+            "ZH": "https://wiki.t-firefly.com/AIO-3399Pro-JD4/FW_Changelog.html",
+            "EN": "https://wiki.t-firefly.com/en/AIO-3399Pro-JD4/FW_Changelog.html"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "AIO_3399PROC",
+        "CPU": "RK3399PRO",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/AIO-3399ProC/",
+            "EN": "https://wiki.t-firefly.com/AIO-3399ProC/"
+        },
+        "FW_Changelog": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399ProC/FW_Changelog.html",
+            "EN": "https://wiki.t-firefly.com/en/AIO-3399ProC/FW_Changelog.html"
+        }
+    }
+]

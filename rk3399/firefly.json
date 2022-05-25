@@ -65,6 +65,19 @@
     },
 
     {
+        "RK_PRODUCT_MODEL": "ROC_3399_PC",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3399-PC//preface.html",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3399-P/preface.html"
+        },
+        "FW_Changelog": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3399-P/FW_Changelog.html",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3399-P/FW_Changelog.html"
+        }
+    },
+
+    {
         "FIREFLY_PRODUCT_MODEL": "FACE_X2",
         "RK_PRODUCT_MODEL": "FACE_3399",
         "CPU": "RK3399",
