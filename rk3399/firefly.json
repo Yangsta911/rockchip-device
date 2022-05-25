@@ -62,5 +62,19 @@
             "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399C/FW_Changelog.html",
             "EN": "https://wiki.t-firefly.com/en/AIO-3399C/FW_Changelog.html"
         }
+    },
+
+    {
+        "FIREFLY_PRODUCT_MODEL": "FACE_X2",
+        "RK_PRODUCT_MODEL": "FACE_3399",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/Face-RK3399/",
+            "EN": "https://wiki.t-firefly.com/en/Face-RK3399/"
+        },
+        "FIREFLY_PRODUCT_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/Face-X2/started.html",
+            "EN": "https://wiki.t-firefly.com/en/Face-X2/started.html"
+        }
     }
 ]

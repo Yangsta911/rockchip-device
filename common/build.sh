@@ -1697,6 +1697,18 @@ EOF
 		return 0
 	fi
 
+	# 是否为整机产品
+	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FIREFLY_PRODUCT_MODEL"`
+	if [ -n "$val" ] && [ $val != "null" ]; then
+		echo "整机产品: $val" >> ${README_FILE}
+
+		# 获取整机产品 Wiki 链接
+		val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FIREFLY_PRODUCT_WIKI.ZH"`
+		if [ -n "$val" ] && [ $val != "null" ]; then
+			echo "整机产品开发手册:" >> ${README_FILE}
+			echo -e "$val\n" >> ${README_FILE}
+		fi
+	fi
 
 	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.BOARD_WIKI.ZH"`
 	if [ -n "$val" ] && [ $val != "null" ]; then
@@ -1746,14 +1758,26 @@ EOF
 		return 0
 	fi
 
+	# 是否为整机产品
+	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FIREFLY_PRODUCT_MODEL"`
+	if [ -n "$val" ] && [ $val != "null" ]; then
+		echo "Machine Product: $val" >> ${README_FILE}
 
-	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.BOARD_WIKI.ZH"`
+		# 获取整机产品 Wiki 链接
+		val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FIREFLY_PRODUCT_WIKI.EN"`
+		if [ -n "$val" ] && [ $val != "null" ]; then
+			echo "Machine Product Development Manual:" >> ${README_FILE}
+			echo -e "$val\n" >> ${README_FILE}
+		fi
+	fi
+
+	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.BOARD_WIKI.EN"`
 	if [ -n "$val" ] && [ $val != "null" ]; then
 		echo "For firmware upgrade method and board development guide, please check the official Wiki:" >> ${README_FILE}
 		echo -e "$val\n" >> ${README_FILE}
 	fi
 
-	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FW_Changelog.ZH"`
+	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FW_Changelog.EN"`
 	if [ -n "$val" ] && [ $val != "null" ]; then
 		echo "Firmware update log:" >> ${README_FILE}
 		echo -e "$val\n" >> ${README_FILE}
