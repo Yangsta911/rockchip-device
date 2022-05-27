@@ -1723,13 +1723,13 @@ EOF
 	fi
 
 	val=`echo $board_json | jq -r ".BOARD_WIKI.ZH"`
-	if [ -n "$val" ] && [ $val != "null" ]; then
+	if [ -n "$val" ] && [ "$val" != "null" ]; then
 		echo "获取固件的升级方法和板子的开发指南，请查看官方Wiki:" >> ${README_FILE}
 		echo -e "$val\n" >> ${README_FILE}
 	fi
 
 	val=`echo $board_json | jq -r ".FW_Changelog.ZH"`
-	if [ -n "$val" ] && [ $val != "null" ]; then
+	if [ -n "$val" ] && [ "$val" != "null" ]; then
 		echo "固件更新日志：" >> ${README_FILE}
 		echo -e "$val\n" >> ${README_FILE}
 	fi
@@ -1790,14 +1790,14 @@ EOF
 	fi
 
 	val=`echo $board_json | jq -r ".BOARD_WIKI.EN"`
-	if [ -n "$val" ] && [ $val != "null" ]; then
+	if [ -n "$val" ] && [ "$val" != "null" ]; then
 		echo "For firmware upgrade method and board development guide, please check the official Wiki:" >> ${README_FILE}
 		echo -e "$val\n" >> ${README_FILE}
 	fi
 
 	val=`echo $board_json | jq -r ".FW_Changelog.EN"`
 
-	if [ -n "$val" ] && [ $val != "null" ]; then
+	if [ -n "$val" ] && [ "$val" != "null" ]; then
 		echo "Firmware update log:" >> ${README_FILE}
 		echo -e "$val\n" >> ${README_FILE}
 	fi
