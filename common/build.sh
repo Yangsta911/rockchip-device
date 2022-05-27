@@ -1674,6 +1674,7 @@ function ZH_parse_json(){
 	local val
 	local JSON_PATH=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/firefly.json
 	local README_FILE="README_ZH.txt"
+	local board_json
 
 cat << EOF > ${README_FILE}
  _____ _           __ _
@@ -1701,27 +1702,33 @@ EOF
 		return 0
 	fi
 
-	# 是否为整机产品
-	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FIREFLY_PRODUCT_MODEL"`
-	if [ -n "$val" ] && [ $val != "null" ]; then
-		echo "整机产品: $val" >> ${README_FILE}
+	#如果没有定义FIREFLY_PRODUCT_MODEL，为裸板
+	if [ -n "$FIREFLY_PRODUCT_MODEL" ]; then
+		# 为整机产品
+		board_json=`cat $JSON_PATH | jq -r ".[]|select(.FIREFLY_PRODUCT_MODEL==\"$FIREFLY_PRODUCT_MODEL\")"`
 
-		# 获取整机产品 Wiki 链接
-		val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FIREFLY_PRODUCT_WIKI.ZH"`
-		if [ -n "$val" ] && [ $val != "null" ]; then
-			echo "整机产品开发手册:" >> ${README_FILE}
-			echo -e "$val\n" >> ${README_FILE}
+
+		if [ -n "$board_json" ] && [ "$board_json" != "null" ]; then
+			echo "整机产品: $FIREFLY_PRODUCT_MODEL" >> ${README_FILE}
+
+			# 获取整机产品 Wiki 链接
+			val=`echo $board_json | jq -r ".FIREFLY_PRODUCT_WIKI.ZH"`
+			if [ -n "$val" ] && [ "$val" != "null" ]; then
+				echo "整机产品开发手册:" >> ${README_FILE}
+				echo -e "$val\n" >> ${README_FILE}
+			fi
 		fi
+	else
+		board_json=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")"`
 	fi
 
-	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.BOARD_WIKI.ZH"`
+	val=`echo $board_json | jq -r ".BOARD_WIKI.ZH"`
 	if [ -n "$val" ] && [ $val != "null" ]; then
 		echo "获取固件的升级方法和板子的开发指南，请查看官方Wiki:" >> ${README_FILE}
 		echo -e "$val\n" >> ${README_FILE}
 	fi
 
-	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FW_Changelog.ZH"`
-
+	val=`echo $board_json | jq -r ".FW_Changelog.ZH"`
 	if [ -n "$val" ] && [ $val != "null" ]; then
 		echo "固件更新日志：" >> ${README_FILE}
 		echo -e "$val\n" >> ${README_FILE}
@@ -1734,6 +1741,7 @@ function EN_parse_json(){
 	local val
 	local JSON_PATH=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/firefly.json
 	local README_FILE="README_EN.txt"
+	local board_json
 
 cat << EOF > ${README_FILE}
  _____ _           __ _
@@ -1762,26 +1770,33 @@ EOF
 		return 0
 	fi
 
-	# 是否为整机产品
-	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FIREFLY_PRODUCT_MODEL"`
-	if [ -n "$val" ] && [ $val != "null" ]; then
-		echo "Machine Product: $val" >> ${README_FILE}
+	#如果没有定义FIREFLY_PRODUCT_MODEL，为裸板
+	if [ -n "$FIREFLY_PRODUCT_MODEL" ]; then
+		# 为整机产品
+		board_json=`cat $JSON_PATH | jq -r ".[]|select(.FIREFLY_PRODUCT_MODEL==\"$FIREFLY_PRODUCT_MODEL\")"`
 
-		# 获取整机产品 Wiki 链接
-		val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FIREFLY_PRODUCT_WIKI.EN"`
-		if [ -n "$val" ] && [ $val != "null" ]; then
-			echo "Machine Product Development Manual:" >> ${README_FILE}
-			echo -e "$val\n" >> ${README_FILE}
+		if [ -n "$board_json" ] && [ "$board_json" != "null" ]; then
+			echo "Machine Product: $FIREFLY_PRODUCT_MODEL" >> ${README_FILE}
+
+			# 获取整机产品 Wiki 链接
+			val=`echo $board_json | jq -r ".FIREFLY_PRODUCT_WIKI.EN"`
+			if [ -n "$val" ] && [ "$val" != "null" ]; then
+				echo "Machine Product Development Manual:" >> ${README_FILE}
+				echo -e "$val\n" >> ${README_FILE}
+			fi
 		fi
+	else
+		board_json=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")"`
 	fi
 
-	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.BOARD_WIKI.EN"`
+	val=`echo $board_json | jq -r ".BOARD_WIKI.EN"`
 	if [ -n "$val" ] && [ $val != "null" ]; then
 		echo "For firmware upgrade method and board development guide, please check the official Wiki:" >> ${README_FILE}
 		echo -e "$val\n" >> ${README_FILE}
 	fi
 
-	val=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")|.FW_Changelog.EN"`
+	val=`echo $board_json | jq -r ".FW_Changelog.EN"`
+
 	if [ -n "$val" ] && [ $val != "null" ]; then
 		echo "Firmware update log:" >> ${README_FILE}
 		echo -e "$val\n" >> ${README_FILE}

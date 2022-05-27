@@ -13,7 +13,7 @@
     },
 
     {
-        "RK_PRODUCT_MODEL": "AIO-3399J",
+        "RK_PRODUCT_MODEL": "CORE_3399J",
         "CPU": "RK3399",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399J/preface.html",
@@ -68,12 +68,43 @@
         "RK_PRODUCT_MODEL": "ROC_3399_PC",
         "CPU": "RK3399",
         "BOARD_WIKI": {
-            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3399-PC//preface.html",
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3399-PC/preface.html",
             "EN": "https://wiki.t-firefly.com/en/ROC-RK3399-P/preface.html"
         },
         "FW_Changelog": {
             "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3399-P/FW_Changelog.html",
             "EN": "https://wiki.t-firefly.com/en/ROC-RK3399-P/FW_Changelog.html"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "ROC_3399_PC_PLUS",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/ROC-RK3399-PC-PLUS/preface.html",
+            "EN": "https://wiki.t-firefly.com/ROC-RK3399-PC-PLUS/preface.html"
+        },
+        "FW_Changelog": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3399-PC-PLUS/FW_Changelog.html",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3399-PC-PLUS/FW_Changelog.html"
+        }
+    },
+
+    {
+        "FIREFLY_PRODUCT_MODEL": "STATION_P1",
+        "RK_PRODUCT_MODEL": "ROC_3399_PC_PLUS",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/ROC-RK3399-PC-PLUS/preface.html",
+            "EN": "https://wiki.t-firefly.com/ROC-RK3399-PC-PLUS/preface.html"
+        },
+        "FW_Changelog": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3399-PC-PLUS/FW_Changelog.html",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3399-PC-PLUS/FW_Changelog.html"
+        },
+        "FIREFLY_PRODUCT_WIKI": {
+            "ZH": "https://wiki.stationpc.cn/docs/stationpc/",
+            "EN": "https://wiki.stationpc.com/docs/stationpc"
         }
     },
 
@@ -88,6 +119,48 @@
         "FIREFLY_PRODUCT_WIKI": {
             "ZH": "https://wiki.t-firefly.com/Face-X2/started.html",
             "EN": "https://wiki.t-firefly.com/en/Face-X2/started.html"
+        }
+    },
+
+    {
+        "FIREFLY_PRODUCT_MODEL": "FACE_X1",
+        "RK_PRODUCT_MODEL": "FACE_3399",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/Face-RK3399/",
+            "EN": "https://wiki.t-firefly.com/en/Face-RK3399/"
+        },
+        "FIREFLY_PRODUCT_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/Face-X1",
+            "EN": "https://wiki.t-firefly.com/en/Face-X1"
+        }
+    },
+
+    {
+        "FIREFLY_PRODUCT_MODEL": "CS_R1",
+        "RK_PRODUCT_MODEL": "CORE_3399_JD4",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3399-JD4/preface.html",
+            "EN": "https://wiki.t-firefly.com/en/Core-3399-JD4/preface.html"
+        },
+        "FIREFLY_PRODUCT_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Cluster-Server-R1/preface.html",
+            "EN": "https://wiki.t-firefly.com/en/Cluster-Server-R1/preface.html"
+        }
+    },
+
+    {
+        "FIREFLY_PRODUCT_MODEL": "CS_R2",
+        "RK_PRODUCT_MODEL": "CORE_3399_JD4",
+        "CPU": "RK3399",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3399-JD4/preface.html",
+            "EN": "https://wiki.t-firefly.com/en/Core-3399-JD4/preface.html"
+        },
+        "FIREFLY_PRODUCT_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Cluster-Server-R2/preface.html",
+            "EN": "https://wiki.t-firefly.com/en/Cluster-Server-R2/preface.html"
         }
     }
 ]
