@@ -29,3 +29,6 @@ export RK_RECOVERY_RAMDISK=rk3588-recovery-arm64.cpio.gz
 
 # Recovery config
 export RK_CFG_RECOVERY=
+
+# Buildroot config
+export RK_CFG_BUILDROOT=firefly_rk3588
