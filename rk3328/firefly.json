@@ -1,0 +1,28 @@
+[
+    {
+        "RK_PRODUCT_MODEL": "FIREFLY_3328",
+        "CPU": "RK3328",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3328-PC/",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3328-PC/"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "AIO_3328_JD4",
+        "CPU": "RK3328",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3328-JD4/",
+            "EN": "https://wiki.t-firefly.com/en/Core-3328-JD4/"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "ROC_3328_CC",
+        "CPU": "RK3328",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3328-CC/",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3328-CC/"
+        }
+    }
+]
