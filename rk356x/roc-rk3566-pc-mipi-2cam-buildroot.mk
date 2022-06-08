@@ -6,6 +6,6 @@ CUR_DIR=`dirname $CMD`
 source $CUR_DIR/firefly-rk3566-buildroot.mk
 
 # Kernel dts
-export RK_KERNEL_DTS=rk3566-firefly-roc-pc-mipi_m10r800v2-cam_2ms2mf
+export RK_KERNEL_DTS=rk3566-firefly-roc-pc-mipi101_M101014_BE45_A1-cam_2ms2mf
 # PRODUCT MODEL
 export RK_PRODUCT_MODEL=ROC_RK3566_PC

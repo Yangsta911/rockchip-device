@@ -6,6 +6,6 @@ CUR_DIR=`dirname $CMD`
 source $CUR_DIR/firefly-rk3568-ubuntu.mk
 
 # Kernel dts
-export RK_KERNEL_DTS=rk3568j-firefly-itxq
+export RK_KERNEL_DTS=rk3568-firefly-itx-3568q
 # PRODUCT MODEL
 export RK_PRODUCT_MODEL=ITX_3568Q
