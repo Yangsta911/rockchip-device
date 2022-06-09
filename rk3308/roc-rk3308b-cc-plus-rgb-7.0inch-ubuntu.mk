@@ -32,3 +32,5 @@ export RK_OEM_DIR=
 export RK_USERDATA_DIR=
 # rootfs_system
 export RK_ROOTFS_SYSTEM=ubuntu
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=ROC_RK3308B_CC_PLUS

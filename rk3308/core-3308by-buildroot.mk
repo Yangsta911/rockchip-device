@@ -19,3 +19,5 @@ export RK_PACKAGE_FILE=rk3308-package-file
 export RK_CFG_BUILDROOT=firefly_rk3308_release
 # Recovery config
 export RK_CFG_RECOVERY=firefly_rk3308_recovery
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=CORE_3308BY
