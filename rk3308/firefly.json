@@ -1,0 +1,28 @@
+[
+    {
+        "RK_PRODUCT_MODEL": "CORE_3308BY",
+        "CPU": "RK3308",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3308Y/",
+            "EN": "https://wiki.t-firefly.com/en/Core-3308Y/"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "ROC_RK3308B_CC_PLUS",
+        "CPU": "RK3308",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3308Y/",
+            "EN": "https://wiki.t-firefly.com/en/Core-3308Y/"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "ROC_RK3308B_CC_PLUS_EXT",
+        "CPU": "RK3308",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/IHC-3308GW/",
+            "EN": "https://wiki.t-firefly.com/en/IHC-3308GW/"
+        }
+    }
+]
