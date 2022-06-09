@@ -1029,8 +1029,15 @@ function build_rootfs(){
 			ROOTFS_IMG=yocto/build/tmp/deploy/images/$RK_YOCTO_MACHINE/rootfs.img
 			;;
 		debian)
-			build_debian
 			ROOTFS_IMG=debian/debian*-rootfs.img
+			if ls ${ROOTFS_IMG} | grep -q img;then
+				echo "====Build Debian rootfs.img!===="
+				ROOTFS_IMG=$(ls ${ROOTFS_IMG})
+			else
+				echo "====Can not found Debian rootfs.img!===="
+				echo "====Please execute \"sudo ./build.sh debian\" to compile===="
+				exit -1
+			fi
 			;;
 		openwrt)
 			build_openwrt
@@ -1941,7 +1948,8 @@ for option in ${OPTIONS}; do
 		kerneldeb) build_kerneldeb ;;
 		modules) build_modules ;;
 		rootfs_inst_mods) build_rootfs_install_modules ;;
-		rootfs|buildroot|debian|yocto|openwrt) build_rootfs $option ;;
+		rootfs|buildroot|yocto|openwrt) build_rootfs $option ;;
+		debian) build_debian ;;
 		pcba) build_pcba ;;
 		ramboot) build_ramboot ;;
 		recovery) build_recovery ;;
