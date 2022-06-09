@@ -1030,7 +1030,7 @@ function build_rootfs(){
 			;;
 		debian)
 			build_debian
-			ROOTFS_IMG=debian/linaro-rootfs.img
+			ROOTFS_IMG=debian/debian*-rootfs.img
 			;;
 		openwrt)
 			build_openwrt
