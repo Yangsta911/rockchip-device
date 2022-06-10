@@ -1,0 +1,19 @@
+[
+    {
+        "RK_PRODUCT_MODEL": "ITX_3588J",
+        "CPU": "RK3588",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3588J/index.html",
+            "EN": "https://wiki.t-firefly.com/en/Core-3588J/index.html"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "ROC-RK3588S-PC",
+        "CPU": "RK3588",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3588S-PC/index.html",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3588S-PC/index.html"
+        }
+    }
+]

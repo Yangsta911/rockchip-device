@@ -22,7 +22,7 @@ export RK_USERDATA_FS_TYPE=ext4
 export FF_EXTBOOT=true
 
 # PRODUCT MODEL
-export RK_PRODUCT_MODEL=FIREFLY_3588
+export RK_PRODUCT_MODEL=ITX_3588J
 
 # recovery ramdisk
 export RK_RECOVERY_RAMDISK=rk3588-recovery-arm64.cpio.gz
