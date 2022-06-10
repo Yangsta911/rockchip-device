@@ -1823,6 +1823,18 @@ function build_pupdateimg(){
 	rm $pack_dir -rf
 	mkdir $pack_dir -p
 	mv $IMAGE_PATH/pack/$IMGNAME README_EN.txt README_ZH.txt $pack_dir
+	
+	mkdir -p $pack_dir/tools/linux
+	mkdir -p $pack_dir/tools/windows
+	mkdir -p $pack_dir/tools/mac
+	
+	cp $TOP_DIR/tools/linux/Linux_Upgrade_Tool/Linux_Upgrade_Tool_*.zip $pack_dir/tools/linux/
+	cp $TOP_DIR/tools/windows/RKDevTool_Release_*.zip $pack_dir/tools/windows/
+	if [ -d $TOP_DIR/tools/mac/upgrade_tool ];then  
+		cp $TOP_DIR/tools/mac/upgrade_tool/upgrade_tool_*_mac.zip $pack_dir/tools/mac/
+	else
+		rm -rf $pack_dir/tools/mac
+	fi
 
 	7z a ${pack_dir}.7z ${pack_dir}
 }
