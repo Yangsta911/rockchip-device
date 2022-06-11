@@ -735,9 +735,6 @@ function build_kernel(){
 			$TOP_DIR/u-boot/boot.img
 	fi
 
-	build_check_power_domain
-
-
 	finish_build
 }
 
