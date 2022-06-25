@@ -1327,7 +1327,7 @@ function gen_file_name() {
 	IMGNAME+=_$(echo ${os_name,,} | sed 's/./\u&/')
 
 	#local os_mode=$(echo $rootfs | egrep -io "desktop|minimal|server" || true)
-	local os_mode=$(echo $rootfs | egrep -io "gnome|minimal|server" || true)
+	local os_mode=$(echo $rootfs | egrep -io "gnome|xfce|minimal|server" || true)
 	[[ -n "$os_mode" ]] && IMGNAME+=-$(echo ${os_mode,,} | sed 's/./\u&/')
 
 	os_version=$(echo $rootfs | sed -n 's/.*[-_]\([vV][0-9.a-zA-Z]*\(\-[0-9]\{1,\}\)\{,1\}\)[-_\.].*/\1/p')
