@@ -1,38 +1,37 @@
 #!/bin/bash
 
 # Target arch
-export RK_ARCH=arm64
+export RK_ARCH=arm
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=evb-px30
-# Trust choose ignore bl32, including --ignore-bl32
-export TRUST_PACK_IGNORE_BL32=
+export RK_UBOOT_DEFCONFIG=rk3128
+# Trust ini config
+export RK_TRUST_INI_CONFIG=RK3128TOS.ini
+# Uboot size
+export RK_UBOOT_SIZE_CONFIG=1024\ 2
+# Trust size
+export RK_TRUST_SIZE_CONFIG=1024\ 2
 # Kernel defconfig
-export RK_KERNEL_DEFCONFIG=px30_linux_defconfig
-# Kernel defconfig fragment
-export RK_KERNEL_DEFCONFIG_FRAGMENT=rk3358_linux.config
+export RK_KERNEL_DEFCONFIG=rk312x_linux_defconfig
 # Kernel dts
-export RK_KERNEL_DTS=rk3358-evb-ddr3-v10-linux
+export RK_KERNEL_DTS=rk3128-evb-ddr3-v10-linux
 # boot image type
 export RK_BOOT_IMG=zboot.img
 # kernel image path
-export RK_KERNEL_IMG=kernel/arch/arm64/boot/Image
-export RK_KERNEL_ZIMG=kernel/arch/arm64/boot/Image.lz4
+export RK_KERNEL_IMG=kernel/arch/arm/boot/zImage
 # parameter for GPT table
-export RK_PARAMETER=parameter.txt
+export RK_PARAMETER=parameter-buildroot.txt
 # Buildroot config
-export RK_CFG_BUILDROOT=rockchip_rk3358
+export RK_CFG_BUILDROOT=rockchip_rk312x
 # Recovery config
-export RK_CFG_RECOVERY=rockchip_rk3358_recovery
-# ramboot config
-export RK_CFG_RAMBOOT=
+export RK_CFG_RECOVERY=rockchip_rk312x_recovery
 # Pcba config
-export RK_CFG_PCBA=rockchip_px30_pcba
+export RK_CFG_PCBA=rockchip_rk3128_pcba
 # Build jobs
 export RK_JOBS=12
 # target chip
-export RK_TARGET_PRODUCT=rk3358
+export RK_TARGET_PRODUCT=rk3128
 # Set rootfs type, including ext2 ext4 squashfs
-export RK_ROOTFS_TYPE=ext4
+export RK_ROOTFS_TYPE=squashfs
 # rootfs image path
 export RK_ROOTFS_IMG=rockdev/rootfs.${RK_ROOTFS_TYPE}
 # Set oem partition type, including ext2 squashfs
