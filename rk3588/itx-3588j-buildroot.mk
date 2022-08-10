@@ -21,6 +21,8 @@ export RK_USERDATA_FS_TYPE=ext4
 # Set extboot
 export FF_EXTBOOT=true
 
+export FF_EXTBOOT_SIZE=256M
+
 # PRODUCT MODEL
 export RK_PRODUCT_MODEL=ITX_3588J
 

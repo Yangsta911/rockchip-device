@@ -819,8 +819,14 @@ function build_extboot(){
     cp ${TOP_DIR}/kernel/logo.bmp ${TOP_DIR}/kernel/logo_kernel.bmp $EXTBOOT_DIR/ || true
 
     make ARCH=$RK_ARCH INSTALL_MOD_STRIP=1 INSTALL_MOD_PATH=$EXTBOOT_DIR modules_install
+    
+    if [ -n "$FF_EXTBOOT_SIZE" ];then
+	EXTBOOT_IMG_SIZE=$FF_EXTBOOT_SIZE
+    else
+	EXTBOOT_IMG_SIZE=128M
+    fi
 
-    rm -rf $EXTBOOT_IMG && truncate -s 128M $EXTBOOT_IMG
+    rm -rf $EXTBOOT_IMG && truncate -s $EXTBOOT_IMG_SIZE $EXTBOOT_IMG
     fakeroot ${TOP_DIR}/device/rockchip/common/mkfs.ext4 -Fq -L "boot" -d $EXTBOOT_DIR $EXTBOOT_IMG
     finish_build
 }
