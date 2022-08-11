@@ -335,7 +335,6 @@ function usage()
 	echo "multi-npu_boot     -build boot image for multi-npu board"
 	echo "yocto              -build yocto rootfs"
 	echo "debian             -build debian rootfs"
-        echo "openwrt            -build openwrt rootfs"
 	echo "pcba               -build pcba"
 	echo "recovery           -build recovery"
 	echo "all                -build uboot, kernel, rootfs, recovery image"
@@ -998,23 +997,6 @@ function build_debian(){
 	finish_build
 }
 
-function build_openwrt(){
-    check_config RK_OPENWRT_DEFCONFIG || return 0
-    check_config RK_OPENWRT_VERSION_SELECT || return 0
-
-	echo "===========Start building $RK_OPENWRT_VERSION_SELECT==========="
-	echo "RK_OPENWRT_DEFCONFIG=$RK_OPENWRT_DEFCONFIG"
-	echo "========================================"
-
-	/usr/bin/time -f "you take %E to build $RK_OPENWRT_VERSION_SELECT" $COMMON_DIR/mk-openwrt.sh $RK_OPENWRT_VERSION_SELECT $RK_OPENWRT_DEFCONFIG
-	if [ $? -eq 0 ]; then
-		echo "====Build $RK_OPENWRT_VERSION_SELECT ok!===="
-	else
-		echo "====Build $RK_OPENWRT_VERSION_SELECT failed!===="
-		exit 1
-	fi
-}
-
 function build_rootfs(){
 	check_config RK_ROOTFS_IMG || return 0
 
@@ -1041,10 +1023,6 @@ function build_rootfs(){
 				echo "====Please execute \"sudo ./build.sh debian\" to compile===="
 				exit -1
 			fi
-			;;
-		openwrt)
-			build_openwrt
-			ROOTFS_IMG=openwrt_sdk/$RK_OPENWRT_VERSION_SELECT/build_dir/target-aarch64_generic_musl/linux-firefly_armv8/root.ext4
 			;;
 		*)
 			if [ -n $RK_CFG_BUILDROOT ];then
@@ -1310,7 +1288,7 @@ function build_firmware(){
 function gen_file_name() {
 	local day=$(date +%y%m%d)
 	#local time=$(date +%H%M)
-	local os_all="buildroot debian ubuntu openwrt UnionTech UniKylin centos"
+	local os_all="buildroot debian ubuntu UnionTech UniKylin centos"
 
 	local model=$(basename $(realpath ${BOARD_CONFIG}) .mk)
 	local os_mk=$(echo $model | egrep -io ${os_all// /|} || true)
@@ -1966,7 +1944,7 @@ for option in ${OPTIONS}; do
 		kerneldeb) build_kerneldeb ;;
 		modules) build_modules ;;
 		rootfs_inst_mods) build_rootfs_install_modules ;;
-		rootfs|buildroot|yocto|openwrt) build_rootfs $option ;;
+		rootfs|buildroot|yocto) build_rootfs $option ;;
 		debian) build_debian ;;
 		pcba) build_pcba ;;
 		ramboot) build_ramboot ;;
