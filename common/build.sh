@@ -1673,6 +1673,7 @@ cat << EOF > ${README_FILE}
                         |___/
 
 * 固件名称 $IMGNAME
+* MD5 $fw_md5
 * 官网 www.t-firefly.com  |  www.t-chip.com.cn
 * 技术支持 service@t-firefly.com
 * 开源社区 https://dev.t-firefly.com/portal.php?mod=topic&topicid=11
@@ -1740,6 +1741,7 @@ cat << EOF > ${README_FILE}
                         |___/
 
 * Firmware name $IMGNAME
+* MD5 $fw_md5
 * Official website https://en.t-firefly.com/  |  www.t-chip.com.cn
 * Technical Support service@t-firefly.com
 * Forums https://bbs.t-firefly.com/forum.php?mod=forumdisplay&fid=100
@@ -1796,6 +1798,7 @@ function build_pupdateimg(){
 	rename=0
 	build_updateimg
 
+	fw_md5=$(md5sum $IMAGE_PATH/pack/$IMGNAME | awk  '{print $1}')
 	ZH_parse_json
 	EN_parse_json
 
@@ -1804,14 +1807,14 @@ function build_pupdateimg(){
 	rm $pack_dir -rf
 	mkdir $pack_dir -p
 	mv $IMAGE_PATH/pack/$IMGNAME README_EN.txt README_ZH.txt $pack_dir
-	
+
 	mkdir -p $pack_dir/tools/linux
 	mkdir -p $pack_dir/tools/windows
 	mkdir -p $pack_dir/tools/mac
-	
+
 	cp $TOP_DIR/tools/linux/Linux_Upgrade_Tool/Linux_Upgrade_Tool_*.zip $pack_dir/tools/linux/
 	cp $TOP_DIR/tools/windows/RKDevTool_Release_*.zip $pack_dir/tools/windows/
-	if [ -d $TOP_DIR/tools/mac/upgrade_tool ];then  
+	if [ -d $TOP_DIR/tools/mac/upgrade_tool ];then
 		cp $TOP_DIR/tools/mac/upgrade_tool/upgrade_tool_*_mac.zip $pack_dir/tools/mac/
 	else
 		rm -rf $pack_dir/tools/mac
