@@ -1711,6 +1711,13 @@ EOF
 		board_json=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"$RK_PRODUCT_MODEL\")"`
 	fi
 
+	BOARD_NAME=`echo $board_json | jq -r ".BOARD_NAME"`
+
+	CPU_NAME=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"common\")".CPU`
+	if [ -n "$CPU_NAME" ] && [ "$CPU_NAME" != "null" ]; then
+		echo CPU $CPU_NAME
+	fi
+
 	val=`echo $board_json | jq -r ".BOARD_WIKI.ZH"`
 	if [ -n "$val" ] && [ "$val" != "null" ]; then
 		echo "获取固件的升级方法和板子的开发指南，请查看官方Wiki:" >> ${README_FILE}
@@ -1793,14 +1800,94 @@ EOF
 	fi
 }
 
+
+function create_fw_log(){
+
+	if [ -f fw_log/ff_log/rootfs/Fconfig ]; then
+		local root_dir_build=$(cat fw_log/ff_log/rootfs/Fconfig  | grep "=y" | awk -F "=" '{print $1}')
+
+		for rootfs_name in $root_dir_build; do
+			if [ ! -f fw_log/ff_log/rootfs/$rootfs_name/rootfs.img ]; then
+				continue
+			fi
+
+			local var=$rootfs_name
+			echo $var
+
+			source fw_log/ff_log/rootfs/Fconfig
+			var=$(realpath fw_log/ff_log/rootfs/$rootfs_name/rootfs.img)
+			real_rootfs_name=${var##*/}
+			echo $rootfs_name
+
+			ln -fs $var rockdev/rootfs.img
+			# create update.img
+			build_updateimg
+
+
+			# create md5sum
+			fw_md5=$(md5sum $IMAGE_PATH/pack/$IMGNAME | awk  '{print $1}')
+			ZH_parse_json
+			EN_parse_json
+
+			if [ ! -d fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME ];then
+				mkdir -p fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME
+			fi
+
+
+cat << EOF > .FW_log.md.tmp
+
+# Date: $(date +%F)
+* Firmware name: $IMGNAME
+* Firmware MD5: $fw_md5
+rootfs: $real_rootfs_name
+Update content:
+$(cat fw_log/ff_log/common.txt)
+
+EOF
+
+	# 防止固件名字重复
+	local linc_cnt=$(sed -n '$=' fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md)
+	local delete_start=0
+	local delete_end=0
+	delete_start=$(cat fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md | grep -n "* Firmware name: $IMGNAME" | awk -F ":" '{print $1}')
+
+	if [ "$delete_start" != "0" ] && [ -n $delete_start ]; then
+		delete_start=$(expr $delete_start - 1)
+
+		# 下一个Date：的上一行
+		for i in $(cat fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md | grep -n "# Date:"| awk -F ":" '{print $1}')
+		do
+			if [ "$i" = "$delete_start" ];then
+				delete_end=$linc_cnt
+				continue
+			fi
+
+			if [ "$delete_end" != "0" ];then
+				if [ "$i" -gt "$delete_start" ];then
+					delete_end=$(expr $i - 1)
+				fi
+			fi
+		done
+
+		if [ "$delete_end" -gt "$delete_start" ];then
+			sed -i ${delete_start},${delete_end}d fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md
+		fi
+	fi
+
+	cat .FW_log.md.tmp > .FW_log.md.tmpb
+	cat fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md >> .FW_log.md.tmpb
+	cat .FW_log.md.tmpb > fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md
+
+	cat fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md | tee -a README_ZH.txt README_EN.txt > /dev/null
+		done
+	fi
+}
+
 function build_pupdateimg(){
 	# Use automatic naming instead of manual naming
 	rename=0
-	build_updateimg
 
-	fw_md5=$(md5sum $IMAGE_PATH/pack/$IMGNAME | awk  '{print $1}')
-	ZH_parse_json
-	EN_parse_json
+	create_fw_log
 
 	#pack
 	local pack_dir=`echo $IMAGE_PATH/pack/${IMGNAME}.7z | awk -F '.img' '{print $1}'`
