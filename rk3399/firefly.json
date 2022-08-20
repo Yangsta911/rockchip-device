@@ -1,6 +1,12 @@
 [
+	{
+        "RK_PRODUCT_MODEL": "common",
+        "CPU": "RK3399"
+    },
+
     {
         "RK_PRODUCT_MODEL": "FIREFLY_3399",
+        "BOARD_NAME":"Firefly-RK3399",
         "CPU": "RK3399",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/zh_CN/Firefly-RK3399/",
@@ -14,6 +20,7 @@
 
     {
         "RK_PRODUCT_MODEL": "CORE_3399J",
+        "BOARD_NAME":"AIO-3399J",
         "CPU": "RK3399",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399J/preface.html",
@@ -27,6 +34,7 @@
 
     {
         "RK_PRODUCT_MODEL": "CORE_3399_JD4",
+        "BOARD_NAME":"AIO-3399-JD4",
         "CPU": "RK3399",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3399-JD4/preface.html",
@@ -40,6 +48,7 @@
 
     {
         "RK_PRODUCT_MODEL": "AIO_3399C",
+        "BOARD_NAME":"AIO-3399C",
         "CPU": "RK3399",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399C/preface.html",
@@ -53,6 +62,7 @@
 
     {
         "RK_PRODUCT_MODEL": "AIO_3399C_AI",
+        "BOARD_NAME":"AIO-3399C(AI)",
         "CPU": "RK3399",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399C/preface.html",
@@ -66,6 +76,7 @@
 
     {
         "RK_PRODUCT_MODEL": "ROC_3399_PC",
+        "BOARD_NAME":"ROC-RK3399-PC",
         "CPU": "RK3399",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3399-PC/preface.html",
@@ -79,6 +90,7 @@
 
     {
         "RK_PRODUCT_MODEL": "ROC_3399_PC_PLUS",
+        "BOARD_NAME":"ROC-RK3399-PC-PLUS",
         "CPU": "RK3399",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/ROC-RK3399-PC-PLUS/preface.html",
@@ -92,6 +104,7 @@
 
     {
         "FIREFLY_PRODUCT_MODEL": "STATION_P1",
+        "BOARD_NAME":"Station_P1",
         "RK_PRODUCT_MODEL": "ROC_3399_PC_PLUS",
         "CPU": "RK3399",
         "BOARD_WIKI": {
@@ -110,6 +123,7 @@
 
     {
         "FIREFLY_PRODUCT_MODEL": "FACE_X2",
+        "BOARD_NAME":"Face-X2",
         "RK_PRODUCT_MODEL": "FACE_3399",
         "CPU": "RK3399",
         "BOARD_WIKI": {
@@ -124,6 +138,7 @@
 
     {
         "FIREFLY_PRODUCT_MODEL": "FACE_X1",
+        "BOARD_NAME":"Face-X",
         "RK_PRODUCT_MODEL": "FACE_3399",
         "CPU": "RK3399",
         "BOARD_WIKI": {
@@ -138,6 +153,7 @@
 
     {
         "FIREFLY_PRODUCT_MODEL": "CS_R1",
+        "BOARD_NAME":"ClusterServerR1",
         "RK_PRODUCT_MODEL": "CORE_3399_JD4",
         "CPU": "RK3399",
         "BOARD_WIKI": {
@@ -152,6 +168,7 @@
 
     {
         "FIREFLY_PRODUCT_MODEL": "CS_R2",
+        "BOARD_NAME":"ClusterServerR2",
         "RK_PRODUCT_MODEL": "CORE_3399_JD4",
         "CPU": "RK3399",
         "BOARD_WIKI": {
