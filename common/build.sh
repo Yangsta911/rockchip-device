@@ -1803,19 +1803,19 @@ EOF
 
 function create_fw_log(){
 
-	if [ -f fw_log/ff_log/rootfs/Fconfig ]; then
-		local root_dir_build=$(cat fw_log/ff_log/rootfs/Fconfig  | grep "=y" | awk -F "=" '{print $1}')
+	if [ -f fw_log/ff_log/3_rootfs/Fconfig ]; then
+		local root_dir_build=$(cat fw_log/ff_log/3_rootfs/Fconfig  | grep "=y" | awk -F "=" '{print $1}')
 
 		for rootfs_name in $root_dir_build; do
-			if [ ! -f fw_log/ff_log/rootfs/$rootfs_name/rootfs.img ]; then
+			if [ ! -f fw_log/ff_log/3_rootfs/$rootfs_name/rootfs.img ]; then
 				continue
 			fi
 
 			local var=$rootfs_name
 			echo $var
 
-			source fw_log/ff_log/rootfs/Fconfig
-			var=$(realpath fw_log/ff_log/rootfs/$rootfs_name/rootfs.img)
+			source fw_log/ff_log/3_rootfs/Fconfig
+			var=$(realpath fw_log/ff_log/3_rootfs/$rootfs_name/rootfs.img)
 			real_rootfs_name=${var##*/}
 			echo $rootfs_name
 
@@ -1829,33 +1829,123 @@ function create_fw_log(){
 			ZH_parse_json
 			EN_parse_json
 
-			if [ ! -d fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME ];then
-				mkdir -p fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME
+			if [ ! -d fw_log/$CPU_NAME/$BOARD_NAME ];then
+				mkdir -p fw_log/$CPU_NAME/$BOARD_NAME
 			fi
 
 
-cat << EOF > .FW_log.md.tmp
+cat << EOF > .firefly_FW_log.tmp
 
-# Date: $(date +%F)
+## Date: $(date +%F)
 * Firmware name: $IMGNAME
 * Firmware MD5: $fw_md5
-rootfs: $real_rootfs_name
+* rootfs: $real_rootfs_name
 Update content:
-$(cat fw_log/ff_log/common.txt)
+
 
 EOF
 
+#$(cat fw_log/ff_log/3_rootfs/common.md)
+
+	local fw_overlay=0
+
+	# 1_mk
+	local local_mk=$(realpath device/rockchip/.BoardConfig.mk)
+	local_mk=${local_mk##*/}
+	local_mk=${local_mk%.mk*}
+	echo local_mk $local_mk
+
+	if [ -d fw_log/ff_log/1_mk/$local_mk ];then
+		echo 1_mk
+		for i in $(find fw_log/ff_log/2_board/$local_mk/ -name overlay*)
+		do
+			cat $i >> .firefly_FW_log.tmp
+			fw_overlay=1
+		done
+
+		if [ "$fw_overlay" = "0" ];then
+			for i in $(find fw_log/ff_log/2_board/$local_mk/ -name "log*.md" -o -name "log*.txt")
+			do
+				cat $i >> .firefly_FW_log.tmp
+			done
+		fi
+
+		# cat pre_log* to README_ZH.txt README_EN.txt
+		for i in $(find fw_log/ff_log/2_board/$local_mk/ -name pre_log*)
+		do
+			cat $i | tee -a README_ZH.txt README_EN.txt > /dev/null
+		done
+	fi
+
+	# 2_board
+	local use_common_md=1
+	if [ -d fw_log/ff_log/2_board/$BOARD_NAME ] && [ "$fw_overlay" = "0" ];then
+		echo 2_board
+		for i in $(find fw_log/ff_log/2_board/$BOARD_NAME/ -name overlay*)
+		do
+			cat $i >> .firefly_FW_log.tmp
+			fw_overlay=1
+		done
+
+		if [ "$fw_overlay" = "0" ];then
+			for i in $(find fw_log/ff_log/2_board/$BOARD_NAME/ -name "log*.md" -o -name "log*.txt")
+			do
+				cat $i >> .firefly_FW_log.tmp
+				use_common_md=0
+			done
+
+			if [ "$use_common_md" = "1" ];then
+				for i in $(find fw_log/ff_log/2_board/ -maxdepth 1 -name "common*")
+				do
+					cat $i >> .firefly_FW_log.tmp
+				done
+			fi
+		fi
+
+		# cat pre_log* to README_ZH.txt README_EN.txt
+		for i in $(find fw_log/ff_log/2_board/$local_mk/ -name pre_log*)
+		do
+			cat $i | tee -a README_ZH.txt README_EN.txt > /dev/null
+		done
+
+	fi
+
+	# 3_rootfs
+	use_common_md=1
+	if [ $fw_overlay = 0 ] && [ -d fw_log/ff_log/3_rootfs/$rootfs_name ];then
+		echo 3_rootfs
+		for i in $(find fw_log/ff_log/3_rootfs/$rootfs_name/ -name "log*.md" -o -name "log*.txt")
+		do
+			cat $i >> .firefly_FW_log.tmp
+			use_common_md=0
+		done
+
+
+		if [ "$use_common_md" = "1" ];then
+			for i in $(find fw_log/ff_log/3_rootfs/ -maxdepth 1 -name "common.md" -o -name "common.txt")
+			do
+				cat $i >> .firefly_FW_log.tmp
+			done
+		fi
+	fi
+
+	# create fw log
+
+	if [ ! -f fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md ];then
+		touch fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md
+	fi
+
 	# 防止固件名字重复
-	local linc_cnt=$(sed -n '$=' fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md)
+	local linc_cnt=$(sed -n '$=' fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md)
 	local delete_start=0
 	local delete_end=0
-	delete_start=$(cat fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md | grep -n "* Firmware name: $IMGNAME" | awk -F ":" '{print $1}')
+	delete_start=$(cat fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md | grep -n "* Firmware name: $IMGNAME" | awk -F ":" '{print $1}' | head -1)
 
-	if [ "$delete_start" != "0" ] && [ -n $delete_start ]; then
+	if [ "$delete_start" != "0" ] && [ -n "$delete_start" ]; then
 		delete_start=$(expr $delete_start - 1)
 
 		# 下一个Date：的上一行
-		for i in $(cat fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md | grep -n "# Date:"| awk -F ":" '{print $1}')
+		for i in $(cat fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md | grep -n "## Date:"| awk -F ":" '{print $1}')
 		do
 			if [ "$i" = "$delete_start" ];then
 				delete_end=$linc_cnt
@@ -1870,15 +1960,15 @@ EOF
 		done
 
 		if [ "$delete_end" -gt "$delete_start" ];then
-			sed -i ${delete_start},${delete_end}d fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md
+			sed -i ${delete_start},${delete_end}d fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md
 		fi
 	fi
 
-	cat .FW_log.md.tmp > .FW_log.md.tmpb
-	cat fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md >> .FW_log.md.tmpb
-	cat .FW_log.md.tmpb > fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md
+	cat .firefly_FW_log.tmp > .firefly_FW_log.tmpb
+	cat fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md >> .firefly_FW_log.tmpb
+	cat .firefly_FW_log.tmpb > fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md
 
-	cat fw_log/$CPU_NAME/$rootfs_name/$BOARD_NAME/FW_log.md.md | tee -a README_ZH.txt README_EN.txt > /dev/null
+	cat fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md | tee -a README_ZH.txt README_EN.txt > /dev/null
 		done
 	fi
 }
@@ -1888,6 +1978,7 @@ function build_pupdateimg(){
 	rename=0
 
 	create_fw_log
+
 
 	#pack
 	local pack_dir=`echo $IMAGE_PATH/pack/${IMGNAME}.7z | awk -F '.img' '{print $1}'`
