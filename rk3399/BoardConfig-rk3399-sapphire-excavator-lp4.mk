@@ -6,6 +6,7 @@ export RK_ARCH=arm64
 export RK_UBOOT_DEFCONFIG=rk3399
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=rockchip_linux_defconfig
+export RK_KERNEL_DEFCONFIG_FRAGMENT=rk3399_linux.config
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-sapphire-excavator-lp4-linux
 # boot image type
