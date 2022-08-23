@@ -818,7 +818,7 @@ function build_extboot(){
     cp ${TOP_DIR}/kernel/logo.bmp ${TOP_DIR}/kernel/logo_kernel.bmp $EXTBOOT_DIR/ || true
 
     make ARCH=$RK_ARCH INSTALL_MOD_STRIP=1 INSTALL_MOD_PATH=$EXTBOOT_DIR modules_install
-    
+
     if [ -n "$FF_EXTBOOT_SIZE" ];then
 	EXTBOOT_IMG_SIZE=$FF_EXTBOOT_SIZE
     else
@@ -1715,7 +1715,10 @@ EOF
 
 	CPU_NAME=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"common\")".CPU`
 	if [ -n "$CPU_NAME" ] && [ "$CPU_NAME" != "null" ]; then
-		echo CPU $CPU_NAME
+		echo CPU $CPU_NAME > /dev/null
+	else
+		echo -e "\t\e[31mPlease set CPU property to firefly.json\e[0m"
+		exit -1
 	fi
 
 	val=`echo $board_json | jq -r ".BOARD_WIKI.ZH"`
@@ -1802,36 +1805,30 @@ EOF
 
 
 function create_fw_log(){
+	source fw_log/.ff_log_build/3_rootfs/Fconfig
+	local var=$(realpath fw_log/.ff_log_build/3_rootfs/$rootfs_name/rootfs.img)
+	real_rootfs_name=${var##*/}
 
-	if [ -f fw_log/ff_log/3_rootfs/Fconfig ]; then
-		local root_dir_build=$(cat fw_log/ff_log/3_rootfs/Fconfig  | grep "=y" | awk -F "=" '{print $1}')
-
-		for rootfs_name in $root_dir_build; do
-			if [ ! -f fw_log/ff_log/3_rootfs/$rootfs_name/rootfs.img ]; then
-				continue
-			fi
-
-			local var=$rootfs_name
-			echo $var
-
-			source fw_log/ff_log/3_rootfs/Fconfig
-			var=$(realpath fw_log/ff_log/3_rootfs/$rootfs_name/rootfs.img)
-			real_rootfs_name=${var##*/}
-			echo $rootfs_name
-
-			ln -fs $var rockdev/rootfs.img
-			# create update.img
-			build_updateimg
+	echo -e "Rootfs $rootfs_name is\t\e[36m$real_rootfs_name\e[0m"
+	echo Link rockdev/rootfs.img to $var
+	ln -fs $var rockdev/rootfs.img
+	# create update.img
+	build_updateimg
 
 
-			# create md5sum
-			fw_md5=$(md5sum $IMAGE_PATH/pack/$IMGNAME | awk  '{print $1}')
-			ZH_parse_json
-			EN_parse_json
+	# create md5sum
+	echo "MD5 data of firmware being generated"
+	fw_md5=$(md5sum $IMAGE_PATH/pack/$IMGNAME | awk  '{print $1}')
+	echo "Parse device/rockchip/$RK_TARGET_PRODUCT/firefly.json"
+	ZH_parse_json
+	#EN_parse_json
 
-			if [ ! -d fw_log/$CPU_NAME/$BOARD_NAME ];then
-				mkdir -p fw_log/$CPU_NAME/$BOARD_NAME
-			fi
+	echo $BOARD_NAME
+
+
+	if [ ! -d fw_log/$CPU_NAME/$BOARD_NAME ];then
+		mkdir -p fw_log/$CPU_NAME/$BOARD_NAME
+	fi
 
 
 cat << EOF > .firefly_FW_log.tmp
@@ -1842,10 +1839,9 @@ cat << EOF > .firefly_FW_log.tmp
 * rootfs: $real_rootfs_name
 Update content:
 
-
 EOF
 
-#$(cat fw_log/ff_log/3_rootfs/common.md)
+#$(cat fw_log/.ff_log_build/3_rootfs/common.md)
 
 	local fw_overlay=0
 
@@ -1853,25 +1849,24 @@ EOF
 	local local_mk=$(realpath device/rockchip/.BoardConfig.mk)
 	local_mk=${local_mk##*/}
 	local_mk=${local_mk%.mk*}
-	echo local_mk $local_mk
 
-	if [ -d fw_log/ff_log/1_mk/$local_mk ];then
-		echo 1_mk
-		for i in $(find fw_log/ff_log/2_board/$local_mk/ -name overlay*)
+	if [ -d fw_log/.ff_log_build/1_mk/$local_mk ];then
+		#echo 1_mk
+		for i in $(find fw_log/.ff_log_build/1_mk/$local_mk/ -name overlay*)
 		do
 			cat $i >> .firefly_FW_log.tmp
 			fw_overlay=1
 		done
 
 		if [ "$fw_overlay" = "0" ];then
-			for i in $(find fw_log/ff_log/2_board/$local_mk/ -name "log*.md" -o -name "log*.txt")
+			for i in $(find fw_log/.ff_log_build/1_mk/$local_mk/ -name "log*.md" -o -name "log*.txt")
 			do
 				cat $i >> .firefly_FW_log.tmp
 			done
 		fi
 
 		# cat pre_log* to README_ZH.txt README_EN.txt
-		for i in $(find fw_log/ff_log/2_board/$local_mk/ -name pre_log*)
+		for i in $(find fw_log/.ff_log_build/1_mk/$local_mk/ -name pre_log*)
 		do
 			cat $i | tee -a README_ZH.txt README_EN.txt > /dev/null
 		done
@@ -1879,23 +1874,23 @@ EOF
 
 	# 2_board
 	local use_common_md=1
-	if [ -d fw_log/ff_log/2_board/$BOARD_NAME ] && [ "$fw_overlay" = "0" ];then
-		echo 2_board
-		for i in $(find fw_log/ff_log/2_board/$BOARD_NAME/ -name overlay*)
+	if [ -d fw_log/.ff_log_build/2_board/$BOARD_NAME ] && [ "$fw_overlay" = "0" ];then
+		#echo 2_board
+		for i in $(find fw_log/.ff_log_build/2_board/$BOARD_NAME/ -name overlay*)
 		do
 			cat $i >> .firefly_FW_log.tmp
 			fw_overlay=1
 		done
 
 		if [ "$fw_overlay" = "0" ];then
-			for i in $(find fw_log/ff_log/2_board/$BOARD_NAME/ -name "log*.md" -o -name "log*.txt")
+			for i in $(find fw_log/.ff_log_build/2_board/$BOARD_NAME/ -name "log*.md" -o -name "log*.txt")
 			do
 				cat $i >> .firefly_FW_log.tmp
 				use_common_md=0
 			done
 
 			if [ "$use_common_md" = "1" ];then
-				for i in $(find fw_log/ff_log/2_board/ -maxdepth 1 -name "common*")
+				for i in $(find fw_log/.ff_log_build/2_board/ -maxdepth 1 -name "common.md" -o -name "common.txt")
 				do
 					cat $i >> .firefly_FW_log.tmp
 				done
@@ -1903,7 +1898,7 @@ EOF
 		fi
 
 		# cat pre_log* to README_ZH.txt README_EN.txt
-		for i in $(find fw_log/ff_log/2_board/$local_mk/ -name pre_log*)
+		for i in $(find fw_log/.ff_log_build/2_board/$BOARD_NAME/ -name pre_log*)
 		do
 			cat $i | tee -a README_ZH.txt README_EN.txt > /dev/null
 		done
@@ -1912,9 +1907,9 @@ EOF
 
 	# 3_rootfs
 	use_common_md=1
-	if [ $fw_overlay = 0 ] && [ -d fw_log/ff_log/3_rootfs/$rootfs_name ];then
-		echo 3_rootfs
-		for i in $(find fw_log/ff_log/3_rootfs/$rootfs_name/ -name "log*.md" -o -name "log*.txt")
+	if [ $fw_overlay = 0 ] && [ -d fw_log/.ff_log_build/3_rootfs/$rootfs_name ];then
+		#echo 3_rootfs
+		for i in $(find fw_log/.ff_log_build/3_rootfs/$rootfs_name/ -name "log*.md" -o -name "log*.txt")
 		do
 			cat $i >> .firefly_FW_log.tmp
 			use_common_md=0
@@ -1922,7 +1917,7 @@ EOF
 
 
 		if [ "$use_common_md" = "1" ];then
-			for i in $(find fw_log/ff_log/3_rootfs/ -maxdepth 1 -name "common.md" -o -name "common.txt")
+			for i in $(find fw_log/.ff_log_build/3_rootfs/ -maxdepth 1 -name "common.md" -o -name "common.txt")
 			do
 				cat $i >> .firefly_FW_log.tmp
 			done
@@ -1969,36 +1964,47 @@ EOF
 	cat .firefly_FW_log.tmpb > fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md
 
 	cat fw_log/$CPU_NAME/$BOARD_NAME/${rootfs_name}.md | tee -a README_ZH.txt README_EN.txt > /dev/null
-		done
-	fi
 }
 
 function build_pupdateimg(){
 	# Use automatic naming instead of manual naming
 	rename=0
 
-	create_fw_log
+	if [ -f fw_log/.ff_log_build/3_rootfs/Fconfig ]; then
+		local root_dir_build=$(cat fw_log/.ff_log_build/3_rootfs/Fconfig  | grep "=y" | awk -F "=" '{print $1}')
 
+		for rootfs_name in $root_dir_build; do
+			#echo $rootfs_name
 
-	#pack
-	local pack_dir=`echo $IMAGE_PATH/pack/${IMGNAME}.7z | awk -F '.img' '{print $1}'`
-	rm $pack_dir -rf
-	mkdir $pack_dir -p
-	mv $IMAGE_PATH/pack/$IMGNAME README_EN.txt README_ZH.txt $pack_dir
+			if [ ! -f "fw_log/.ff_log_build/3_rootfs/$rootfs_name/rootfs.img" ]; then
+				continue
+			fi
+			create_fw_log
 
-	mkdir -p $pack_dir/tools/linux
-	mkdir -p $pack_dir/tools/windows
-	mkdir -p $pack_dir/tools/mac
+			#pack
+			local pack_dir=`echo $IMAGE_PATH/pack/${IMGNAME}.7z | awk -F '.img' '{print $1}'`
+			rm $pack_dir -rf
+			mkdir $pack_dir -p
+			mv $IMAGE_PATH/pack/$IMGNAME README_EN.txt README_ZH.txt $pack_dir
 
-	cp $TOP_DIR/tools/linux/Linux_Upgrade_Tool/Linux_Upgrade_Tool_*.zip $pack_dir/tools/linux/
-	cp $TOP_DIR/tools/windows/RKDevTool_Release_*.zip $pack_dir/tools/windows/
-	if [ -d $TOP_DIR/tools/mac/upgrade_tool ];then
-		cp $TOP_DIR/tools/mac/upgrade_tool/upgrade_tool_*_mac.zip $pack_dir/tools/mac/
-	else
-		rm -rf $pack_dir/tools/mac
+			echo -e "Move $IMGNAME to\t\e[33m$pack_dir\e[0m"
+
+			mkdir -p $pack_dir/tools/linux
+			mkdir -p $pack_dir/tools/windows
+			mkdir -p $pack_dir/tools/mac
+
+			cp $TOP_DIR/tools/linux/Linux_Upgrade_Tool/Linux_Upgrade_Tool_*.zip $pack_dir/tools/linux/
+			cp $TOP_DIR/tools/windows/RKDevTool_Release_*.zip $pack_dir/tools/windows/
+			if [ -d $TOP_DIR/tools/mac/upgrade_tool ];then
+				cp $TOP_DIR/tools/mac/upgrade_tool/upgrade_tool_*_mac.zip $pack_dir/tools/mac/
+			else
+				rm -rf $pack_dir/tools/mac
+			fi
+
+			7z a ${pack_dir}.7z ${pack_dir}
+		done
 	fi
 
-	7z a ${pack_dir}.7z ${pack_dir}
 }
 
 
