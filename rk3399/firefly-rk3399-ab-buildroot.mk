@@ -4,22 +4,16 @@ CMD=`realpath $BASH_SOURCE`
 CUR_DIR=`dirname $CMD`
 
 source $CUR_DIR/BoardConfig.mk
+source $CUR_DIR/BoardConfig-ab-base.mk
 
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=firefly-rk3399
+export RK_UBOOT_DEFCONFIG=firefly-rk3399-ab
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-firefly
-# packagefile for make update image
-export RK_PACKAGE_FILE=rk3399-package-file-ab
-
-# 分区表
-export RK_PARAMETER=parameter-ab.txt
 # buildroot
 export RK_CFG_BUILDROOT=rockchip_rk3399_ab
-# Recovery is not set because LINUX_ab does not require recovery mode.
-unset RK_CFG_RECOVERY
 # sd_parameter for GPT table
 export RK_SD_PARAMETER=parameter-recovery.txt
 # packagefile for make sdupdate image
