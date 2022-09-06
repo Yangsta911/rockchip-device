@@ -33,6 +33,7 @@
     },
 
     {
+        "FIREFLY_PRODUCT_MODEL": "AIO_3399_JD4",
         "RK_PRODUCT_MODEL": "CORE_3399_JD4",
         "BOARD_NAME":"AIO-3399-JD4",
         "CPU": "RK3399",
@@ -62,7 +63,7 @@
 
     {
         "RK_PRODUCT_MODEL": "AIO_3399C_AI",
-        "BOARD_NAME":"AIO-3399C(AI)",
+        "BOARD_NAME":"AIO-3399C-AI",
         "CPU": "RK3399",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3399C/preface.html",
