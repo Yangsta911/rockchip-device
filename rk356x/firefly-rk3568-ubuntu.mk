@@ -23,7 +23,7 @@ export FF_EXTBOOT=true
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
 # rootfs image path
-export RK_ROOTFS_IMG=rootfs/ubuntu20.04_desktop.img
+export RK_ROOTFS_IMG=ubuntu_rootfs/rk356x_ubuntu_rootfs.img
 # recovery ramdisk
 export RK_RECOVERY_RAMDISK=rk356x-recovery-arm64.cpio.gz
 # recovery ramdisk raw
