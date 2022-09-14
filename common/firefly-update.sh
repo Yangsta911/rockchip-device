@@ -733,8 +733,9 @@ function pull_rockchip(){
 		bra=$(echo $line | awk -F ' ' '{print $2}')
 		cd $pro
 
-		gitt checkout $firefly_branch
-		gitt branch -D $rockchip_branch
+		if git branch | grep -q $rockchip_branch; then
+			gitt branch -D $rockchip_branch
+		fi
 		gitt fetch $firefly $rockchip_branch
 		gitt checkout -b $rockchip_branch $firefly/$rockchip_branch
 
