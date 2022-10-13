@@ -19,8 +19,8 @@
         "BOARD_NAME":"ROC-RK3588S-PC",
         "CPU": "RK3588",
         "BOARD_WIKI": {
-            "ZH": "https://wiki.t-firefly.com/zh_CN/Firefly-RK3399/",
-            "EN": "https://wiki.t-firefly.com/en/Firefly-RK3399/"
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3588S-PC/index.html",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3588S-PC/index.html"
         }
     }
 ]

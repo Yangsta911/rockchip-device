@@ -1973,7 +1973,7 @@ function build_pupdateimg(){
 
 
 	if [ -f fw_log/.ff_log_build/3_rootfs/Fconfig ]; then
-		local root_dir_build=$(ls fw_log/.ff_log_build/3_rootfs/*  | grep -v "Fconfig")
+		local root_dir_build=$(ls fw_log/.ff_log_build/3_rootfs/  | grep -v "Fconfig")
 
 		for rootfs_name in $root_dir_build; do
 			#echo $rootfs_name
@@ -2025,6 +2025,20 @@ function build_pupdateimg(){
 
 }
 
+function build_allrelease(){
+	if [ -a $TOP_DIR/.allrelease ]; then
+		mk_list=$(cat $TOP_DIR/.allrelease)
+		for mkfile in $mk_list;
+		do
+			./build.sh $mkfile
+			build_all
+			build_firmware
+			./build.sh pupdateimg
+		done
+	else
+		echo "No such .allrelease"
+	fi
+}
 
 function build_allff(){
 	build_all
@@ -2131,6 +2145,8 @@ for option in ${OPTIONS}; do
 		save) build_save ;;
 		allsave) build_allsave ;;
 		allff) build_allff ;;
+		allff) build_allrelease ;;
+		allrelease) build_allrelease ;;
 		check) build_check ;;
 		cleanall) build_cleanall ;;
 		firmware) build_firmware ;;
