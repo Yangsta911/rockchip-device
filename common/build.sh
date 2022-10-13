@@ -2030,7 +2030,17 @@ function build_allrelease(){
 		mk_list=$(cat $TOP_DIR/.allrelease)
 		for mkfile in $mk_list;
 		do
-			./build.sh $mkfile
+		        ./build.sh $mkfile
+			BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
+			TARGET_PRODUCT="$TOP_DIR/device/rockchip/.target_product"
+			TARGET_PRODUCT_DIR=$(realpath ${TARGET_PRODUCT})
+
+			unset_board_config_all
+			[ -L "$BOARD_CONFIG" ] && source $BOARD_CONFIG
+
+			PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
+			SD_PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_SD_PARAMETER
+
 			build_all
 			build_firmware
 			./build.sh pupdateimg
