@@ -1,19 +1,26 @@
 [
     {
-        "RK_PRODUCT_MODEL": "ITX_3588J",
+        "RK_PRODUCT_MODEL": "common",
+        "CPU": "RK3588"
+    },
+    {
+	"RK_PRODUCT_MODEL": "ITX_3588J",
+        "BOARD_NAME":"ITX-3588J",
         "CPU": "RK3588",
         "BOARD_WIKI": {
-            "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3588J/index.html",
+	    "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3588J/index.html",
             "EN": "https://wiki.t-firefly.com/en/Core-3588J/index.html"
         }
+
     },
 
     {
-        "RK_PRODUCT_MODEL": "ROC-RK3588S-PC",
+	"RK_PRODUCT_MODEL": "ROC-RK3588S-PC",
+        "BOARD_NAME":"ROC-RK3588S-PC",
         "CPU": "RK3588",
         "BOARD_WIKI": {
-            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3588S-PC/index.html",
-            "EN": "https://wiki.t-firefly.com/en/ROC-RK3588S-PC/index.html"
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Firefly-RK3399/",
+            "EN": "https://wiki.t-firefly.com/en/Firefly-RK3399/"
         }
     }
 ]

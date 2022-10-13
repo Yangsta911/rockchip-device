@@ -1672,8 +1672,6 @@ cat << EOF > ${README_FILE}
 |_|   |_|_|  \___|_| |_|\__, |
                         |___/
 
-* 固件名称 $IMGNAME
-* MD5 $fw_md5
 * 官网 www.t-firefly.com  |  www.t-chip.com.cn
 * 技术支持 service@t-firefly.com
 * 开源社区 https://dev.t-firefly.com/portal.php?mod=topic&topicid=11
@@ -1750,8 +1748,6 @@ cat << EOF > ${README_FILE}
 |_|   |_|_|  \___|_| |_|\__, |
                         |___/
 
-* Firmware name $IMGNAME
-* MD5 $fw_md5
 * Official website https://en.t-firefly.com/  |  www.t-chip.com.cn
 * Technical Support service@t-firefly.com
 * Forums https://bbs.t-firefly.com/forum.php?mod=forumdisplay&fid=100
@@ -1819,9 +1815,10 @@ function create_fw_log(){
 	# create md5sum
 	echo "MD5 data of firmware being generated"
 	fw_md5=$(md5sum $IMAGE_PATH/pack/$IMGNAME | awk  '{print $1}')
+	xml_version=$(readlink .repo/manifest.xml  -f | awk -F '/' '{printf $NF}')
 	echo "Parse device/rockchip/$RK_TARGET_PRODUCT/firefly.json"
 	ZH_parse_json
-	#EN_parse_json
+	EN_parse_json
 
 	echo $BOARD_NAME
 
@@ -1837,6 +1834,7 @@ cat << EOF > .firefly_FW_log.tmp
 * Firmware name: $IMGNAME
 * Firmware MD5: $fw_md5
 * rootfs: $real_rootfs_name
+* SDK xml: $xml_version
 Update content:
 
 EOF
