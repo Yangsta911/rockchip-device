@@ -1967,9 +1967,13 @@ EOF
 function build_pupdateimg(){
 	# Use automatic naming instead of manual naming
 	rename=0
+	local local_mk=$(realpath device/rockchip/.BoardConfig.mk)
+	local_mk=${local_mk##*/}
+	local_mk=${local_mk%.mk*}
+
 
 	if [ -f fw_log/.ff_log_build/3_rootfs/Fconfig ]; then
-		local root_dir_build=$(cat fw_log/.ff_log_build/3_rootfs/Fconfig  | grep "=y" | awk -F "=" '{print $1}')
+		local root_dir_build=$(ls fw_log/.ff_log_build/3_rootfs/*  | grep -v "Fconfig")
 
 		for rootfs_name in $root_dir_build; do
 			#echo $rootfs_name
@@ -1977,6 +1981,22 @@ function build_pupdateimg(){
 			if [ ! -f "fw_log/.ff_log_build/3_rootfs/$rootfs_name/rootfs.img" ]; then
 				continue
 			fi
+
+			local root_mk_build=$(cat fw_log/.ff_log_build/3_rootfs/$rootfs_name/Fconfig)
+			
+			pack_flag=""
+
+			for mk_root in $root_mk_build; do 
+				if [ "$mk_root" = "$local_mk" ]; then
+					pack_flag="pack"
+					break
+				fi
+			done
+
+			if [ -z "$pack_flag" ];then
+				continue
+			fi
+			
 			create_fw_log
 
 			#pack
