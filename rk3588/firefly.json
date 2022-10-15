@@ -22,5 +22,25 @@
             "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3588S-PC/index.html",
             "EN": "https://wiki.t-firefly.com/en/ROC-RK3588S-PC/index.html"
         }
+    },
+
+    {
+	"RK_PRODUCT_MODEL": "ROC-RK3588-PC",
+        "BOARD_NAME":"ROC-RK3588-PC",
+        "CPU": "RK3588",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3588-PC/index.html",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3588-PC/index.html"
+        }
+    },
+
+    {
+	"RK_PRODUCT_MODEL": "AIO-3588SJD4",
+        "BOARD_NAME":"AIO-3588SJD4",
+        "CPU": "RK3588",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3588SJD4/index.html",
+            "EN": "https://wiki.t-firefly.com/en/AIO-3588SJD4/index.html"
+        }
     }
 ]
