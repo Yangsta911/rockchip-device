@@ -13,7 +13,6 @@ cd $TOP_DIR
 
 DEV_DIR="$TOP_DIR/device/rockchip"
 OUT_DIR="$TOP_DIR/buildroot/output"
-IMG_DIR="$OUT_DIR/$RK_CFG_BUILDROOT/images"
 
 function unset_board_config_all()
 {
@@ -26,6 +25,7 @@ function unset_board_config_all()
 unset_board_config_all
 
 source $DEV_DIR/.BoardConfig.mk
+IMG_DIR="$OUT_DIR/$RK_CFG_BUILDROOT/images"
 ROCKDEV=$TOP_DIR/rockdev
 PARAMETER=$DEV_DIR/$RK_TARGET_PRODUCT/$RK_PARAMETER
 MISC_IMG=$DEV_DIR/rockimg/$RK_MISC
