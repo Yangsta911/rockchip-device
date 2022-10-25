@@ -2025,9 +2025,66 @@ function build_pupdateimg(){
 
 }
 
+function build_allrelease_config(){
+	count=0
+	sum=""
+	sum_soc=""
+	sum_mk=""
+	DIALOG=$TOP_DIR/device/rockchip/common/dialog
+
+	rm -rf .save_soc
+	rm -rf .save_mkfile
+	rm -rf .allrelease
+
+	soc=$(ls $TOP_DIR/device/rockchip/ | sort | grep -Ev "common|oem|rockimg|userdata" | awk -F '/' '{print $NF}')
+	for name in $soc
+	do
+        	let count=count+1
+        	sum_soc=$sum_soc"$name = $count "
+	done
+	$DIALOG --backtitle "Checklist" --checklist "Select Soc" 50 100 50 $sum_soc 2> .save_soc
+	
+	if [ $? -ne 0 ];then
+        	exit -1
+	fi
+
+	dir=$(cat .save_soc)
+
+	for name in $dir
+	do
+        	config_mkfile=$(ls $TOP_DIR/device/rockchip/$name/*.mk | grep  -v BoardConfig  | awk -F '/' '{print $NF}')
+        	sum_mk=$sum_mk"$config_mkfile "
+	done
+
+	count=0
+	for name in $sum_mk
+	do
+        	let count=count+1
+        	sum=$sum"$name = $count "
+	done
+	
+	echo $sum
+	$DIALOG --backtitle "Checklist" --checklist "Select mkfile" 50 100 50 $sum 2> .save_mkfile
+	if [ $? -ne 0 ];then
+        	exit -1
+	fi
+
+	list=$(cat .save_mkfile| sort)
+
+	for name in $list
+	do
+        	echo $name >> .allrelease
+	done
+
+}
+
 function build_allrelease(){
+	build_allrelease_config
+
+	DIALOG=$TOP_DIR/device/rockchip/common/dialog
 	if [ -a $TOP_DIR/.allrelease ]; then
 		mk_list=$(cat $TOP_DIR/.allrelease)
+	#{	
 		for mkfile in $mk_list;
 		do
 		        ./build.sh $mkfile
@@ -2043,8 +2100,9 @@ function build_allrelease(){
 
 			build_all
 			build_firmware
-			./build.sh pupdateimg
+			./build.sh pupdateimg 
 		done
+	#} | $DIALOG --title "coping" --gauge "Starting to build..." 20 50 10
 	else
 		echo "No such .allrelease"
 	fi
