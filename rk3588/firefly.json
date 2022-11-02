@@ -39,8 +39,8 @@
         "BOARD_NAME":"AIO-3588SJD4",
         "CPU": "RK3588",
         "BOARD_WIKI": {
-            "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3588SJD4/index.html",
-            "EN": "https://wiki.t-firefly.com/en/AIO-3588SJD4/index.html"
+            "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3588SJD4/index.html",
+            "EN": "https://wiki.t-firefly.com/en/Core-3588SJD4/index.html"
         }
     },
     {
@@ -48,8 +48,8 @@
         "BOARD_NAME":"AIO-3588Q",
         "CPU": "RK3588",
         "BOARD_WIKI": {
-            "ZH": "https://wiki.t-firefly.com/zh_CN/AIO-3588Q/index.html",
-            "EN": "https://wiki.t-firefly.com/en/AIO-3588Q/index.html"
+            "ZH": "https://wiki.t-firefly.com/zh_CN/iCore-3588Q/index.html",
+            "EN": "https://wiki.t-firefly.com/en/iCore-3588Q/index.html"
         }
     }
 ]
