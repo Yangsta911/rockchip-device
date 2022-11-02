@@ -15,7 +15,7 @@
     },
 
     {
-	"RK_PRODUCT_MODEL": "ROC-RK3588S-PC",
+	"RK_PRODUCT_MODEL": "ROC_RK3588S_PC",
         "BOARD_NAME":"ROC-RK3588S-PC",
         "CPU": "RK3588",
         "BOARD_WIKI": {
@@ -25,7 +25,7 @@
     },
 
     {
-	"RK_PRODUCT_MODEL": "ROC-RK3588-PC",
+	"RK_PRODUCT_MODEL": "ROC_RK3588_PC",
         "BOARD_NAME":"ROC-RK3588-PC",
         "CPU": "RK3588",
         "BOARD_WIKI": {
@@ -35,7 +35,7 @@
     },
 
     {
-	"RK_PRODUCT_MODEL": "AIO-3588SJD4",
+	"RK_PRODUCT_MODEL": "AIO_3588SJD4",
         "BOARD_NAME":"AIO-3588SJD4",
         "CPU": "RK3588",
         "BOARD_WIKI": {
@@ -44,7 +44,7 @@
         }
     },
     {
-	"RK_PRODUCT_MODEL": "AIO-3588Q",
+	"RK_PRODUCT_MODEL": "AIO_3588Q",
         "BOARD_NAME":"AIO-3588Q",
         "CPU": "RK3588",
         "BOARD_WIKI": {

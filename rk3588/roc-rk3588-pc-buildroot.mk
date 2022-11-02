@@ -7,4 +7,4 @@ source $CUR_DIR/itx-3588j-buildroot.mk
 export RK_KERNEL_DTS=roc-rk3588-pc
 
 # PRODUCT MODEL
-export RK_PRODUCT_MODEL=ROC-RK3588-PC
+export RK_PRODUCT_MODEL=ROC_RK3588_PC
