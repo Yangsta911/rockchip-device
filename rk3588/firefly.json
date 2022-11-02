@@ -51,5 +51,23 @@
             "ZH": "https://wiki.t-firefly.com/zh_CN/iCore-3588Q/index.html",
             "EN": "https://wiki.t-firefly.com/en/iCore-3588Q/index.html"
         }
+    },
+    {
+	"RK_PRODUCT_MODEL": "AIO_3588MQ",
+        "BOARD_NAME":"AIO-3588MQ",
+        "CPU": "RK3588",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/iCore-3588MQ/index.html",
+            "EN": "https://wiki.t-firefly.com/en/iCore-3588MQ/index.html"
+        }
+    },
+    {
+	"RK_PRODUCT_MODEL": "AIO_3588JQ",
+        "BOARD_NAME":"AIO-3588JQ",
+        "CPU": "RK3588",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/iCore-3588JQ/index.html",
+            "EN": "https://wiki.t-firefly.com/en/iCore-3588JQ/index.html"
+        }
     }
 ]
