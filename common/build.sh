@@ -319,7 +319,8 @@ function usage()
 	echo "Usage: build.sh [OPTIONS]"
 	echo "Available options:"
 	echo "*.mk               -switch to specified board config"
-	echo "launch              -list current SDK boards and switch to specified board config"
+	echo "lunch              -list current SDK boards and switch to specified board config"
+	echo "wifibt             -build wifibt"
 	echo "uboot              -build uboot"
 	echo "uefi		 -build uefi"
 	echo "spl                -build spl"
@@ -489,10 +490,16 @@ function build_check_cross_compile(){
 
 	case $RK_ARCH in
 	arm|armhf)
-		if [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf" ]; then
-			CROSS_COMPILE=$(realpath $TOP_DIR)/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-
-		export CROSS_COMPILE=$CROSS_COMPILE
+		if [ "$RK_TARGET_PRODUCT" = "rv1126_rv1109" ];then
+			if [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/arm/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf" ]; then
+				CROSS_COMPILE=$(realpath $TOP_DIR)/prebuilts/gcc/linux-x86/arm/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf/bin/arm-rockchip830-linux-gnueabihf-
+			fi
+		else
+			if [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf" ]; then
+				CROSS_COMPILE=$(realpath $TOP_DIR)/prebuilts/gcc/linux-x86/arm/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-
+			fi
 		fi
+		export CROSS_COMPILE=$CROSS_COMPILE
 		;;
 	arm64|aarch64)
 		if [ -d "$TOP_DIR/prebuilts/gcc/linux-x86/aarch64/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu" ]; then
@@ -755,7 +762,6 @@ function build_kerneldeb(){
 	finish_build
 }
 
-
 function build_extboot(){
 	check_config RK_KERNEL_DTS RK_KERNEL_DEFCONFIG || return 0
 
@@ -828,6 +834,419 @@ function build_extboot(){
     rm -rf $EXTBOOT_IMG && truncate -s $EXTBOOT_IMG_SIZE $EXTBOOT_IMG
     fakeroot ${TOP_DIR}/device/rockchip/common/mkfs.ext4 -Fq -L "boot" -d $EXTBOOT_DIR $EXTBOOT_IMG
     finish_build
+}
+
+function build_wifibt(){
+	build_check_cross_compile
+	case $RK_ARCH in
+	arm|armhf)
+		WIFI_ARCH=arm
+		RKWIFIBT_APP_GCC=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/host/bin/arm-buildroot-linux-gnueabihf-gcc
+		RKWIFIBT_APP_SYSROOT=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/host/arm-buildroot-linux-gnueabihf/sysroot
+		;;
+	arm64|aarch64)
+		WIFI_ARCH=arm64
+		RKWIFIBT_APP_GCC=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/host/bin/aarch64-buildroot-linux-gnu-gcc
+		RKWIFIBT_APP_SYSROOT=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/host/aarch64-buildroot-linux-gnu/sysroot
+		;;
+	esac
+
+	if [ -n "$1" ]; then
+		WIFI_CHIP=$1
+	elif [ -n "$RK_WIFIBT_CHIP" ]; then
+		WIFI_CHIP=$RK_WIFIBT_CHIP
+	else
+		# defile ALL_AP
+		echo "=== WARNNING WIFI_CHIP is NULL so default to ALL_AP ==="
+		WIFI_CHIP=ALL_AP
+	fi
+
+	if [ -n "$2" ]; then
+		BT_TTY_DEV=$2
+	elif [ -n "$RK_WIFIBT_TTY" ]; then
+		BT_TTY_DEV=$RK_WIFIBT_TTY
+	else
+		echo "=== WARNNING BT_TTY is NULL so default to ttyS0 ==="
+		BT_TTY_DEV=ttyS0
+	fi
+
+	#check kernel .config
+	WIFI_USB=`grep "CONFIG_USB=y" $TOP_DIR/kernel/.config` || true
+	WIFI_SDIO=`grep "CONFIG_MMC=y" $TOP_DIR/kernel/.config` || true
+	WIFI_PCIE=`grep "CONFIG_PCIE_DW_ROCKCHIP=y" $TOP_DIR/kernel/.config` || true
+	WIFI_RFKILL=`grep "CONFIG_RFKILL=y" $TOP_DIR/kernel/.config` || true
+	if [ -z "WIFI_SDIO" ]; then
+		echo "=== WARNNING CONFIG_MMC not set !!! ==="
+	fi
+	if [ -z "WIFI_RFKILL" ]; then
+		echo "=== WARNNING CONFIG_USB not set !!! ==="
+	fi
+	if [[ "$WIFI_CHIP" =~ "U" ]];then
+		if [ -z "$WIFI_USB" ]; then
+			echo "=== WARNNING CONFIG_USB not set so ABORT!!! ==="
+			exit 0
+		fi
+	fi
+	echo "kernel config: $WIFI_USB $WIFI_SDIO $WIFI_RFKILL"
+
+	TARGET_CC=${CROSS_COMPILE}gcc
+	RKWIFIBT=$TOP_DIR/external/rkwifibt
+	RKWIFIBT_APP=$TOP_DIR/external/rkwifibt-app
+	TARGET_ROOTFS_DIR=$TOP_DIR/buildroot/output/$RK_CFG_BUILDROOT/target
+
+	echo "========build wifibt info======="
+	echo CROSS_COMPILE=$CROSS_COMPILE
+	echo WIFI_CHIP=$WIFI_CHIP
+	echo BT_TTY_DEV=$BT_TTY_DEV
+	echo TARGET_ROOTFS_DIR=$TARGET_ROOTFS_DIR
+	echo RKWIFIBT_APP_GCC=$RKWIFIBT_APP_GCC
+	echo RKWIFIBT_APP_SYSROOT=$RKWIFIBT_APP_SYSROOT
+
+	if [[ "$WIFI_CHIP" =~ "ALL_AP" ]];then
+		echo "building bcmdhd sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/bcmdhd CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8 CONFIG_BCMDHD=m CONFIG_BCMDHD_SDIO=y CONFIG_BCMDHD_PCIE=
+		if [ -n "$WIFI_PCIE" ]; then
+			echo "building bcmdhd pcie"
+			make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/bcmdhd CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8 CONFIG_BCMDHD=m CONFIG_BCMDHD_PCIE=y CONFIG_BCMDHD_SDIO=
+		fi
+		if [ -n "$WIFI_USB" ]; then
+			echo "building rtl8188fu usb"
+			make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8188fu CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8
+		fi
+		echo "building rtl8189fs sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8189fs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8
+		echo "building rtl8723ds sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8723ds CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8
+		echo "building rtl8821cs sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8821cs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8
+		echo "building rtl8822cs sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8822cs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8
+		echo "building rtl8852bs sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8852bs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8 DRV_PATH=$RKWIFIBT/drivers/rtl8852bs
+		if [ -n "$WIFI_PCIE" ]; then
+			echo "building rtl8852be pcie"
+			make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8852be CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8 DRV_PATH=$RKWIFIBT/drivers/rtl8852be
+		fi
+	fi
+
+	if [[ "$WIFI_CHIP" =~ "ALL_CY" ]];then
+		echo "building CYW4354"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW4354_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+		echo "building CYW4373"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW4373_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+		echo "building CYW43438"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW43438_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+		echo "building CYW43455"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW43455_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+		echo "building CYW5557X"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW5557X_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+		if [ -n "$WIFI_PCIE" ]; then
+			echo "building CYW5557X_PCIE"
+			cp $RKWIFIBT/drivers/infineon/chips/CYW5557X_PCIE_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+			make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+			echo "building CYW54591_PCIE"
+			cp $RKWIFIBT/drivers/infineon/chips/CYW54591_PCIE_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+			make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+		fi
+		echo "building CYW54591"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW54591_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+
+		if [ -n "$WIFI_USB" ]; then
+			echo "building rtl8188fu usb"
+			make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8188fu CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8
+		fi
+		echo "building rtl8189fs sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8189fs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8
+		echo "building rtl8723ds sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8723ds CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8
+		echo "building rtl8821cs sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8821cs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8
+		echo "building rtl8822cs sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8822cs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8
+		echo "building rtl8852bs sdio"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8852bs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8 DRV_PATH=$RKWIFIBT/drivers/rtl8852bs
+		if [ -n "$WIFI_PCIE" ]; then
+			echo "building rtl8852be pcie"
+			make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8852be CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j8 DRV_PATH=$RKWIFIBT/drivers/rtl8852be
+		fi
+	fi
+
+	if [[ "$WIFI_CHIP" =~ "AP6" ]];then
+		if [[ "$WIFI_CHIP" = "AP6275_PCIE" ]];then
+			echo "building bcmdhd pcie driver"
+			make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/bcmdhd CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8 CONFIG_BCMDHD=m CONFIG_BCMDHD_PCIE=y CONFIG_BCMDHD_SDIO=
+		else
+			echo "building bcmdhd sdio driver"
+			make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/bcmdhd CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8 CONFIG_BCMDHD=m CONFIG_BCMDHD_SDIO=y CONFIG_BCMDHD_PCIE=
+		fi
+	fi
+
+	if [[ "$WIFI_CHIP" = "CYW4354" ]];then
+		echo "building CYW4354"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW4354_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+	fi
+
+	if [[ "$WIFI_CHIP" = "CYW4373" ]];then
+		echo "building CYW4373"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW4373_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+	fi
+
+	if [[ "$WIFI_CHIP" = "CYW43438" ]];then
+		echo "building CYW43438"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW43438_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+	fi
+
+	if [[ "$WIFI_CHIP" = "CYW43455" ]];then
+		echo "building CYW43455"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW43455_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+	fi
+
+	if [[ "$WIFI_CHIP" = "CYW5557X" ]];then
+		echo "building CYW5557X"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW5557X_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+	fi
+
+	if [[ "$WIFI_CHIP" = "CYW5557X_PCIE" ]];then
+		echo "building CYW5557X_PCIE"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW5557X_PCIE_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+	fi
+
+	if [[ "$WIFI_CHIP" = "CYW54591" ]];then
+		echo "building CYW54591"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW54591_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+	fi
+
+	if [[ "$WIFI_CHIP" = "CYW54591_PCIE" ]];then
+		echo "building CYW54591_PCIE"
+		cp $RKWIFIBT/drivers/infineon/chips/CYW54591_PCIE_Makefile $RKWIFIBT/drivers/infineon/Makefile -r
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/infineon CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH -j8
+	fi
+
+	if [[ "$WIFI_CHIP" = "RTL8188FU" ]];then
+		echo "building rtl8188fu driver"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8188fu CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j32
+	fi
+
+	if [[ "$WIFI_CHIP" = "RTL8189FS" ]];then
+		echo "building rtl8189fs driver"
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8189fs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j32
+	fi
+
+	if [[ "$WIFI_CHIP" = "RTL8723DS" ]];then
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8723ds CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j32
+	fi
+
+	if [[ "$WIFI_CHIP" = "RTL8821CS" ]];then
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8821cs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j32
+	fi
+
+	if [[ "$WIFI_CHIP" = "RTL8822CS" ]];then
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8822cs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j32
+	fi
+
+	if [[ "$WIFI_CHIP" = "RTL8852BS" ]];then
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8852bs CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j32
+	fi
+
+	if [[ "$WIFI_CHIP" = "RTL8852BE" ]];then
+		make -C $TOP_DIR/kernel M=$RKWIFIBT/drivers/rtl8852be CROSS_COMPILE=$CROSS_COMPILE ARCH=$WIFI_ARCH modules -j32
+	fi
+
+	echo "building brcm_tools"
+	$TARGET_CC -o $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1 $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1.c
+	$TARGET_CC -o $RKWIFIBT/tools/brcm_tools/dhd_priv $RKWIFIBT/tools/brcm_tools/dhd_priv.c
+
+	echo "building rk_wifibt_init"
+	$TARGET_CC -o $RKWIFIBT/src/rk_wifibt_init $RKWIFIBT/src/rk_wifi_init.c
+
+	echo "building realtek_tools"
+	make -C $RKWIFIBT/tools/rtk_hciattach/ CC=$TARGET_CC
+
+	echo "building realtek bt drivers"
+	make -C $TOP_DIR/kernel/ M=$RKWIFIBT/drivers/bluetooth_uart_driver ARCH=$WIFI_ARCH CROSS_COMPILE=$CROSS_COMPILE
+	if [ -n "$WIFI_USB" ]; then
+		make -C $TOP_DIR/kernel/ M=$RKWIFIBT/drivers/bluetooth_usb_driver ARCH=$WIFI_ARCH CROSS_COMPILE=$CROSS_COMPILE
+	fi
+
+	if [ "$RK_TARGET_PRODUCT" = "rv1126_rv1109" ];then
+		echo "target is rv1126_rv1109, skip $RKWIFIBT_APP"
+	else
+		echo "building rkwifibt-app"
+		make -C $RKWIFIBT_APP CC=$RKWIFIBT_APP_GCC SYSROOT=$RKWIFIBT_APP_SYSROOT ARCH=$RK_ARCH
+	fi
+
+	echo "chmod +x tools"
+	chmod 755 $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1
+	chmod 755 $RKWIFIBT/tools/brcm_tools/dhd_priv
+	chmod 755 $RKWIFIBT/src/rk_wifibt_init
+	chmod 755 $RKWIFIBT/tools/rtk_hciattach/rtk_hciattach
+
+	echo "mkdir rootfs dir" $TARGET_ROOTFS_DIR
+	rm -rf $TARGET_ROOTFS_DIR/system/lib/modules/
+	rm -rf $TARGET_ROOTFS_DIR/system/etc/firmware/
+	rm -rf $TARGET_ROOTFS_DIR/vendor/
+        rm -rf $TARGET_ROOTFS_DIR/usr/lib/modules/
+        mkdir -p $TARGET_ROOTFS_DIR/usr/lib/modules/
+	mkdir -p $TARGET_ROOTFS_DIR/system/lib/modules/
+	mkdir -p $TARGET_ROOTFS_DIR/system/etc/firmware/
+	mkdir -p $TARGET_ROOTFS_DIR/lib/firmware/rtlbt/
+
+	echo "create link system->vendor"
+	cd $TARGET_ROOTFS_DIR/
+	rm -rf $TARGET_ROOTFS_DIR/vendor
+	ln -sf system $TARGET_ROOTFS_DIR/vendor
+	cd -
+
+	echo "copy tools/sh to rootfs"
+	cp $RKWIFIBT/bin/$WIFI_ARCH/* $TARGET_ROOTFS_DIR/usr/bin/
+	cp $RKWIFIBT/sh/wifi_start.sh $TARGET_ROOTFS_DIR/usr/bin/
+	cp $RKWIFIBT/sh/wifi_ap6xxx_rftest.sh $TARGET_ROOTFS_DIR/usr/bin/
+	cp $RKWIFIBT/conf/wpa_supplicant.conf $TARGET_ROOTFS_DIR/etc/
+	cp $RKWIFIBT/conf/dnsmasq.conf $TARGET_ROOTFS_DIR/etc/
+	cp $RKWIFIBT/tools/brcm_tools/dhd_priv $TARGET_ROOTFS_DIR/usr/bin/
+	cp $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1 $TARGET_ROOTFS_DIR/usr/bin/
+	cp $RKWIFIBT/src/rk_wifibt_init $TARGET_ROOTFS_DIR/usr/bin/
+
+	if [[ "$WIFI_CHIP" = "ALL_CY" ]];then
+		echo "copy infineon/realtek firmware/nvram to rootfs"
+		cp $RKWIFIBT/drivers/infineon/*.ko $TARGET_ROOTFS_DIR/system/lib/modules/ || true
+		cp $RKWIFIBT/firmware/infineon/*/* $TARGET_ROOTFS_DIR/system/etc/firmware/ || true
+
+		#todo rockchip
+		#cp $RKWIFIBT/firmware/rockchip/* $TARGET_ROOTFS_DIR/system/etc/firmware/
+		cp $RKWIFIBT/sh/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/
+		cp $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/bt_init.sh
+		cp $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/bt_pcba_test
+
+		#reatek
+		cp $RKWIFIBT/firmware/realtek/*/* $TARGET_ROOTFS_DIR/lib/firmware/
+		cp $RKWIFIBT/firmware/realtek/*/* $TARGET_ROOTFS_DIR/lib/firmware/rtlbt/
+		cp $RKWIFIBT/tools/rtk_hciattach/rtk_hciattach $TARGET_ROOTFS_DIR/usr/bin/
+		cp $RKWIFIBT/drivers/bluetooth_uart_driver/hci_uart.ko $TARGET_ROOTFS_DIR/usr/lib/modules/
+		if [ -n "$WIFI_USB" ]; then
+			cp $RKWIFIBT/drivers/bluetooth_usb_driver/rtk_btusb.ko $TARGET_ROOTFS_DIR/usr/lib/modules/
+		fi
+
+		rm -rf $TARGET_ROOTFS_DIR/etc/init.d/S36load_wifi_modules
+		cp $RKWIFIBT/S36load_all_wifi_modules $TARGET_ROOTFS_DIR/etc/init.d/
+		sed -i "s/BT_TTY_DEV/\/dev\/${BT_TTY_DEV}/g" $TARGET_ROOTFS_DIR/etc/init.d/S36load_all_wifi_modules
+	fi
+
+	if [[ "$WIFI_CHIP" = "ALL_AP" ]];then
+		echo "copy ap6xxx/realtek firmware/nvram to rootfs"
+		cp $RKWIFIBT/drivers/bcmdhd/*.ko $TARGET_ROOTFS_DIR/system/lib/modules/
+		cp $RKWIFIBT/firmware/broadcom/*/wifi/* $TARGET_ROOTFS_DIR/system/etc/firmware/ || true
+		cp $RKWIFIBT/firmware/broadcom/*/bt/* $TARGET_ROOTFS_DIR/system/etc/firmware/ || true
+
+		#todo rockchip
+		#cp $RKWIFIBT/firmware/rockchip/* $TARGET_ROOTFS_DIR/system/etc/firmware/
+		cp $RKWIFIBT/sh/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/
+		cp $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/bt_init.sh
+		cp $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/bt_pcba_test
+
+		#reatek
+		cp -rf $RKWIFIBT/firmware/realtek/*/* $TARGET_ROOTFS_DIR/lib/firmware/
+		cp -rf $RKWIFIBT/firmware/realtek/*/* $TARGET_ROOTFS_DIR/lib/firmware/rtlbt/
+		cp $RKWIFIBT/tools/rtk_hciattach/rtk_hciattach $TARGET_ROOTFS_DIR/usr/bin/
+		cp $RKWIFIBT/drivers/bluetooth_uart_driver/hci_uart.ko $TARGET_ROOTFS_DIR/usr/lib/modules/
+		if [ -n "$WIFI_USB" ]; then
+			cp $RKWIFIBT/drivers/bluetooth_usb_driver/rtk_btusb.ko $TARGET_ROOTFS_DIR/usr/lib/modules/
+		fi
+
+		rm -rf $TARGET_ROOTFS_DIR/etc/init.d/S36load_wifi_modules
+		cp $RKWIFIBT/S36load_all_wifi_modules $TARGET_ROOTFS_DIR/etc/init.d/
+		sed -i "s/BT_TTY_DEV/\/dev\/${BT_TTY_DEV}/g" $TARGET_ROOTFS_DIR/etc/init.d/S36load_all_wifi_modules
+	fi
+
+	if [[ "$WIFI_CHIP" =~ "RTL" ]];then
+		echo "Copy RTL file to rootfs"
+		if [ -d "$RKWIFIBT/firmware/realtek/$WIFI_CHIP" ]; then
+			cp $RKWIFIBT/firmware/realtek/$WIFI_CHIP/* $TARGET_ROOTFS_DIR/lib/firmware/rtlbt/
+			cp $RKWIFIBT/firmware/realtek/$WIFI_CHIP/* $TARGET_ROOTFS_DIR/lib/firmware/
+		else
+			echo "INFO: $WIFI_CHIP isn't bluetooth?"
+		fi
+
+		WIFI_KO_DIR=$(echo $WIFI_CHIP | tr '[A-Z]' '[a-z]')
+
+		cp $RKWIFIBT/drivers/$WIFI_KO_DIR/*.ko $TARGET_ROOTFS_DIR/system/lib/modules/
+
+		cp $RKWIFIBT/sh/bt_load_rtk_firmware $TARGET_ROOTFS_DIR/usr/bin/
+		sed -i "s/BT_TTY_DEV/\/dev\/${BT_TTY_DEV}/g" $TARGET_ROOTFS_DIR/usr/bin/bt_load_rtk_firmware
+		if [ -n "$WIFI_USB" ]; then
+			cp $RKWIFIBT/drivers/bluetooth_usb_driver/rtk_btusb.ko $TARGET_ROOTFS_DIR/usr/lib/modules/
+			sed -i "s/BT_DRV/rtk_btusb/g" $TARGET_ROOTFS_DIR/usr/bin/bt_load_rtk_firmware
+		else
+			cp $RKWIFIBT/drivers/bluetooth_uart_driver/hci_uart.ko $TARGET_ROOTFS_DIR/usr/lib/modules/
+			sed -i "s/BT_DRV/hci_uart/g" $TARGET_ROOTFS_DIR/usr/bin/bt_load_rtk_firmware
+		fi
+		cp $TARGET_ROOTFS_DIR/usr/bin/bt_load_rtk_firmware $TARGET_ROOTFS_DIR/usr/bin/bt_init.sh
+		cp $TARGET_ROOTFS_DIR/usr/bin/bt_load_rtk_firmware $TARGET_ROOTFS_DIR/usr/bin/bt_pcba_test
+		cp $RKWIFIBT/tools/rtk_hciattach/rtk_hciattach $TARGET_ROOTFS_DIR/usr/bin/
+		rm -rf $TARGET_ROOTFS_DIR/etc/init.d/S36load_all_wifi_modules
+		cp $RKWIFIBT/S36load_wifi_modules $TARGET_ROOTFS_DIR/etc/init.d/
+		sed -i "s/WIFI_KO/\/system\/lib\/modules\/$WIFI_CHIP.ko/g" $TARGET_ROOTFS_DIR/etc/init.d/S36load_wifi_modules
+	fi
+
+	if [[ "$WIFI_CHIP" =~ "CYW" ]];then
+		echo "Copy CYW file to rootfs"
+		#tools
+		cp $RKWIFIBT/tools/brcm_tools/dhd_priv $TARGET_ROOTFS_DIR/usr/bin/
+		cp $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1 $TARGET_ROOTFS_DIR/usr/bin/
+		#firmware
+		cp $RKWIFIBT/firmware/infineon/$WIFI_CHIP/* $TARGET_ROOTFS_DIR/system/etc/firmware/
+		cp $RKWIFIBT/drivers/infineon/*.ko $TARGET_ROOTFS_DIR/system/lib/modules/
+		#bt
+		cp $RKWIFIBT/sh/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/
+		sed -i "s/BT_TTY_DEV/\/dev\/${BT_TTY_DEV}/g" $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware
+		sed -i "s/BTFIRMWARE_PATH/\/system\/etc\/firmware\//g" $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware
+		cp $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/bt_init.sh
+		cp $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/bt_pcba_test
+		#wifi
+		rm -rf $TARGET_ROOTFS_DIR/etc/init.d/S36load_all_wifi_modules
+		cp $RKWIFIBT/S36load_wifi_modules $TARGET_ROOTFS_DIR/etc/init.d/
+		sed -i "s/WIFI_KO/\/system\/lib\/modules\/$WIFI_CHIP.ko/g" $TARGET_ROOTFS_DIR/etc/init.d/S36load_wifi_modules
+	fi
+
+	if [[ "$WIFI_CHIP" =~ "AP6" ]];then
+		echo "Copy AP file to rootfs"
+		#tools
+		cp $RKWIFIBT/tools/brcm_tools/dhd_priv $TARGET_ROOTFS_DIR/usr/bin/
+		cp $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1 $TARGET_ROOTFS_DIR/usr/bin/
+		#firmware
+		cp $RKWIFIBT/firmware/broadcom/$WIFI_CHIP/wifi/* $TARGET_ROOTFS_DIR/system/etc/firmware/
+		cp $RKWIFIBT/firmware/broadcom/$WIFI_CHIP/bt/* $TARGET_ROOTFS_DIR/system/etc/firmware/
+		cp $RKWIFIBT/drivers/bcmdhd/*.ko $TARGET_ROOTFS_DIR/system/lib/modules/
+		#bt
+		cp $RKWIFIBT/sh/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/
+		sed -i "s/BT_TTY_DEV/\/dev\/${BT_TTY_DEV}/g" $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware
+		sed -i "s/BTFIRMWARE_PATH/\/system\/etc\/firmware\//g" $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware
+		cp $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/bt_init.sh
+		cp $TARGET_ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware $TARGET_ROOTFS_DIR/usr/bin/bt_pcba_test
+		#wifi
+		rm -rf $TARGET_ROOTFS_DIR/etc/init.d/S36load_all_wifi_modules
+		cp $RKWIFIBT/S36load_wifi_modules $TARGET_ROOTFS_DIR/etc/init.d/
+		if [[ "$WIFI_CHIP" =~ "AP" ]];then
+			sed -i "s/WIFI_KO/\/system\/lib\/modules\/bcmdhd.ko/g" $TARGET_ROOTFS_DIR/etc/init.d/S36load_wifi_modules
+		else
+			sed -i "s/WIFI_KO/\/system\/lib\/modules\/bcmdhd_pcie.ko/g" $TARGET_ROOTFS_DIR/etc/init.d/S36load_wifi_modules
+		fi
+	fi
+	finish_build
+	#exit 0
 }
 
 function build_modules(){
@@ -1006,6 +1425,7 @@ function build_rootfs(){
 	if [ "$RK_ROOTFS_SYSTEM" != "ubuntu" ]; then
 		rm -rf $RK_ROOTFS_IMG $RK_ROOTFS_DIR
 		mkdir -p ${RK_ROOTFS_IMG%/*} $RK_ROOTFS_DIR
+		echo "rootfs dir $RK_ROOTFS_DIR"
 	fi
 
 	case "$1" in
@@ -1028,6 +1448,12 @@ function build_rootfs(){
 			if [ -n $RK_CFG_BUILDROOT ];then
 				build_buildroot
 				ROOTFS_IMG=buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.$RK_ROOTFS_TYPE
+				build_wifibt
+                        	#fixed requires second compilation issue
+				build_buildroot
+				for f in $(ls buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.*);do
+					ln -rsf $f $RK_ROOTFS_DIR/
+				done
 			fi
 			;;
 	esac
@@ -1571,7 +1997,7 @@ function build_save(){
 	$TOP_DIR/.repo/repo/repo forall -c "$TOP_DIR/device/rockchip/common/gen_patches_body.sh"
 
 	#Copy stubs
-	$TOP_DIR/.repo/repo/repo manifest -r -o $STUB_PATH/manifest_${DATE}.xml
+	yes | .repo/repo/repo manifest -r -o $STUB_PATH/manifest_${DATE}.xml
 	mkdir -p $STUB_PATCH_PATH/kernel
 	cp $TOP_DIR/kernel/.config $STUB_PATCH_PATH/kernel
 	cp $TOP_DIR/kernel/vmlinux $STUB_PATCH_PATH/kernel
@@ -2231,6 +2657,9 @@ for option in ${OPTIONS}; do
 		kernel) build_kernel ;;
 		extboot) build_extboot ;;
 		kerneldeb) build_kerneldeb ;;
+		wifibt)
+			build_wifibt $2 $3
+			exit 1 ;;
 		modules) build_modules ;;
 		rootfs_inst_mods) build_rootfs_install_modules ;;
 		rootfs|buildroot|yocto) build_rootfs $option ;;

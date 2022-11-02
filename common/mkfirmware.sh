@@ -238,7 +238,7 @@ pack_extra_partitions() {
 
         SIZE="$(partition_arg "$part" 6 auto)"
         OPTS="$(partition_arg "$part" 7)"
-        LABEL=
+        LABEL="$PART_NAME"
         EXTRA_CMD=
 
         # Special handling for oem
@@ -251,13 +251,13 @@ pack_extra_partitions() {
             fi
         fi
 
-        # Skip boot time resize by adding a label
-        if echo $OPTS | grep -wq fixed; then
-            LABEL="$PART_NAME"
-        fi
+        # Skip boot time resize by adding a tag file
+        echo $OPTS | grep -wq fixed || touch "$SRC/.fixed"
 
         pack_image "$SRC" "${PART_NAME}.img" "$FS_TYPE" "$SIZE" "$LABEL" \
             "$EXTRA_CMD"
+
+        rm -rf "$SRC/.fixed"
     done
 }
 

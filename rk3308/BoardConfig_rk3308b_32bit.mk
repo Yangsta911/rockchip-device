@@ -1,21 +1,21 @@
 #!/bin/bash
 
 # Target arch
-export RK_ARCH=arm64
+export RK_ARCH=arm
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=rk3308
+export RK_UBOOT_DEFCONFIG=rk3308-aarch32
 # Kernel defconfig
-export RK_KERNEL_DEFCONFIG=rk3308_linux_defconfig
+export RK_KERNEL_DEFCONFIG=rk3308_linux_aarch32_defconfig
 # Kernel dts
-export RK_KERNEL_DTS=rk3308b-evb-amic-v10
+export RK_KERNEL_DTS=rk3308b-evb-amic-v10-aarch32
 # boot image type
 export RK_BOOT_IMG=zboot.img
 # kernel image path
-export RK_KERNEL_IMG=kernel/arch/arm64/boot/Image.lz4
+export RK_KERNEL_IMG=kernel/arch/arm/boot/zImage
 # parameter for GPT table
-export RK_PARAMETER=parameter-64bit.txt
+export RK_PARAMETER=parameter-32bit.txt
 # Buildroot config
-export RK_CFG_BUILDROOT=rockchip_rk3308_b_release
+export RK_CFG_BUILDROOT=rockchip_rk3308_b_32_release
 # Recovery config
 export RK_CFG_RECOVERY=rockchip_rk3308_recovery
 # ramboot config
@@ -45,3 +45,10 @@ export RK_MISC=wipe_all-misc.img
 export RK_DISTRO_MODULE=
 # loader name
 export RK_LOADER_NAME=*_loader_uart4_v*.bin
+# Define WiFi BT chip
+# # Compatible with Realtek and AP6XXX WiFi : RK_WIFIBT_CHIP=ALL_AP
+# # Compatible with Realtek and CYWXXX WiFi : RK_WIFIBT_CHIP=ALL_CY
+# # Single WiFi configuration: AP6256 or CYW43455: RK_WIFIBT_CHIP=AP6256
+export RK_WIFIBT_CHIP=AP6255
+# # Define BT ttySX
+export RK_WIFIBT_TTY=ttyS0

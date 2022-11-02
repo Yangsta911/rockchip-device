@@ -32,7 +32,7 @@ export RK_TARGET_PRODUCT=rk3399
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
 # Set debian version (debian10: buster, debian11: bullseye)
-export RK_DEBIAN_VERSION=buster
+export RK_DEBIAN_VERSION=bullseye
 # yocto machine
 export RK_YOCTO_MACHINE=rockchip-rk3399-sapphire-excavator
 # rootfs image path
@@ -49,3 +49,10 @@ export RK_USERDATA_DIR=userdata_normal
 export RK_MISC=wipe_all-misc.img
 #choose enable distro module
 export RK_DISTRO_MODULE=
+# Define WiFi BT chip
+# Compatible with Realtek and AP6XXX WiFi : RK_WIFIBT_CHIP=ALL_AP
+# Compatible with Realtek and CYWXXX WiFi : RK_WIFIBT_CHIP=ALL_CY
+# Single WiFi configuration: AP6256 or CYW43455: RK_WIFIBT_CHIP=AP6256
+export RK_WIFIBT_CHIP=ALL_AP
+# Define BT ttySX
+export RK_WIFIBT_TTY=ttyS0
