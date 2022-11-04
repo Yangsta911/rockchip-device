@@ -1445,7 +1445,7 @@ function build_rootfs(){
 			fi
 			;;
 		*)
-			if [ -n $RK_CFG_BUILDROOT ];then
+			if [ -n "$RK_CFG_BUILDROOT" ];then
 				build_buildroot
 				ROOTFS_IMG=buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.$RK_ROOTFS_TYPE
 				build_wifibt
