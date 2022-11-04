@@ -791,8 +791,8 @@ function build_extboot(){
     cp ${TOP_DIR}/$RK_KERNEL_IMG $EXTBOOT_DIR/Image-$KERNEL_VERSION
 	echo -e "\tkernel /Image-$KERNEL_VERSION" >> $EXTBOOT_DIR/extlinux/extlinux.conf
 
-    if [ -f $CFG_DIR/$RK_TARGET_PRODUCT/.dtblist ];then
-	dtblist=$(cat $CFG_DIR/$RK_TARGET_PRODUCT/.dtblist)
+    if [ -f $CFG_DIR/$RK_TARGET_PRODUCT/.$RK_PRODUCT_MODEL ];then
+	dtblist=$(cat $CFG_DIR/$RK_TARGET_PRODUCT/.$RK_PRODUCT_MODEL)
 	for i in $dtblist
 	do
 		if [ "$RK_ARCH" == "arm64" ];then
