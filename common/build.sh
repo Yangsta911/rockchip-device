@@ -2437,8 +2437,16 @@ function build_pupdateimg(){
 			mkdir -p $pack_dir/tools/windows
 			mkdir -p $pack_dir/tools/mac
 
-			cp $TOP_DIR/tools/linux/Linux_Upgrade_Tool/Linux_Upgrade_Tool_*.zip $pack_dir/tools/linux/
-			cp $TOP_DIR/tools/windows/RKDevTool_Release_*.zip $pack_dir/tools/windows/
+			if [ -f $TOP_DIR/tools/linux/Linux_Upgrade_Tool/Linux_Upgrade_Tool_*.zip ];then
+				cp $TOP_DIR/tools/linux/Linux_Upgrade_Tool/Linux_Upgrade_Tool_*.zip $pack_dir/tools/linux/
+			elif [ -f $TOP_DIR/tools/linux/Linux_Upgrade_Tool/upgrade_tool_*.zip ];then
+				cp $TOP_DIR/tools/linux/Linux_Upgrade_Tool/upgrade_tool_*.zip $pack_dir/tools/linux/
+			fi
+
+			if [ -f $TOP_DIR/tools/windows/RKDevTool_Release_*.zip ];then
+				cp $TOP_DIR/tools/windows/RKDevTool_Release_*.zip $pack_dir/tools/windows/
+			fi
+
 			if [ -d $TOP_DIR/tools/mac/upgrade_tool ];then
 				cp $TOP_DIR/tools/mac/upgrade_tool/upgrade_tool_*_mac.zip $pack_dir/tools/mac/
 			else
