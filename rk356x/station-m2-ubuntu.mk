@@ -13,3 +13,5 @@ export RK_KERNEL_DEFCONFIG=station_linux_defconfig
 export RK_PRODUCT_MODEL=ROC_RK3566_PC
 # Add firmware information to misc.img
 export RK_MISC_WR=true
+#Set extboot
+export FF_EXTBOOT=false
