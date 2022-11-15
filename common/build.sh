@@ -1448,9 +1448,11 @@ function build_rootfs(){
 			if [ -n "$RK_CFG_BUILDROOT" ];then
 				build_buildroot
 				ROOTFS_IMG=buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.$RK_ROOTFS_TYPE
+				if [ "$RK_TARGET_PRODUCT" = "rk3588" ]; then
 				build_wifibt
                         	#fixed requires second compilation issue
 				build_buildroot
+				fi
 				for f in $(ls buildroot/output/$RK_CFG_BUILDROOT/images/rootfs.*);do
 					ln -rsf $f $RK_ROOTFS_DIR/
 				done

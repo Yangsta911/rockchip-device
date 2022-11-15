@@ -158,6 +158,7 @@ function kernel_version(){
 
 function add_build_info()
 {
+
     [ -f "$OS_RELEASE" ] || touch "$OS_RELEASE"
 
     echo "Adding information to /etc/os-release..."
@@ -223,7 +224,9 @@ function add_dirs_and_links()
     ln -sf userdata data
 }
 
-add_build_info $@
+if [ "$RK_TARGET_PRODUCT" = "rk3588" ]; then
+	add_build_info $@
+fi
 fixup_fstab
 fixup_reboot
 add_dirs_and_links
