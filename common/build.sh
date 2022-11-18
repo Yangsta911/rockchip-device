@@ -2293,7 +2293,6 @@ EOF
 	fi
 
 	# 2_board
-	local use_common_md=1
 	if [ -d fw_log/.ff_log_build/2_board/$BOARD_NAME ] && [ "$fw_overlay" = "0" ];then
 		#echo 2_board
 		for i in $(find fw_log/.ff_log_build/2_board/$BOARD_NAME/ -name overlay*)
@@ -2306,15 +2305,7 @@ EOF
 			for i in $(find fw_log/.ff_log_build/2_board/$BOARD_NAME/ -name "log*.md" -o -name "log*.txt")
 			do
 				cat $i >> .firefly_FW_log.tmp
-				use_common_md=0
 			done
-
-			if [ "$use_common_md" = "1" ];then
-				for i in $(find fw_log/.ff_log_build/2_board/ -maxdepth 1 -name "common.md" -o -name "common.txt")
-				do
-					cat $i >> .firefly_FW_log.tmp
-				done
-			fi
 		fi
 
 		# cat pre_log* to README_ZH.txt README_EN.txt
@@ -2324,25 +2315,27 @@ EOF
 		done
 
 	fi
+	
+	for i in $(find fw_log/.ff_log_build/2_board/ -maxdepth 1 -name "common.md" -o -name "common.txt")
+	do
+		cat $i >> .firefly_FW_log.tmp
+	done
 
 	# 3_rootfs
-	use_common_md=1
 	if [ $fw_overlay = 0 ] && [ -d fw_log/.ff_log_build/3_rootfs/$rootfs_name ];then
 		#echo 3_rootfs
 		for i in $(find fw_log/.ff_log_build/3_rootfs/$rootfs_name/ -name "log*.md" -o -name "log*.txt")
 		do
 			cat $i >> .firefly_FW_log.tmp
-			use_common_md=0
 		done
 
 
-		if [ "$use_common_md" = "1" ];then
-			for i in $(find fw_log/.ff_log_build/3_rootfs/ -maxdepth 1 -name "common.md" -o -name "common.txt")
-			do
-				cat $i >> .firefly_FW_log.tmp
-			done
-		fi
 	fi
+
+	for i in $(find fw_log/.ff_log_build/3_rootfs/ -maxdepth 1 -name "common.md" -o -name "common.txt")
+	do
+		cat $i >> .firefly_FW_log.tmp
+	done
 
 	# create fw log
 
@@ -2460,7 +2453,7 @@ function build_allrelease_config(){
 	sum=""
 	sum_soc=""
 	sum_mk=""
-	DIALOG=$TOP_DIR/device/rockchip/common/dialog
+	DIALOG=dialog
 
 	rm -rf .save_soc
 	rm -rf .save_mkfile
