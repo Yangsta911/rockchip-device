@@ -60,3 +60,5 @@ export RK_BOARD_PRE_BUILD_SCRIPT=app-build.sh
 export RK_PACKAGE_FILE=rv1126_rv1109-package-file
 # update spl
 export RK_LOADER_UPDATE_SPL=true
+# PRODUCT MODEL
+export RK_PRODUCT_MODEL=CORE_1126_JD4
