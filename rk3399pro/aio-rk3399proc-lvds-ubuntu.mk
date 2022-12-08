@@ -19,7 +19,7 @@ export RK_PACKAGE_FILE=rk3399-ubuntu-package-file
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
 # rootfs image path
-export RK_ROOTFS_IMG=ubunturootfs/rk3399pro_ubuntu18.04_LXDE.img
+export RK_ROOTFS_IMG=ubuntu_rootfs/rk3399pro_ubuntu_rootfs.img
 # recovery ramdisk
 export RK_RECOVERY_RAMDISK=recovery-arm64.cpio.gz
 # Set userdata partition type
