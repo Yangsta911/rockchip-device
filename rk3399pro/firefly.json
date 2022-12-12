@@ -1,6 +1,12 @@
 [
     {
+        "RK_PRODUCT_MODEL": "common",
+        "CPU": "RK3399PRO"
+    },
+
+    {
         "RK_PRODUCT_MODEL": "CORE_3399PRO_JD4",
+        "BOARD_NAME":"AIO-3399Pro-JD4",
         "CPU": "RK3399PRO",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/AIO-3399Pro-JD4/",
@@ -14,6 +20,7 @@
 
     {
         "RK_PRODUCT_MODEL": "AIO_3399PROC",
+        "BOARD_NAME":"AIO-3399ProC",
         "CPU": "RK3399PRO",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/AIO-3399ProC/",
