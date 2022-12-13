@@ -371,34 +371,80 @@ function build_firmware(){
 
 
 function gen_file_name() {
-	day=$(date +%Y%m%d)
-	time=$(date +%H%M)
+	local day=$(date +%y%m%d)
+	#local time=$(date +%H%M)
+	local os_all="buildroot debian ubuntu UnionTech UniKylin centos"
 
-	typeset -u board
-	board=$(basename $(readlink ${BOARD_CONFIG}))
-	board=${board%%.MK}
-	rootfs=$(ls -l $TOP_DIR/rockdev/ | grep rootfs.img | awk -F '/' '{print $(NF)}'|awk -F '_' '{print $2}')
-	board=${board}${rootfs}-GPT
+	local model=$(basename $(realpath ${BOARD_CONFIG}) .mk)
+	local os_mk=$(echo $model | egrep -io ${os_all// /|} || true)
+	# Set the string before os name in the BOARD_CONFIG file name as the model name
+	[[ -n "$os_mk" ]] && model=${model/-$os_mk*/}
+	IMGNAME=${model^^}
+
+	# Set the string before first "_" in the rootfs file name as the system name
+	# OSName_xxxx_vx.x.x.img"
+	local rootfs=$(basename $(realpath $TOP_DIR/rockdev/rootfs.img))
+	#remove suffix, get string before first "-" or "_"
+	local os_name=$(echo ${rootfs%.*} | sed 's/[-_].*//')
+	if [[ ${os_name^^} == "ROOTFS" ]] || [[ ${os_name^^} == "SYSTEM" ]]; then
+		os_name=${os_mk}
+	fi
+
+	[[ -z "$os_name" ]] && os_name="Linux"
+
+	#Uper first letter
+	IMGNAME+=_$(echo ${os_name,,} | sed 's/./\u&/')
+
+	#local os_mode=$(echo $rootfs | egrep -io "desktop|minimal|server" || true)
+	local os_mode=$(echo $rootfs | egrep -io "gnome|xfce|minimal|server" || true)
+	[[ -n "$os_mode" ]] && IMGNAME+=-$(echo ${os_mode,,} | sed 's/./\u&/')
+
+	os_version=$(echo $rootfs | sed -n 's/.*[-_]\([vV][0-9.a-zA-Z]*\(\-[0-9]\{1,\}\)\{,1\}\)[-_\.].*/\1/p')
+	if [[ -z "$os_version" ]]; then
+		#get date string in rootfs as rootfs version
+		os_version=$(echo $rootfs | sed -n 's/.*[-_]\(20[0-9]\{2,\}[-_.0-9]*\)[-_.].*/\1/p')
+	fi
+	if [[ -n "$os_version" ]]; then
+		os_version=${os_version,,}
+		#delete . - _ v
+		os_version=${os_version/v/r}
+		os_version=$(echo $os_version | sed 's/[-_\.]//g')
+		IMGNAME+=-${os_version}
+	fi
+
+	local sdk_version=""
+	local manifest=$(realpath ${TOP_DIR}/.repo/manifest.xml)
+	if [[ -f $manifest ]]; then
+		manifest=$(basename $(realpath ${TOP_DIR}/.repo/manifest.xml) .xml)
+		sdk_version=$(echo $manifest | sed -n 's/.*[-_]\([vV][0-9.a-zA-Z]*\).*/\1/p')
+		IMGNAME+=_${sdk_version}
+	fi
 
 	if [ -n "$1" ];then
-		board=$board-$1
+		IMGNAME+=_${1}
 	fi
 
-	echo -e "File name is \e[36m $board \e[0m"
-	read -t 10 -e -p "Rename the file? [N|y]" ANS 
-	ANS=${ANS:-n}
-	
-	case $ANS in
-			Y|y|yes|YES|Yes) rename=1;;
-			N|n|no|NO|No) rename=0;;
-			*) rename=0;;
-	esac
-	if [[ ${rename} == "1" ]]; then
-		read -e -p "Enter new file name: " IMGNAME
-		IMGNAME=$IMGNAME
+	#IMGNAME+=_${day}-${time}.img
+	IMGNAME+=_${day}.img
+
+	echo -e "File name is \e[36m $IMGNAME\e[0m"
+	if [ "$rename" == "0" ];then
+		:
+	else
+		read -t 10 -e -p "Rename the file? [N|y]" ANS || :
+		ANS=${ANS:-n}
+
+		case $ANS in
+				Y|y|yes|YES|Yes) rename=1;;
+				N|n|no|NO|No) rename=0;;
+				*) rename=0;;
+		esac
 	fi
-	IMGNAME=${IMGNAME:-$board}
-	IMGNAME=${IMGNAME}-${day}-${time}.img
+
+	if [[ ${rename} == "1" ]]; then
+		read -e -p "Enter new file name: " -i $IMGNAME newname
+		IMGNAME=$newname
+	fi
 }
 
 
