@@ -17,6 +17,8 @@ export RK_KERNEL_DTS=rk3399-firefly
 export RK_PARAMETER=parameter-ubuntu.txt
 # packagefile for make update image
 export RK_PACKAGE_FILE=rk3399-ubuntu-package-file
+# Set extboot
+export FF_EXTBOOT=true
 
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4

@@ -11,6 +11,9 @@ export RK_KERNEL_DEFCONFIG=station_linux_defconfig
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-roc-pc-plus
 
+# Set extboot
+export FF_EXTBOOT=false
+
 # FIREFLY PRODUCT MODEL
 FIREFLY_PRODUCT_MODEL=STATION_P1
 
