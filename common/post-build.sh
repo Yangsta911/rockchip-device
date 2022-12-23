@@ -156,6 +156,26 @@ function kernel_version(){
     echo ${VERSION:-unknown}
 }
 
+function fixup_os_release()
+{
+    KEY=$1
+    shift
+
+    sed -i "/^$KEY=/d" "$OS_RELEASE"
+    echo "$KEY=\"$@\"" >> "$OS_RELEASE"
+}
+
+function kernel_version(){
+    VERSION_KEYS="VERSION PATCHLEVEL"
+    VERSION=""
+
+    for k in $VERSION_KEYS; do
+        v=$(grep "^$k = " $1/Makefile | cut -d' ' -f3)
+        VERSION=${VERSION:+$VERSION.}$v
+    done
+    echo ${VERSION:-unknown}
+}
+
 function add_build_info()
 {
 
@@ -171,8 +191,6 @@ function add_build_info()
     fixup_os_release KERNEL "$KVER - ${RK_KERNEL_DEFCONFIG:-unkown}"
 
     mkdir -p "$INFO_DIR"
-
-    yes | python3 .repo/repo/repo manifest -r -o "$INFO_DIR/manifest.xml"
 
     cp device/rockchip/.BoardConfig.mk "$INFO_DIR/BoardConfig.xml"
 
@@ -224,9 +242,7 @@ function add_dirs_and_links()
     ln -sf userdata data
 }
 
-if [ "$RK_TARGET_PRODUCT" = "rk3588" ]; then
-	add_build_info $@
-fi
+add_build_info $@
 fixup_fstab
 fixup_reboot
 add_dirs_and_links
