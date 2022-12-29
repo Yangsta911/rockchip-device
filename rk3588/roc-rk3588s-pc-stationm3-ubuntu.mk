@@ -1,7 +1,7 @@
 CMD=`realpath $BASH_SOURCE`
 CUR_DIR=`dirname $CMD`
 
-source $CUR_DIR/roc-rk3588s-pc-buildroot.mk
+source $CUR_DIR/roc-rk3588s-pc-stationm3-buildroot.mk
 
 # Set rootfs type, including ext2 ext4 squashfs
 export RK_ROOTFS_TYPE=ext4
