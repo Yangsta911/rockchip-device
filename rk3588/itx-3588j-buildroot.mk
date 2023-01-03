@@ -13,7 +13,7 @@ export RK_UBOOT_DEFCONFIG_FRAGMENT=firefly-linux.config
 export RK_PARAMETER=parameter-ubuntu-fit.txt
 
 # Kernel dts
-export RK_KERNEL_DTS=rk3588-firefly-itx-3588j
+export RK_KERNEL_DTS=rk3588-firefly-itx-3588j-mipi101-M101014-BE45-A1
 
 # Set userdata partition type
 export RK_USERDATA_FS_TYPE=ext4
