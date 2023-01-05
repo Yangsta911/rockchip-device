@@ -1309,7 +1309,10 @@ function build_buildroot(){
 		echo "====No Found config on `realpath $BOARD_CONFIG`. Just exit ..."
 		return
 	fi
-	/usr/bin/time -f "you take %E to build builroot" $COMMON_DIR/mk-buildroot.sh $BOARD_CONFIG
+
+	DST_DIR=.buildroot
+
+	/usr/bin/time -f "you take %E to build builroot" $COMMON_DIR/mk-buildroot.sh $RK_CFG_BUILDROOT $DST_DIR
 	if [ $? -eq 0 ]; then
 		echo "====Build buildroot ok!===="
 	else
