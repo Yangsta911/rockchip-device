@@ -42,6 +42,7 @@ RECOVERY_IMG=$TOP_DIR/buildroot/output/$RK_CFG_RECOVERY/images/recovery.img
 else
 RECOVERY_IMG=$ROCKDEV/recovery.img
 fi
+IDBLOCK_BIN=$TOP_DIR/u-boot/idblock.bin
 TRUST_IMG=$TOP_DIR/u-boot/trust.img
 UBOOT_IMG=$TOP_DIR/u-boot/uboot.img
 
@@ -275,6 +276,8 @@ link_image_optional "$LOADER" MiniLoaderAll.bin "$SPL"
 [ $RK_CFG_RAMBOOT ] && link_image_optional "$RAMBOOT_IMG" boot.img
 
 [ "$RK_CFG_RECOVERY" ] && link_image_optional "$RECOVERY_IMG" recovery.img
+
+[ "$RK_IDBLOCK_UPDATE" ] && link_image_optional "$IDBLOCK_BIN" idblock.bin
 
 [ "$RK_MISC" ] && \
     link_image_optional "$DEV_DIR/rockimg/misc.img" misc.img "$MISC_IMG"
