@@ -104,25 +104,6 @@
     },
 
     {
-        "FIREFLY_PRODUCT_MODEL": "STATION_P1",
-        "BOARD_NAME":"Station_P1",
-        "RK_PRODUCT_MODEL": "ROC_3399_PC_PLUS",
-        "CPU": "RK3399",
-        "BOARD_WIKI": {
-            "ZH": "https://wiki.t-firefly.com/ROC-RK3399-PC-PLUS/preface.html",
-            "EN": "https://wiki.t-firefly.com/ROC-RK3399-PC-PLUS/preface.html"
-        },
-        "FW_Changelog": {
-            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3399-PC-PLUS/FW_Changelog.html",
-            "EN": "https://wiki.t-firefly.com/en/ROC-RK3399-PC-PLUS/FW_Changelog.html"
-        },
-        "FIREFLY_PRODUCT_WIKI": {
-            "ZH": "https://wiki.stationpc.cn/docs/stationpc/",
-            "EN": "https://wiki.stationpc.com/docs/stationpc"
-        }
-    },
-
-    {
         "FIREFLY_PRODUCT_MODEL": "FACE_X2",
         "BOARD_NAME":"Face-X2",
         "RK_PRODUCT_MODEL": "FACE_3399",
