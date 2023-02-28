@@ -110,6 +110,7 @@ CMD=`realpath $0`
 COMMON_DIR=`dirname $CMD`
 TOP_DIR=$(realpath $COMMON_DIR/../../..)
 IMGNAME=
+ROCKDEV=$TOP_DIR/rockdev
 
 BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
 TARGET_PRODUCT="$TOP_DIR/device/rockchip/.target_product"
@@ -122,7 +123,6 @@ unset_board_config_all
 [ -L "$BOARD_CONFIG" ] && source $BOARD_CONFIG
 
 CFG_DIR=$TOP_DIR/device/rockchip
-ROCKDEV=$TOP_DIR/rockdev
 PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
 SD_PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_SD_PARAMETER
 
@@ -2324,7 +2324,7 @@ EOF
 		done
 
 	fi
-	
+
 	for i in $(find fw_log/.ff_log_build/2_board/ -maxdepth 1 -name "common.md" -o -name "common.txt")
 	do
 		cat $i >> .firefly_FW_log.tmp
@@ -2407,10 +2407,10 @@ function build_pupdateimg(){
 			fi
 
 			local root_mk_build=$(cat fw_log/.ff_log_build/3_rootfs/$rootfs_name/Fconfig)
-			
+
 			pack_flag=""
 
-			for mk_root in $root_mk_build; do 
+			for mk_root in $root_mk_build; do
 				if [ "$mk_root" = "$local_mk" ]; then
 					pack_flag="pack"
 					break
@@ -2420,7 +2420,7 @@ function build_pupdateimg(){
 			if [ -z "$pack_flag" ];then
 				continue
 			fi
-			
+
 			create_fw_log
 
 			#pack
@@ -2475,7 +2475,7 @@ function build_allrelease_config(){
         	sum_soc=$sum_soc"$name = $count "
 	done
 	$DIALOG --backtitle "Checklist" --checklist "Select Soc" 50 100 50 $sum_soc 2> .save_soc
-	
+
 	if [ $? -ne 0 ];then
         	exit -1
 	fi
@@ -2494,7 +2494,7 @@ function build_allrelease_config(){
         	let count=count+1
         	sum=$sum"$name = $count "
 	done
-	
+
 	echo $sum
 	$DIALOG --backtitle "Checklist" --checklist "Select mkfile" 50 100 50 $sum 2> .save_mkfile
 	if [ $? -ne 0 ];then
@@ -2516,7 +2516,7 @@ function build_allrelease(){
 	DIALOG=$TOP_DIR/device/rockchip/common/dialog
 	if [ -a $TOP_DIR/.allrelease ]; then
 		mk_list=$(cat $TOP_DIR/.allrelease)
-	#{	
+	#{
 		for mkfile in $mk_list;
 		do
 		        ./build.sh $mkfile
@@ -2532,7 +2532,7 @@ function build_allrelease(){
 
 			build_all
 			build_firmware
-			./build.sh pupdateimg 
+			./build.sh pupdateimg
 		done
 	#} | $DIALOG --title "coping" --gauge "Starting to build..." 20 50 10
 	else
