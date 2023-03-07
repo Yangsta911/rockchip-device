@@ -23,3 +23,6 @@ export RK_USERDATA_FS_TYPE=ext4
 
 # PRODUCT MODEL
 export RK_PRODUCT_MODEL=AIO_3399PROC
+
+# Set extboot
+export FF_EXTBOOT=true

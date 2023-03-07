@@ -38,3 +38,6 @@ export RK_ROOTFS_SYSTEM=ubuntu
 
 # PRODUCT MODEL
 export RK_PRODUCT_MODEL=AIO_3399PROC
+
+# Set extboot
+export FF_EXTBOOT=true
