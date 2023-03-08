@@ -6,7 +6,7 @@ CUR_DIR=`dirname $CMD`
 source $CUR_DIR/BoardConfig.mk
 
 # Uboot defconfig
-export RK_UBOOT_DEFCONFIG=rk3399pro
+export RK_UBOOT_DEFCONFIG=firefly-rk3399pro
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=firefly3399pro_linux_defconfig
 # Kernel dts
