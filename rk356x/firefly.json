@@ -1,6 +1,12 @@
 [
     {
+        "RK_PRODUCT_MODEL": "common",
+        "CPU": "RK356X"
+    },
+
+    {
         "RK_PRODUCT_MODEL": "AIO_3566_JD4",
+        "BOARD_NAME":"AIO-3566-JD4",
         "CPU": "RK3566",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/Core-3566JD4/",
@@ -10,6 +16,7 @@
 
     {
         "RK_PRODUCT_MODEL": "AIO_3568J",
+        "BOARD_NAME":"AIO-3568J",
         "CPU": "RK3568",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/Core-3568J/",
@@ -19,6 +26,7 @@
 
     {
         "RK_PRODUCT_MODEL": "ITX_3568Q",
+        "BOARD_NAME":"ITX-3568Q",
         "CPU": "RK3568",
         "BOARD_WIKI": {
             "ZH": "https://wiki.t-firefly.com/iCore-3568JQ/",
@@ -28,6 +36,7 @@
 
     {
         "RK_PRODUCT_MODEL": "ROC_RK3566_PC",
+        "BOARD_NAME":"ROC-RK3566-PC",
         "CPU": "RK3566",
         "BOARD_WIKI": {
             "ZH": "http://wiki.t-firefly.com/zh_CN/ROC-RK3566-PC/",
@@ -37,10 +46,21 @@
 
     {
         "RK_PRODUCT_MODEL": "ROC_RK3568_PC",
+        "BOARD_NAME":"ROC-RK3568-PC",
         "CPU": "RK3568",
         "BOARD_WIKI": {
             "ZH": "http://wiki.t-firefly.com/zh_CN/ROC-RK3568-PC/",
             "EN": "http://wiki.t-firefly.com/en/ROC-RK3568-PC/"
+        }
+    },
+
+    {
+        "RK_PRODUCT_MODEL": "ROC_RK3568_PC_SE",
+        "BOARD_NAME":"ROC-RK3568-PC-SE",
+        "CPU": "RK3568",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3568-PC-SE/",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3568-PC-SE/"
         }
     }
 ]
