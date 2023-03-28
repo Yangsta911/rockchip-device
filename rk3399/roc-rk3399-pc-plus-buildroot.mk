@@ -7,7 +7,7 @@ source $CUR_DIR/firefly-rk3399-buildroot.mk
 
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=firefly_linux_defconfig
-#export RK_KERNEL_DEFCONFIG=firefly_roc-rk3399-pc_defconfig
+export RK_KERNEL_DEFCONFIG_FRAGMENT=rk_auto_delayline.config
 
 # Kernel dts
 export RK_KERNEL_DTS=rk3399-roc-pc-plus
