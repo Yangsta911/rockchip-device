@@ -594,6 +594,8 @@ function build_uefi(){
 		kernel_file_dtb="${TOP_DIR}/kernel/arch/arm64/boot/dts/rockchip/${RK_KERNEL_DTS}.dtb"
 	fi
 
+	kernel_file_dtb=$(realpath kernel/extboot/rk-kernel.dtb)
+
 	echo "============Start building uefi============"
 	echo "Copy kernel dtb $kernel_file_dtb to uefi/edk2-platforms/Platform/Rockchip/DeviceTree/rk3588.dtb"
 	echo "========================================="
@@ -604,7 +606,7 @@ function build_uefi(){
 
 	cp $kernel_file_dtb uefi/edk2-platforms/Platform/Rockchip/DeviceTree/rk3588.dtb
 	cd uefi
-	./make.sh $RK_UBOOT_DEFCONFIG
+	./make.sh $RK_UBOOT_DEFCONFIG $RK_UBOOT_DEFCONFIG_FRAGMENT
 	cd -
 
 	finish_build
