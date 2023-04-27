@@ -1072,7 +1072,7 @@ function build_wifibt(){
 	$TARGET_CC -o $RKWIFIBT/tools/brcm_tools/dhd_priv $RKWIFIBT/tools/brcm_tools/dhd_priv.c
 
 	echo "building rk_wifibt_init"
-	$TARGET_CC -o $RKWIFIBT/src/rk_wifibt_init $RKWIFIBT/src/rk_wifi_init.c
+	$TARGET_CC -o $RKWIFIBT/src/rk_wifibt_init $RKWIFIBT/src/rk_wifibt_init.c
 
 	echo "building realtek_tools"
 	make -C $RKWIFIBT/tools/rtk_hciattach/ CC=$TARGET_CC
