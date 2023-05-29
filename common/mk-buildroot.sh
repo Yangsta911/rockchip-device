@@ -9,7 +9,12 @@ BUILDROOT_DIR="${BUILDROOT_DIR:-$(pwd)/buildroot}"
 source "$BUILDROOT_DIR"/build/envsetup.sh $CONFIG
 
 # Use buildroot images dir as image output dir
-IMAGE_DIR="$TARGET_OUTPUT_DIR"/images
+if [ -n $BUILDROOT_OUTPUT_DIR ];then
+	IMAGE_DIR="$BUILDROOT_OUTPUT_DIR"/images
+elif [ -n $TARGET_OUTPUT_DIR ];then
+	IMAGE_DIR="$TARGET_OUTPUT_DIR"/images
+fi
+
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$IMAGE_DIR"
 ln -rsf "$IMAGE_DIR" "$OUTPUT_DIR"
