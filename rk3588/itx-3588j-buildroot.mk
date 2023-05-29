@@ -34,3 +34,5 @@ export RK_CFG_RECOVERY=
 
 # Buildroot config
 export RK_CFG_BUILDROOT=firefly_rk3588
+
+export RK_EXTRA_PARTITIONS=

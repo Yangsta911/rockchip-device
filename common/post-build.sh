@@ -29,7 +29,7 @@ RK_LEGACY_PARTITIONS=" \
 # for example:
 # RK_EXTRA_PARTITIONS="oem:/oem:ext2:defaults:oem_normal:256M:fixed
 # userdata:/userdata:vfat:errors=remount-ro:userdata_empty:auto"
-RK_EXTRA_PARTITIONS="${RK_EXTRA_PARTITIONS:-$RK_LEGACY_PARTITIONS}"
+#RK_EXTRA_PARTITIONS="${RK_EXTRA_PARTITIONS:-$RK_LEGACY_PARTITIONS}"
 
 function fixup_root()
 {
@@ -131,6 +131,7 @@ function fixup_fstab()
         fixup_device_part /dev/mmcblk1p1:/mnt/sdcard:auto:defaults::
     fi
 
+    echo $RK_EXTRA_PARTITIONS
     for part in ${RK_EXTRA_PARTITIONS//@/ }; do
         fixup_device_part $part
     done
@@ -172,7 +173,7 @@ function add_build_info()
 
     mkdir -p "$INFO_DIR"
 
-    yes | /usr/bin/python3 .repo/repo/repo manifest -r -o "$INFO_DIR/manifest.xml"
+    #yes | /usr/bin/python3 .repo/repo/repo manifest -r -o "$INFO_DIR/manifest.xml"
 
     cp device/rockchip/.BoardConfig.mk "$INFO_DIR/BoardConfig.xml"
 
