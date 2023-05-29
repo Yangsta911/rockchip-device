@@ -9,6 +9,7 @@ source $CUR_DIR/BoardConfig.mk
 export RK_UBOOT_DEFCONFIG=firefly-rk3399pro
 # Kernel defconfig
 export RK_KERNEL_DEFCONFIG=firefly3399pro_linux_defconfig
+export RK_KERNEL_DEFCONFIG_FRAGMENT=aio-rk3399proc_linux.config
 # Kernel dts
 export RK_KERNEL_DTS=rk3399pro-firefly-aioc
 # parameter for GPT table
