@@ -78,6 +78,7 @@ function build_select_board()
 		cd $PACK_TOOL_DIR
 		rm -f package-file
 		ln -sf $RK_PACKAGE_FILE package-file
+		cd -
 	fi
 
 	if [[ x"$RK_PARAMETER" != x ]];then
@@ -93,6 +94,7 @@ function build_select_board()
 		cd $PACK_TOOL_DIR
 		rm -f mkupdate.sh
 		ln -sf $MKUPDATE_FILE mkupdate.sh
+		cd -
 	fi
 
 	echo "switching to board: `realpath $BOARD_CONFIG`"
@@ -116,6 +118,10 @@ BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
 TARGET_PRODUCT="$TOP_DIR/device/rockchip/.target_product"
 TARGET_PRODUCT_DIR=$(realpath ${TARGET_PRODUCT})
 
+if [ ! -d "$TOP_DIR/rockdev/pack" ];then
+	mkdir -p rockdev/pack
+fi
+
 if [ ! -L "$BOARD_CONFIG" -a  "$1" != "lunch" ]; then
         build_select_board
 fi
@@ -128,10 +134,6 @@ SD_PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_SD_PARAMETER
 
 NPROC=`nproc`
 export RK_JOBS=$NPROC
-
-if [ ! -d "$TOP_DIR/rockdev/pack" ];then
-	mkdir -p rockdev/pack
-fi
 
 function prebuild_uboot()
 {
@@ -2746,6 +2748,7 @@ for option in ${OPTIONS}; do
 				cd $PACK_TOOL_DIR
 				rm -f package-file
 				ln -sf $RK_PACKAGE_FILE package-file
+				cd -
 			fi
 
 			if [[ x"$RK_PARAMETER" != x ]];then
@@ -2761,6 +2764,7 @@ for option in ${OPTIONS}; do
 				cd $PACK_TOOL_DIR
 				rm -f mkupdate.sh
 				ln -sf $MKUPDATE_FILE mkupdate.sh
+				cd -
 			fi
 			;;
 		lunch) build_select_board ;;
