@@ -342,6 +342,7 @@ function usage()
 	echo "cleanall           -clean uboot, kernel, rootfs, recovery"
 	echo "firmware           -pack all the image we need to boot up system"
 	echo "updateimg          -pack update image"
+	echo "pack-*             -pack update recovery OTA image by partition eg. pack-uboot"
 	echo "pupdateimg         -pack the image, add release information and compress the 7z format"
 	echo "rawimg             -pack raw image"
 	echo "otapackage         -pack ab update otapackage image (update_ota.img)"
@@ -2091,6 +2092,126 @@ function build_updateimg(){
 	finish_build
 }
 
+function build_package_file(){
+	str=$1
+	# echo  "IFS : [$IFS]"
+	IFS="-"
+	read -ra arr <<< "$str"
+	IFS="
+"
+	# echo  "IFS : [$IFS]"
+	if [ -f "package-file.new" ]; then
+		rm package-file.new
+	fi
+	while read -r line || [[ $line ]]; do
+		# echo ${line}
+		# echo ${line} | awk -F ' ' '{print $1}'
+		# ${tmp}=echo ${line} | awk -F ' ' '{print $1}'
+		echo ${line} | awk -F ' ' '{print $1}' > tmp
+		# cat tmp
+		cat tmp | while read line1
+		do
+			# echo line1=[${line1}]
+			if [ ${line1} = "package-file" ]; then
+				echo ${line} >> package-file.new
+			fi
+			if [ ${line1} = "parameter" ]; then
+				echo ${line} >> package-file.new
+			fi
+			for index in ${arr[@]}
+			do
+				if [ ${line1} = ${index} ]; then
+					echo ${line} >> package-file.new
+				fi
+			done
+		done
+	done < "package-file.old"
+	rm package-file.old
+	rm tmp
+}
+
+function build_updateimg_by_partition(){
+
+	param=""
+	packm="unpack"
+	[[ -n "${param}" ]] && [[ ${param} != "-p" ]] && usage
+	[[ -n "${param}" ]] && packm="pack"
+
+	gen_file_name
+
+	if [ $packm == "pack" ];then
+		cd $TOP_DIR/rockdev \
+		&& ./version.sh $IMGNAME init $2 && cd -
+	fi
+
+	IMAGE_PATH=$TOP_DIR/rockdev
+	PACK_TOOL_DIR=$TOP_DIR/tools/linux/Linux_Pack_Firmware
+
+	cd $PACK_TOOL_DIR/rockdev
+
+	if [ -f "$RK_PACKAGE_FILE_AB" ]; then
+		build_sdcard_package
+		build_otapackage
+
+		cd $PACK_TOOL_DIR/rockdev
+		echo "Make Linux a/b update_ab.img."
+		source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
+		cp "$RK_PACKAGE_FILE_AB" package-file.old
+		build_package_file $1
+		ln -fs package-file.new package-file
+		# ln -fs "$RK_PACKAGE_FILE_AB" package-file
+		./mkupdate.sh
+		mv update.img $IMAGE_PATH/update_ab.img
+		ln -fs $source_package_file_name package-file
+		rm package-file.new
+	else
+		echo "Make update.img"
+		if [ "$RK_MISC_WR" = "true" ]; then
+			${TOP_DIR}/device/rockchip/common/misc-wr --firmware $IMAGE_PATH/misc.img $IMGNAME
+		fi
+		if [ -f "$RK_PACKAGE_FILE" ]; then
+			source_package_file_name=`ls -lh package-file | awk -F ' ' '{print $NF}'`
+			cp "$RK_PACKAGE_FILE" package-file.old
+			build_package_file $1
+			ln -fs package-file.new package-file
+			# ln -fs "$RK_PACKAGE_FILE" package-file
+			./mkupdate.sh
+			ln -fs $source_package_file_name package-file
+			rm package-file.new
+		else
+			./mkupdate.sh
+		fi
+		mv update.img $IMAGE_PATH
+	fi
+
+	mv $IMAGE_PATH/update.img $IMAGE_PATH/pack/$IMGNAME
+	rm -rf $IMAGE_PATH/update.img
+	if [ $? -eq 0 ]; then
+	   echo "Make update image ok!"
+	   echo -e "\e[36m $IMAGE_PATH/pack/$IMGNAME \e[0m"
+	else
+	   echo "Make update image failed!"
+	   exit 1
+	fi
+
+	if command -v ffgenswv.bin > /dev/null ; then
+		if [ -z "$RK_PRODUCT_MODEL" ] ; then
+			echo -e "\e[31m \"RK_PRODUCT_MODEL\" is NOT defined in device/rockchip/.BoardConfig.mk !!!\e[0m"
+			RK_PRODUCT_MODEL=${RK_KERNEL_DTS}
+		fi
+		[ -z "$RK_DRM_VERSION" ] && RK_DRM_VERSION=1
+		[[ "${RK_TARGET_PRODUCT^^}" == RK356* ]]  && RK_DRM_VERSION=100
+		[[ "${RK_TARGET_PRODUCT^^}" == RK3588 ]]  && RK_DRM_VERSION=100
+		ffgenswv.bin -b ${RK_TARGET_PRODUCT^^} \
+					-m ${RK_PRODUCT_MODEL^^} \
+					-V ${RK_DRM_VERSION} \
+					-u $IMAGE_PATH/pack/$IMGNAME \
+					-o $IMAGE_PATH/ffimage.swv
+	fi
+
+	finish_build
+}
+
 function ZH_parse_json(){
 	local val
 	local JSON_PATH=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/firefly.json
@@ -2653,6 +2774,7 @@ for option in ${OPTIONS}; do
 		cleanall) build_cleanall ;;
 		firmware) build_firmware ;;
 		updateimg) build_updateimg ;;
+		pack-*) build_updateimg_by_partition $@;;
 		pupdateimg) build_pupdateimg ;;
 		rawimg) build_rawimg ;;
 		otapackage) build_otapackage ;;
