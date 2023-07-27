@@ -36,3 +36,6 @@ export RK_CFG_RECOVERY=
 export RK_CFG_BUILDROOT=firefly_rk3588
 
 export RK_EXTRA_PARTITIONS=
+
+# packagefile for make update image
+export RK_PACKAGE_FILE=rk3588-ubuntu-package-file
