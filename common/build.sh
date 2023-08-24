@@ -109,6 +109,7 @@ function unset_board_config_all()
 CMD=`realpath $0`
 COMMON_DIR=`dirname $CMD`
 TOP_DIR=$(realpath $COMMON_DIR/../../..)
+ROCKDEV=$TOP_DIR/rockdev
 IMGNAME=
 
 BOARD_CONFIG=$TOP_DIR/device/rockchip/.BoardConfig.mk
@@ -122,7 +123,6 @@ unset_board_config_all
 [ -L "$BOARD_CONFIG" ] && source $BOARD_CONFIG
 
 CFG_DIR=$TOP_DIR/device/rockchip
-ROCKDEV=$TOP_DIR/rockdev
 PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_PARAMETER
 SD_PARAMETER=$TOP_DIR/device/rockchip/$RK_TARGET_PRODUCT/$RK_SD_PARAMETER
 
