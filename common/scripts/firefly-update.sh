@@ -81,8 +81,12 @@ function firefly_branch_init(){
 	for i in $manifest_file
 	do
 		default_branch=$(grep -E '<default' .repo/manifests/$i | awk -F 'dest-branch' '{print $2}'| awk -F '"' '{print $2}')
+		if [ x"$default_branch" == x ];then
+			default_branch=$(grep -E '<default' .repo/manifests/$i | awk -F 'revision' '{print $2}'| awk -F '"' '{print $2}')
+		fi
 		if [ -n "$default_branch" ];then
 			firefly_branch=$default_branch
+			break
 		fi
 	done
 	# echo -e "${YELLOW}操作分支:$firefly_branch${ALL_OFF}"
