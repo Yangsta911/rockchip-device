@@ -68,6 +68,26 @@ function gitt(){
 	fi
 }
 
+function firefly_branch_init(){
+	manifest_file="../manifest.xml"
+	save_file=$manifest_file
+	cd .repo/manifests/
+	while [ x"$save_file" != x ];
+	do
+		save_file=$(cat $save_file | grep "include name" |awk -F '"' '{print $2}')
+		manifest_file="$manifest_file $save_file"
+	done
+	cd - > /dev/null
+	for i in $manifest_file
+	do
+		default_branch=$(grep -E '<default' .repo/manifests/$i | awk -F 'dest-branch' '{print $2}'| awk -F '"' '{print $2}')
+		if [ -n "$default_branch" ];then
+			firefly_branch=$default_branch
+		fi
+	done
+	# echo -e "${YELLOW}操作分支:$firefly_branch${ALL_OFF}"
+}
+
 function project_list(){
 	list_path=".project.list"
 	manifest_file="../manifest.xml"
@@ -96,7 +116,7 @@ function project_list(){
         		if [ x"$branch" == x ];then
 	        		branch=$(echo $line | grep "<project" | awk -F 'revision' '{print $2}'| awk -F '"' '{print $2}')
         			if [ x"$branch" == x ];then
-					branch=$SOC/firefly
+					branch=$firefly_branch
 				fi
 			fi
 			echo $pro $branch >> $list_path
@@ -827,6 +847,7 @@ done
 
 
 para=$1
+firefly_branch_init
 
 if [ "$para" == "pull-rockchip" ];then
 	pull_rockchip
