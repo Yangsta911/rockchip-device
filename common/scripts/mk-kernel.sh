@@ -67,7 +67,8 @@ do_build()
 						"$SCRIPTS_DIR/mk-fitimage.sh" \
 						"kernel/$RK_BOOT_IMG" \
 						"$RK_BOOT_FIT_ITS" \
-						"$RK_KERNEL_IMG"
+						"$RK_KERNEL_IMG" \
+						"kernel/$RK_RAMDISK_IMG"
 				fi
 			fi
 			;;

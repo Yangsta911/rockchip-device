@@ -68,6 +68,10 @@ config RK_KERNEL_IMG
 	string
 	default "kernel/arch/$RK_KERNEL_ARCH/boot/$RK_KERNEL_IMG_NAME"
 
+config RK_RAMDISK_IMG
+	string "ramdisk image name"
+	default ""
+
 config RK_KERNEL_KBUILD_ARCH
 	string
 	default "host" if RK_KERNEL_KBUILD_HOST
