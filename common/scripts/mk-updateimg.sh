@@ -37,6 +37,44 @@ gen_package_file()
 	done
 }
 
+align()
+{
+	X=$1
+	A=$2
+	OUT=$(($((${X} + ${A} -1 ))&$((~$((${A}-1))))))
+	printf 0x%x ${OUT}
+}
+
+resize_rootfs_partition()
+{
+	if grep -q "rootfs:grow" parameter.txt;then
+		:
+	else
+		echo "Resize rootfs partition"
+		FILE_P=$(readlink -f rootfs.img)
+		FS_INFO=$(dumpe2fs -h ${FILE_P})
+		BLOCK_COUNT=$(echo "${FS_INFO}" | grep "^Block count" | cut -d ":" -f 2 | tr -d "[:blank:]")
+		INODE_COUNT=$(echo "${FS_INFO}" | grep "^Inode count" | cut -d ":" -f 2 | tr -d "[:blank:]")
+		BLOCK_SIZE=$(echo "${FS_INFO}" | grep "^Block size" | cut -d ":" -f 2 | tr -d "[:blank:]")
+		INODE_SIZE=$(echo "${FS_INFO}" | grep "^Inode size" | cut -d ":" -f 2 | tr -d "[:blank:]")
+		BLOCK_SIZE_IN_S=$((${BLOCK_SIZE}>>9))
+		INODE_SIZE_IN_S=$((${INODE_SIZE}>>9))
+		SKIP_BLOCK=70
+		EXTRA_SIZE=$(expr 50 \* 1024 \* 2 ) #50M
+
+		FSIZE=$(expr ${BLOCK_COUNT} \* ${BLOCK_SIZE_IN_S} + ${INODE_COUNT} \* ${INODE_SIZE_IN_S} + ${EXTRA_SIZE} + ${SKIP_BLOCK})
+		PSIZE=$(align $((${FSIZE})) 512)
+		PARA_FILE=$(readlink -f parameter.txt)
+
+		ORIGIN=$(grep -Eo "0x[0-9a-fA-F]*@0x[0-9a-fA-F]*\(rootfs" $PARA_FILE)
+		NEWSTR=$(echo $ORIGIN | sed "s/.*@/${PSIZE}@/g")
+		OFFSET=$(echo $NEWSTR | grep -Eo "@0x[0-9a-fA-F]*" | cut -f 2 -d "@")
+		NEXT_START=$(printf 0x%x $(($PSIZE + $OFFSET)))
+		sed -i.orig "s/$ORIGIN/$NEWSTR/g" $PARA_FILE
+		sed -i "/^CMDLINE.*/s/-@0x[0-9a-fA-F]*/-@$NEXT_START/g" $PARA_FILE
+	fi
+}
+
 build_updateimg()
 {
 	check_config RK_UPDATE || return 0
@@ -88,6 +126,8 @@ build_updateimg()
 		exit 1
 	fi
 
+	resize_rootfs_partition
+
 	TAG=RK$(hexdump -s 21 -n 4 -e '4 "%c"' MiniLoaderAll.bin | rev)
 	"$RK_PACK_TOOL_DIR/afptool" -pack ./ update.raw.img
 	"$RK_PACK_TOOL_DIR/rkImageMaker" -$TAG MiniLoaderAll.bin \
@@ -96,6 +136,11 @@ build_updateimg()
 	ln -rsf "$IMAGE_DIR/package-file" "$OUT_DIR"
 	ln -rsf "$IMAGE_DIR/update.img" "$OUT_DIR"
 	ln -rsf "$IMAGE_DIR/update.img" "$TARGET"
+
+	PARA_FILE=$(readlink parameter.txt)
+	if [[ -e $PARA_FILE.orig ]];then
+		mv $PARA_FILE.orig $PARA_FILE
+	fi
 
 	finish_build build_updateimg $@
 }
