@@ -1,7 +1,7 @@
-RK_YOCTO_CFG="rockchip-rk3566-evb"
 RK_KERNEL_DTS_NAME="rk3566-firefly-aiojd4"
 RK_KERNEL_CFG="firefly_linux_defconfig"
-#RK_UBOOT_CFG="rk3568"
 RK_USE_FIT_IMG=y
 RK_WIFIBT_TTY="ttyS1"
 RK_PARAMETER="parameter-buildroot-fit.txt"
+RK_BOOT_FIT_ITS="bootramdisk.its"
+RK_RAMDISK_IMG="ramdisk.img"
