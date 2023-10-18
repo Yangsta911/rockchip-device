@@ -73,6 +73,43 @@ do_build()
 			fi
 			;;
 		modules) run_command $KMAKE modules ;;
+		extboot)
+			EXTBOOT_IMG=kernel/extboot.img
+			EXTBOOT_DIR=kernel/extboot
+			rm -rf ${EXTBOOT_DIR} && mkdir -p ${EXTBOOT_DIR}/extlinux
+
+			run_command $KMAKE "$RK_KERNEL_DTS_NAME.img"
+			run_command $KMAKE INSTALL_MOD_STRIP=1 INSTALL_MOD_PATH=extboot modules_install
+
+			KERNEL_VERSION=$(cat kernel/include/config/kernel.release)
+			echo "label rk-kernel.dtb linux-$KERNEL_VERSION" > $EXTBOOT_DIR/extlinux/extlinux.conf
+
+			cp $RK_KERNEL_IMG $EXTBOOT_DIR/Image-$KERNEL_VERSION
+			echo -e "\tkernel /Image-$KERNEL_VERSION" >> $EXTBOOT_DIR/extlinux/extlinux.conf
+
+			cp $RK_KERNEL_DTB $EXTBOOT_DIR
+			ln -sf ${RK_KERNEL_DTS_NAME}.dtb $EXTBOOT_DIR/rk-kernel.dtb
+
+			echo -e "\tfdt /rk-kernel.dtb" >> $EXTBOOT_DIR/extlinux/extlinux.conf
+
+			if [[ -e kernel/ramdisk.img ]]; then
+			    cp kernel/ramdisk.img $EXTBOOT_DIR/initrd-$KERNEL_VERSION
+			    echo -e "\tinitrd /initrd-$KERNEL_VERSION" >> $EXTBOOT_DIR/extlinux/extlinux.conf
+			fi
+
+			cp kernel/.config $EXTBOOT_DIR/config-$KERNEL_VERSION
+			cp kernel/System.map $EXTBOOT_DIR/System.map-$KERNEL_VERSION
+			cp kernel/logo.bmp kernel/logo_kernel.bmp $EXTBOOT_DIR/ || true
+
+			if [ -n "$FF_EXTBOOT_SIZE" ];then
+				EXTBOOT_IMG_SIZE=$FF_EXTBOOT_SIZE
+			else
+				EXTBOOT_IMG_SIZE=128M
+			fi
+
+			rm -rf $EXTBOOT_IMG && truncate -s $EXTBOOT_IMG_SIZE $EXTBOOT_IMG
+			fakeroot device/rockchip/common/mkfs.ext4 -Fq -L "boot" -d $EXTBOOT_DIR $EXTBOOT_IMG
+			;;
 	esac
 }
 
@@ -85,6 +122,7 @@ usage_hook()
 	done
 
 	echo -e "kernel[:cmds]                    \tbuild kernel"
+	echo -e "extboot                          \tbuild extboot"
 	echo -e "modules[:cmds]                   \tbuild kernel modules"
 	echo -e "linux-headers[:cmds]             \tbuild linux-headers"
 	echo -e "kernel-config[:cmds]             \tmodify kernel defconfig"
@@ -150,7 +188,7 @@ pre_build_hook_dry()
 	DRY_RUN=1 pre_build_hook $@
 }
 
-BUILD_CMDS="$KERNELS kernel modules"
+BUILD_CMDS="$KERNELS kernel modules extboot"
 build_hook()
 {
 	check_config RK_KERNEL_DTS_NAME RK_KERNEL_CFG RK_BOOT_IMG || return 0
@@ -177,6 +215,10 @@ build_hook()
 	if echo $1 | grep -q "^kernel"; then
 		ln -rsf "kernel/$RK_BOOT_IMG" "$RK_FIRMWARE_DIR/boot.img"
 		"$SCRIPTS_DIR/check-power-domain.sh"
+	fi
+
+	if [[ $1 == "extboot" ]]; then
+		ln -rsf kernel/extboot.img $RK_FIRMWARE_DIR/boot.img
 	fi
 
 	finish_build build_$1
@@ -257,6 +299,10 @@ case "${1:-kernel}" in
 	kernel* | modules)
 		init_hook $@
 		build_hook ${@:-kernel}
+		;;
+	extboot)
+		init_hook kernel
+		build_hook extboot
 		;;
 	linux-headers) post_build_hook $@ ;;
 	*) usage ;;

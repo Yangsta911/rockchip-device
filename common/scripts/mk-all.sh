@@ -26,7 +26,7 @@ build_all()
 	fi
 
 	if [ "$RK_KERNEL_CFG" ]; then
-		"$SCRIPTS_DIR/mk-kernel.sh"
+		"$SCRIPTS_DIR/mk-kernel.sh" $RK_BOOT_IMG_FMT
 		"$SCRIPTS_DIR/mk-rootfs.sh"
 		"$SCRIPTS_DIR/mk-recovery.sh"
 	fi

@@ -9,6 +9,15 @@ config RK_BOOT_IMG
 	default "zboot.img" if RK_BOOT_COMPRESSED
 	default "boot.img"
 
+config USE_EXTBOOT
+	bool "use extboot or not"
+	default n
+
+config RK_BOOT_IMG_FMT
+	string "remain empty for fit boot.img, set to extboot for ext4 extboot.img"
+	default "extboot" if USE_EXTBOOT
+	default ""
+
 config RK_BOOT_COMPRESSED
 	bool "compressed boot image (zboot)"
 	default y if RK_CHIP_FAMILY = "rv1126_rv1109" || \
