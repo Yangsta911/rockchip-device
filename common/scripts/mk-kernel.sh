@@ -214,7 +214,20 @@ build_hook()
 
 	if echo $1 | grep -q "^kernel"; then
 		ln -rsf "kernel/$RK_BOOT_IMG" "$RK_FIRMWARE_DIR/boot.img"
-		"$SCRIPTS_DIR/check-power-domain.sh"
+		local board_array=("rk3568-firefly-aioj" "rk3568-firefly-roc-pc" "rk3568-firefly-itx-3568q" "rk3566-firefly-aiojd4" "rk3566-firefly-roc-pc")
+		local board_count=5
+
+		for item in "${board_array[@]}"
+		do
+			if [[ "$RK_KERNEL_DTS_NAME" == "$item"* ]]; then
+				break
+			fi
+			board_count=$[ $board_count - 1 ]
+		done
+
+		if [ $board_count -eq 0 ]; then
+			"$SCRIPTS_DIR/check-power-domain.sh"
+		fi
 	fi
 
 	if [[ $1 == "extboot" ]]; then
