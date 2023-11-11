@@ -7,4 +7,4 @@ source $CUR_DIR/roc-rk3588s-pc-buildroot.mk
 export RK_KERNEL_DTS=roc-rk3588s-pc-ext-mipi101-M101014-BE45-A1
 
 # PRODUCT MODEL
-export RK_PRODUCT_MODEL=ROC_RK3588S_PC
+export RK_PRODUCT_MODEL=ROC_RK3588S_PC_EXT

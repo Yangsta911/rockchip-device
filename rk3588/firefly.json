@@ -13,7 +13,15 @@
         }
 
     },
-
+    {
+	"RK_PRODUCT_MODEL": "ROC_RK3588_RT",
+        "BOARD_NAME":"ROC-RK3588-RT",
+        "CPU": "RK3588",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3588-RT/index.html",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3588-RT/index.html"
+        }
+    },
     {
 	"RK_PRODUCT_MODEL": "ROC_RK3588S_PC",
         "BOARD_NAME":"ROC-RK3588S-PC",
@@ -23,7 +31,15 @@
             "EN": "https://wiki.t-firefly.com/en/ROC-RK3588S-PC/index.html"
         }
     },
-
+    {
+	"RK_PRODUCT_MODEL": "ROC_RK3588S_PC_EXT",
+        "BOARD_NAME":"ROC-RK3588S-PC-EXT",
+        "CPU": "RK3588",
+        "BOARD_WIKI": {
+            "ZH": "https://wiki.t-firefly.com/zh_CN/ROC-RK3588S-PC/index.html",
+            "EN": "https://wiki.t-firefly.com/en/ROC-RK3588S-PC/index.html"
+        }
+    },
     {
 	"RK_PRODUCT_MODEL": "ROC_RK3588_PC",
         "BOARD_NAME":"ROC-RK3588-PC",
