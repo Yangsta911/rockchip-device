@@ -119,7 +119,7 @@ build_debian()
 	finish_build build_debian $@
 }
 
-build_ubuntu()
+link_prebuilt()
 {
 	if [[ -z $1 ]];then
 		echo "=========================================="
@@ -130,19 +130,19 @@ build_ubuntu()
 	ROOTFS_DIR=$1
 
 	echo "=========================================="
-	echo "          Start linking Ubuntu Rootfs"
+	echo "          Start linking Prebuilt Rootfs"
 	echo "=========================================="
 
-	if [[ -e $SDK_DIR/$UBUNTU_ROOTFS_IMG ]];then
-		ln -rsf "$SDK_DIR/$UBUNTU_ROOTFS_IMG" $ROOTFS_DIR/rootfs.ext4
+	if [[ -e $SDK_DIR/$PREBUILT_ROOTFS_IMG ]];then
+		ln -rsf "$SDK_DIR/$PREBUILT_ROOTFS_IMG" $ROOTFS_DIR/rootfs.ext4
 	else
 		echo "=========================================="
-		echo "     missing UBUNTU_ROOTFS_IMG, exit"
+		echo "     missing PREBUILT_ROOTFS_IMG, exit"
 		echo "=========================================="
 		exit 1
 	fi
 
-	finish_build build_ubuntu $@
+	finish_build link_prebuilt $@
 }
 
 # Hooks
@@ -155,7 +155,7 @@ usage_hook()
 	echo -e "buildroot                         \tbuild buildroot rootfs"
 	echo -e "yocto                             \tbuild yocto rootfs"
 	echo -e "debian                            \tbuild debian rootfs"
-	echo -e "ubuntu                            \tbuild ubuntu rootfs"
+	echo -e "prebuilt                          \tuse prebuilt rootfs"
 }
 
 clean_hook()
@@ -173,7 +173,7 @@ clean_hook()
 	rm -rf "$RK_OUTDIR/rootfs"
 }
 
-INIT_CMDS="default buildroot debian yocto ubuntu"
+INIT_CMDS="default buildroot debian yocto prebuilt"
 init_hook()
 {
 	load_config RK_ROOTFS_TYPE
@@ -238,7 +238,7 @@ pre_build_hook()
 	esac
 }
 
-BUILD_CMDS="rootfs buildroot debian yocto ubuntu"
+BUILD_CMDS="rootfs buildroot debian yocto prebuilt"
 build_hook()
 {
 	check_config RK_ROOTFS_TYPE || return 0
@@ -263,7 +263,7 @@ build_hook()
 		yocto) build_yocto "$ROOTFS_DIR" ;;
 		debian) build_debian "$ROOTFS_DIR" ;;
 		buildroot) build_buildroot "$ROOTFS_DIR" ;;
-		ubuntu) build_ubuntu "$ROOTFS_DIR" ;;
+		prebuilt) link_prebuilt "$ROOTFS_DIR" ;;
 		*) usage ;;
 	esac
 
@@ -288,6 +288,6 @@ source "${BUILD_HELPER:-$(dirname "$(realpath "$0")")/../build-hooks/build-helpe
 
 case "${1:-rootfs}" in
 	buildroot-config | buildroot-make | bmake) pre_build_hook $@ ;;
-	buildroot | debian | yocto | ubuntu) init_hook $@ ;&
+	buildroot | debian | yocto | prebuilt) init_hook $@ ;&
 	*) build_hook $@ ;;
 esac

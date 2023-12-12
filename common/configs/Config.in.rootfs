@@ -92,15 +92,15 @@ endchoice
 
 endif
 
-config UBUNTU_ROOTFS_IMG
-	string "local ubuntu rootfs image, end with .img"
+config PREBUILT_ROOTFS_IMG
+	string "local prebuilt rootfs image, end with .img"
 	help
-	  Name of local ubuntu rootfs image ends with .img.
-	  Set "" for no ubuntu rootfs.
+	  Name of local prebuilt rootfs image ends with .img.
+	  Set "" for no such rootfs.
 
 config RK_ROOTFS_SYSTEM
 	string
-	default "ubuntu" if RK_ROOTFS_SYSTEM_UBUNTU
+	default "prebuilt" if RK_ROOTFS_SYSTEM_PREBUILT
 	default "buildroot" if RK_ROOTFS_SYSTEM_BUILDROOT
 	default "debian" if RK_ROOTFS_SYSTEM_DEBIAN
 	default "yocto" if RK_ROOTFS_SYSTEM_YOCTO
@@ -110,9 +110,9 @@ choice
 	help
 	  Default rootfs system.
 
-config RK_ROOTFS_SYSTEM_UBUNTU
-	bool "ubuntu"
-	depends on UBUNTU_ROOTFS_IMG != ""
+config RK_ROOTFS_SYSTEM_PREBUILT
+	bool "prebuilt"
+	depends on PREBUILT_ROOTFS_IMG != ""
 
 config RK_ROOTFS_SYSTEM_BUILDROOT
 	bool "buildroot"
