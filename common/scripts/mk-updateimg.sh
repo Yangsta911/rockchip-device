@@ -75,6 +75,102 @@ resize_rootfs_partition()
 	fi
 }
 
+generate_ffimage(){
+
+
+	local day=$(date +%y%m%d)
+	local os_all="buildroot debian ubuntu UnionTech UniKylin centos"
+
+	local model=$(basename $RK_DEFCONFIG _defconfig)
+	local os_mk=$(echo $model | egrep -io ${os_all// /|} || true)
+	# Cut model name from the RK_DEFCONFIG name
+	[[ -n "$os_mk" ]] && model=$(echo $model | cut -d '_' -f 3)
+	IMGNAME=${model^^}
+
+	# Set the string before first "_" in the rootfs file name as the system name
+	# OSName_xxxx_vx.x.x.img"
+	local rootfs=$(basename $(realpath $IMAGE_DIR/rootfs.img))
+	#remove suffix, get string before first "-" or "_"
+	local os_name=$(echo ${rootfs%.*} | sed 's/[-_].*//')
+	if [[ ${os_name^^} == "ROOTFS" ]] || [[ ${os_name^^} == "SYSTEM" ]]; then
+		os_name=${os_mk}
+	fi
+
+	[[ -z "$os_name" ]] && os_name="Linux"
+
+	#Uper first letter
+	IMGNAME+=_$(echo ${os_name,,} | sed 's/./\u&/')
+
+	local os_mode=$(echo $rootfs | egrep -io "gnome|xfce|minimal|server" || true)
+	[[ -n "$os_mode" ]] && IMGNAME+=-$(echo ${os_mode,,} | sed 's/./\u&/')
+
+	os_version=$(echo $rootfs | sed -n 's/.*[-_]\([vV][0-9.a-zA-Z]*\(\-[0-9]\{1,\}\)\{,1\}\)[-_\.].*/\1/p')
+	if [[ -z "$os_version" ]]; then
+		#get date string in rootfs as rootfs version
+		os_version=$(echo $rootfs | sed -n 's/.*[-_]\(20[0-9]\{2,\}[-_.0-9]*\)[-_.].*/\1/p')
+	fi
+	if [[ -n "$os_version" ]]; then
+		os_version=${os_version,,}
+		#delete . - _ v
+		os_version=${os_version/v/r}
+		os_version=$(echo $os_version | sed 's/[-_\.]//g')
+		IMGNAME+=-${os_version}
+	fi
+
+	local sdk_version=""
+	local manifest=$(realpath ${SDK_DIR}/.repo/manifest.xml)
+	if [[ -f $manifest ]]; then
+		manifest=$(basename $(realpath ${SDK_DIR}/.repo/manifest.xml) .xml)
+		sdk_version=$(echo $manifest | sed -n 's/.*[-_]\([vV][0-9.a-zA-Z]*\).*/\1/p')
+		IMGNAME+=_${sdk_version}
+	fi
+
+	if [ -n "$1" ];then
+		IMGNAME+=_${1}
+	fi
+
+	IMGNAME+=_${day}.img
+
+	echo -e "File name is \e[36m $IMGNAME\e[0m"
+	if [ "$rename" == "0" ];then
+		:
+	else
+		read -t 10 -e -p "Rename the file? [N|y]" ANS || :
+		ANS=${ANS:-n}
+
+		case $ANS in
+				Y|y|yes|YES|Yes) rename=1;;
+				N|n|no|NO|No) rename=0;;
+				*) rename=0;;
+		esac
+	fi
+
+	if [[ ${rename} == "1" ]]; then
+		read -e -p "Enter new file name: " -i $IMGNAME newname
+		IMGNAME=$newname
+	fi
+
+	echo "====== Copying Firmware ======"
+	cp $IMAGE_DIR/update.img $OUT_DIR/$IMGNAME
+
+	RK_PRODUCT_MODEL=$model
+	if [ -z "$RK_PRODUCT_MODEL" ] ; then
+		echo -e "\e[31m WARNNING: RK_PRODUCT_MODEL is empty, set to RK_KERNEL_DTS_NAME !!!\e[0m"
+		RK_PRODUCT_MODEL=${RK_KERNEL_DTS_NAME}
+	fi
+
+	if command -v ffgenswv.bin > /dev/null ; then
+		[ -z "$RK_DRM_VERSION" ] && RK_DRM_VERSION=1
+		[[ "${RK_CHIP^^}" == RK356* ]]  && RK_DRM_VERSION=100
+		[[ "${RK_CHIP^^}" == RK3588 ]]  && RK_DRM_VERSION=100
+		ffgenswv.bin -b ${RK_CHIP^^} \
+					-m ${RK_PRODUCT_MODEL^^} \
+					-V ${RK_DRM_VERSION} \
+					-u $OUT_DIR/$IMGNAME \
+					-o $OUT_DIR/ffimage.swv
+	fi
+}
+
 build_updateimg()
 {
 	check_config RK_UPDATE || return 0
@@ -141,6 +237,8 @@ build_updateimg()
 	if [[ -e $PARA_FILE.orig ]];then
 		mv $PARA_FILE.orig $PARA_FILE
 	fi
+
+	generate_ffimage
 
 	finish_build build_updateimg $@
 }
