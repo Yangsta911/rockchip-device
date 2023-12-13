@@ -22,6 +22,10 @@ config RK_RECOVERY_CFG
 	string
 	default "rockchip_${RK_RECOVERY_BASE_CFG}_recovery"
 
+config RK_RECOVERY_RAMDISK
+	string "prebuilt ramdisk for recovery image"
+	default ""
+
 config RK_RECOVERY_FIT_ITS
 	string "its script for FIT recovery image"
 	depends on RK_USE_FIT_IMG

@@ -19,18 +19,30 @@ build_hook()
 
 	check_config RK_RECOVERY_CFG || return 0
 
+	if [ -n "$RK_RECOVERY_RAMDISK" -a -f "$RK_IMAGE_DIR/$RK_RECOVERY_RAMDISK" ]; then
+		RECOVERY_RAMDISK="$RK_IMAGE_DIR/$RK_RECOVERY_RAMDISK"
+		RECOVERY_BUILDTYPE="prebuilt"
+	else
+		RECOVERY_RAMDISK="$DST_DIR/rootfs.cpio.gz"
+		RECOVERY_BUILDTYPE="buildroot"
+	fi
+
 	echo "=========================================="
-	echo "          Start building recovery(buildroot)"
+	echo "          Start building recovery($RECOVERY_BUILDTYPE)"
 	echo "=========================================="
 
 
 	DST_DIR="$RK_OUTDIR/recovery"
 
-	/usr/bin/time -f "you take %E to build recovery(buildroot)" \
-		"$SCRIPTS_DIR/mk-buildroot.sh" $RK_RECOVERY_CFG "$DST_DIR"
+	if [ "${RECOVERY_BUILDTYPE}" = "buildroot" ]; then
+		/usr/bin/time -f "you take %E to build recovery(buildroot)" \
+			"$SCRIPTS_DIR/mk-buildroot.sh" $RK_RECOVERY_CFG "$DST_DIR"
+    else
+        mkdir -p "$DST_DIR"
+	fi
 
 	/usr/bin/time -f "you take %E to pack recovery image" \
-		"$SCRIPTS_DIR/mk-ramdisk.sh" "$DST_DIR/rootfs.cpio.gz" \
+		"$SCRIPTS_DIR/mk-ramdisk.sh" "$RECOVERY_RAMDISK" \
 		"$DST_DIR/recovery.img" "$RK_RECOVERY_FIT_ITS"
 	ln -rsf "$DST_DIR/recovery.img" "$RK_FIRMWARE_DIR"
 
