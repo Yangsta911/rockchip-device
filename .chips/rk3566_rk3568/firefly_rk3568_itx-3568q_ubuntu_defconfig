@@ -1,4 +1,4 @@
-UBUNTU_ROOTFS_IMG="ubuntu_rootfs/rk356x_ubuntu_rootfs.img"
+PREBUILT_ROOTFS_IMG="prebuilt_rootfs/rk356x_ubuntu_rootfs.img"
 RK_WIFIBT_TTY="ttyS8"
 RK_KERNEL_CFG="firefly_linux_defconfig"
 RK_KERNEL_VERSION="5.10"
