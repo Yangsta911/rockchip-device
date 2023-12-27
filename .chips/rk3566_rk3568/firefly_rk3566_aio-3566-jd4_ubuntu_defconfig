@@ -9,3 +9,4 @@ RK_RECOVERY_RAMDISK="rk356x-recovery-arm64.cpio.gz"
 RK_EXTRA_PARTITION_NUM=0
 RK_PARAMETER="parameter-ubuntu-fit.txt"
 RK_USE_FIT_IMG=y
+USE_EXTBOOT=y

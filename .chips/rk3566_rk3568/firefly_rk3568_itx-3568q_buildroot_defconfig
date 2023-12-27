@@ -5,3 +5,4 @@ RK_WIFIBT_TTY="ttyS8"
 RK_PARAMETER="parameter-buildroot-fit.txt"
 RK_BOOT_FIT_ITS="bootramdisk.its"
 RK_RAMDISK_IMG="ramdisk.img"
+USE_EXTBOOT=y
