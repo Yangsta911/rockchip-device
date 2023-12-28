@@ -2121,8 +2121,13 @@ function build_updateimg(){
 		fi
 		mv update.img $IMAGE_PATH
 	fi
+	
+	if [ -f "$RK_PACKAGE_FILE_AB" ]; then
+		mv $IMAGE_PATH/update_ab.img $IMAGE_PATH/pack/$IMGNAME
+	else
+		mv $IMAGE_PATH/update.img $IMAGE_PATH/pack/$IMGNAME
+	fi
 
-	mv $IMAGE_PATH/update.img $IMAGE_PATH/pack/$IMGNAME
 	rm -rf $IMAGE_PATH/update.img
 	if [ $? -eq 0 ]; then
 	   echo "Make update image ok!"
