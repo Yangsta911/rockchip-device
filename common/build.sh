@@ -2328,13 +2328,18 @@ EOF
 
 	BOARD_NAME=`echo $board_json | jq -r ".BOARD_NAME"`
 
-	CPU_NAME=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"common\")".CPU`
-	if [ -n "$CPU_NAME" ] && [ "$CPU_NAME" != "null" ]; then
-		echo CPU $CPU_NAME > /dev/null
-	else
-		echo -e "\t\e[31mPlease set CPU property to firefly.json\e[0m"
-		exit -1
-	fi
+	CPU_NAME=`echo $board_json | jq -r ".CPU"`
+        if [ -n "$CPU_NAME" ] && [ "$CPU_NAME" != "null" ]; then
+                echo CPU $CPU_NAME > /dev/null
+        else
+                CPU_NAME=`cat $JSON_PATH | jq -r ".[]|select(.RK_PRODUCT_MODEL==\"common\")".CPU`
+                if [ -n "$CPU_NAME" ] && [ "$CPU_NAME" != "null" ]; then
+                        echo CPU $CPU_NAME > /dev/null
+                else
+                        echo -e "\t\e[31mPlease set CPU property to firefly.json\e[0m"
+                        exit -1
+                fi
+        fi
 
 	val=`echo $board_json | jq -r ".BOARD_WIKI.ZH"`
 	if [ -n "$val" ] && [ "$val" != "null" ]; then
