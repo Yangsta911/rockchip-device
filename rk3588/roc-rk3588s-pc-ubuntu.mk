@@ -22,3 +22,6 @@ export RK_ROOTFS_SYSTEM=ubuntu
 
 # packagefile for make update image
 export RK_PACKAGE_FILE=rk3588-ubuntu-package-file
+
+
+#source $CUR_DIR/firefly-ab.mk
