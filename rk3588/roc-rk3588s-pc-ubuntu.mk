@@ -25,3 +25,4 @@ export RK_PACKAGE_FILE=rk3588-ubuntu-package-file
 
 
 #source $CUR_DIR/firefly-ab.mk
+#source $CUR_DIR/firefly-ab-one-rootfs.mk
