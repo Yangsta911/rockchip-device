@@ -15,7 +15,7 @@
     },
 	{
 	"RK_PRODUCT_MODEL": "AIO_3588L",
-        "BOARD_NAME":AIO-3588L,
+        "BOARD_NAME": "AIO-3588L",
         "CPU": "RK3588",
         "BOARD_WIKI": {
 	    "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3588L/index.html",
