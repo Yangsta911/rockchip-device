@@ -42,5 +42,13 @@
             "ZH": "http://wiki.t-firefly.com/zh_CN/ROC-RK3568-PC/",
             "EN": "http://wiki.t-firefly.com/en/ROC-RK3568-PC/"
         }
+    },
+    {
+        "RK_PRODUCT_MODEL": "AIO_3568GW",
+        "CPU": "RK3568",
+        "BOARD_WIKI": {
+            "ZH":"http://wiki.t-firefly.com/zh_CN/iHC-3568JGW/",
+            "EN":"http://wiki.t-firefly.com/en/iHC-3568JGW/"
+        }
     }
 ]
