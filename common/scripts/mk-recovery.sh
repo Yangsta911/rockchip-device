@@ -19,6 +19,8 @@ build_hook()
 
 	check_config RK_RECOVERY_CFG || return 0
 
+	DST_DIR="$RK_OUTDIR/recovery"
+
 	if [ -n "$RK_RECOVERY_RAMDISK" -a -f "$RK_IMAGE_DIR/$RK_RECOVERY_RAMDISK" ]; then
 		RECOVERY_RAMDISK="$RK_IMAGE_DIR/$RK_RECOVERY_RAMDISK"
 		RECOVERY_BUILDTYPE="prebuilt"
@@ -30,9 +32,6 @@ build_hook()
 	echo "=========================================="
 	echo "          Start building recovery($RECOVERY_BUILDTYPE)"
 	echo "=========================================="
-
-
-	DST_DIR="$RK_OUTDIR/recovery"
 
 	if [ "${RECOVERY_BUILDTYPE}" = "buildroot" ]; then
 		/usr/bin/time -f "you take %E to build recovery(buildroot)" \
