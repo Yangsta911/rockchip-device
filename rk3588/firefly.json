@@ -13,16 +13,26 @@
         }
 
     },
-	{
+    {
 	"RK_PRODUCT_MODEL": "AIO_3588L",
-        "BOARD_NAME":AIO-3588L,
+        "BOARD_NAME":"AIO-3588L",
         "CPU": "RK3588",
         "BOARD_WIKI": {
 	    "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3588L/index.html",
         "EN": "https://wiki.t-firefly.com/en/Core-3588L/index.html"
         }
 
-	},
+    },
+    {
+	"RK_PRODUCT_MODEL": "AIO_3588SG",
+        "BOARD_NAME":"AIO-3588SG",
+        "CPU": "RK3588",
+        "BOARD_WIKI": {
+	    "ZH": "https://wiki.t-firefly.com/zh_CN/Core-3588SG/index.html",
+        "EN": "https://wiki.t-firefly.com/en/Core-3588SG/index.html"
+        }
+
+    },
     {
 	"RK_PRODUCT_MODEL": "ROC_RK3588_RT",
         "BOARD_NAME":"ROC-RK3588-RT",
