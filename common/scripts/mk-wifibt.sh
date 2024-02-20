@@ -2,6 +2,66 @@
 
 DEFAULT_ROOTFS_DIR=buildroot/output/$RK_BUILDROOT_CFG/target
 
+install_sysv_service()
+{
+	[ "$POST_INIT_SYSV" ] || return 0
+
+	SRC="$1"
+	shift
+
+	SERVICE="$(basename "$SRC" | sed 's~^S[0-9]*\(.*\)~\1~')"
+	SERVICE_DIR="$ROOTFS_DIR/etc/init.d"
+
+	install -D -m 0755 "$SRC" "$SERVICE_DIR/$SERVICE"
+
+	SERVICE_PREFIX="$(echo $(basename "$SRC") | \
+		grep -o "^S[0-9]*" || echo S99)"
+	for level in $@; do
+		case "$level" in
+			S[0-9][0-9] | K[0-9][0-9]) SERVICE_PREFIX=$level ;;
+			S | [0-6])
+				LEVEL_DIR="$ROOTFS_DIR/etc/rc$level.d"
+				LEVEL_SERVICE="$SERVICE_PREFIX$SERVICE"
+				mkdir -p "$LEVEL_DIR"
+				ln -rsf "$SERVICE_DIR/$SERVICE" \
+					"$LEVEL_DIR/$LEVEL_SERVICE"
+		esac
+	done
+}
+
+install_busybox_service()
+{
+	[ "$POST_INIT_BUSYBOX" ] || return 0
+
+	SRC="$1"
+	SERVICE="$(basename "$SRC")"
+	SERVICE_DIR="$ROOTFS_DIR/etc/init.d"
+
+	install -D -m 0755 "$SRC" "$SERVICE_DIR/$SERVICE"
+}
+
+install_systemd_service()
+{
+	[ "$POST_INIT_SYSTEMD" ] || return 0
+
+	SRC="$1"
+	SERVICE="$(basename "$SRC")"
+	SERVICE_DIR="$ROOTFS_DIR/lib/systemd/system"
+
+	if [ "$2" ]; then
+		install -D -m 0755 "$2" "$ROOTFS_DIR/${3:-/usr/bin/}"
+	fi
+
+	install -D -m 0644 "$SRC" "$SERVICE_DIR/$SERVICE"
+
+	WANTED_BY="$(grep "^WantedBy=" "$SRC" | cut -d'=' -f2)"
+	[ "$WANTED_BY" ] || return 0
+
+	WANTS_DIR="$ROOTFS_DIR/etc/systemd/system/$WANTED_BY.wants"
+	mkdir -p "$WANTS_DIR"
+	ln -rsf "$SERVICE_DIR/$SERVICE" "$WANTS_DIR/$SERVICE"
+}
+
 # Usage: build_wifibt <rootfs dir> [wifi chip] [bt tty dev]
 build_wifibt()
 {
@@ -10,6 +70,25 @@ build_wifibt()
 	ROOTFS_DIR="${1:-$DEFAULT_ROOTFS_DIR}"
 	WIFI_CHIP="${2:-$RK_WIFIBT_CHIP}"
 	BT_TTY_DEV="${3:-$RK_WIFIBT_TTY}"
+
+	unset POST_INIT_BUSYBOX POST_INIT_SYSTEMD POST_INIT_SYSV
+	if [ -e "$ROOTFS_DIR/etc/init.d/rcS" ]; then
+		if [ -d "$ROOTFS_DIR/etc/rcS.d" ]; then
+			POST_INIT_SYSV=1
+			POST_INIT=sysv
+		fi
+		if grep -wq BusyBox "$ROOTFS_DIR/etc/inittab"; then
+			POST_INIT_BUSYBOX=1
+			POST_INIT="${POST_INIT:+$POST_INIT }busybox"
+		fi
+	fi
+	if [ -d "$ROOTFS_DIR/etc/systemd/system/" ]; then
+		mkdir -p "$ROOTFS_DIR/lib/systemd/system/"
+		POST_INIT_SYSTEMD=1
+		POST_INIT="${POST_INIT:+$POST_INIT }systemd"
+	fi
+
+	echo "Running $(basename "$0") for $ROOTFS_DIR ($POST_OS init=${POST_INIT:-none})..."
 
 	echo "=========================================="
 	echo "          Start building wifi/BT ($WIFI_CHIP - $BT_TTY_DEV)"
@@ -269,19 +348,21 @@ build_wifibt()
 
 	mkdir -p $ROOTFS_DIR/etc/init.d
 	mkdir -p $ROOTFS_DIR/usr/bin/
-	mkdir -p $ROOTFS_DIR/usr/lib/modules/
-	mkdir -p $ROOTFS_DIR/lib/firmware/rtlbt/
 	mkdir -p $ROOTFS_DIR/system/lib/modules/
-	mkdir -p $ROOTFS_DIR/system/etc/firmware/
+	mkdir -p $ROOTFS_DIR/system/etc/firmware/rtlbt
 
 	echo "create link system->vendor"
 	rm -rf $ROOTFS_DIR/vendor
 	ln -sf system $ROOTFS_DIR/vendor
 
 	echo "copy prebuilt tools/sh to rootfs"
-	cp $RKWIFIBT/bin/$ROOTFS_ARCH/* $ROOTFS_DIR/usr/bin/
-	cp $RKWIFIBT/sh/wifi_start.sh $ROOTFS_DIR/usr/bin/
-	cp $RKWIFIBT/sh/wifi_ap6xxx_rftest.sh $ROOTFS_DIR/usr/bin/
+	install -m 0655 $RKWIFIBT/conf/* "$ROOTFS_DIR/etc/"
+	install -m 0755 $RKWIFIBT/bin/$ROOTFS_ARCH/* "$ROOTFS_DIR/usr/bin/"
+	install -m 0755 $RKWIFIBT/scripts/* "$ROOTFS_DIR/usr/bin/"
+	for b in bt-tty wifibt-info wifibt-vendor wifibt-id wifibt-bus \
+		wifibt-chip wifibt-module; do
+		ln -sf wifibt-util.sh "$ROOTFS_DIR/usr/bin/$b"
+	done
 	cp $RKWIFIBT/conf/wpa_supplicant.conf $ROOTFS_DIR/etc/
 	cp $RKWIFIBT/conf/dnsmasq.conf $ROOTFS_DIR/etc/
 
@@ -292,27 +373,16 @@ build_wifibt()
 		cp $RKWIFIBT/firmware/infineon/*/* \
 			$ROOTFS_DIR/system/etc/firmware/ || true
 
-		cp $RKWIFIBT/sh/bt_load_broadcom_firmware $ROOTFS_DIR/usr/bin/
-		cp $ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware \
-			$ROOTFS_DIR/usr/bin/bt_init.sh
-		cp $ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware \
-			$ROOTFS_DIR/usr/bin/bt_pcba_test
-
 		#reatek
-		cp $RKWIFIBT/firmware/realtek/*/* $ROOTFS_DIR/lib/firmware/
+		cp $RKWIFIBT/firmware/realtek/*/* $ROOTFS_DIR/system/etc/firmware/
 		cp $RKWIFIBT/firmware/realtek/*/* \
-			$ROOTFS_DIR/lib/firmware/rtlbt/
+			$ROOTFS_DIR/system/etc/firmware/rtlbt/
 		cp $RKWIFIBT/drivers/bluetooth_uart_driver/hci_uart.ko \
-			$ROOTFS_DIR/usr/lib/modules/
+			$ROOTFS_DIR/system/lib/modules/
 		if [ -n "$WIFI_USB" ]; then
 			cp $RKWIFIBT/drivers/bluetooth_usb_driver/rtk_btusb.ko \
-				$ROOTFS_DIR/usr/lib/modules/
+				$ROOTFS_DIR/system/lib/modules/
 		fi
-
-		rm -rf $ROOTFS_DIR/etc/init.d/S36load_wifi_modules
-		cp $RKWIFIBT/S36load_all_wifi_modules $ROOTFS_DIR/etc/init.d/
-		sed -i "s/BT_TTY_DEV/\/dev\/${BT_TTY_DEV}/g" \
-			$ROOTFS_DIR/etc/init.d/S36load_all_wifi_modules
 	fi
 
 	if [[ "$WIFI_CHIP" = "ALL_AP" ]];then
@@ -323,39 +393,27 @@ build_wifibt()
 		cp $RKWIFIBT/firmware/broadcom/*/bt/* \
 			$ROOTFS_DIR/system/etc/firmware/ || true
 
-		cp $RKWIFIBT/sh/bt_load_broadcom_firmware $ROOTFS_DIR/usr/bin/
-		cp $ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware \
-			$ROOTFS_DIR/usr/bin/bt_init.sh
-		cp $ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware \
-			$ROOTFS_DIR/usr/bin/bt_pcba_test
-
 		#reatek
 		echo "copy realtek firmware/nvram to rootfs"
 		cp $RKWIFIBT/drivers/rtl*/*.ko $ROOTFS_DIR/system/lib/modules/
-		cp -rf $RKWIFIBT/firmware/realtek/*/* $ROOTFS_DIR/lib/firmware/
+		cp -rf $RKWIFIBT/firmware/realtek/*/* $ROOTFS_DIR/system/etc/firmware/
 		cp -rf $RKWIFIBT/firmware/realtek/*/* \
-			$ROOTFS_DIR/lib/firmware/rtlbt/
+			$ROOTFS_DIR/system/etc/firmware/rtlbt/
 		cp $RKWIFIBT/drivers/bluetooth_uart_driver/hci_uart.ko \
-			$ROOTFS_DIR/usr/lib/modules/
+			$ROOTFS_DIR/system/lib/modules/
 		if [ -n "$WIFI_USB" ]; then
 			cp $RKWIFIBT/drivers/bluetooth_usb_driver/rtk_btusb.ko \
-				$ROOTFS_DIR/usr/lib/modules/
+				$ROOTFS_DIR/system/lib/modules/
 		fi
-
-		echo "copy S36load_wifi_modules to rootfs"
-		rm -rf $ROOTFS_DIR/etc/init.d/S36load_wifi_modules
-		cp $RKWIFIBT/S36load_all_wifi_modules $ROOTFS_DIR/etc/init.d/
-		sed -i "s/BT_TTY_DEV/\/dev\/${BT_TTY_DEV}/g" \
-			$ROOTFS_DIR/etc/init.d/S36load_all_wifi_modules
 	fi
 
 	if [[ "$WIFI_CHIP" =~ "RTL" ]];then
 		echo "Copy RTL file to rootfs"
 		if [ -d "$RKWIFIBT/firmware/realtek/$WIFI_CHIP" ]; then
 			cp $RKWIFIBT/firmware/realtek/$WIFI_CHIP/* \
-				$ROOTFS_DIR/lib/firmware/rtlbt/
+				$ROOTFS_DIR/system/etc/firmware/rtlbt/
 			cp $RKWIFIBT/firmware/realtek/$WIFI_CHIP/* \
-				$ROOTFS_DIR/lib/firmware/
+				$ROOTFS_DIR/system/etc/firmware/
 		else
 			echo "INFO: $WIFI_CHIP isn't bluetooth?"
 		fi
@@ -365,28 +423,13 @@ build_wifibt()
 		cp $RKWIFIBT/drivers/$WIFI_KO_DIR/*.ko \
 			$ROOTFS_DIR/system/lib/modules/
 
-		cp $RKWIFIBT/sh/bt_load_rtk_firmware $ROOTFS_DIR/usr/bin/
-		sed -i "s/BT_TTY_DEV/\/dev\/${BT_TTY_DEV}/g" \
-			$ROOTFS_DIR/usr/bin/bt_load_rtk_firmware
 		if [ -n "$WIFI_USB" ]; then
 			cp $RKWIFIBT/drivers/bluetooth_usb_driver/rtk_btusb.ko \
-				$ROOTFS_DIR/usr/lib/modules/
-			sed -i "s/BT_DRV/rtk_btusb/g" \
-				$ROOTFS_DIR/usr/bin/bt_load_rtk_firmware
+				$ROOTFS_DIR/system/lib/modules/
 		else
 			cp $RKWIFIBT/drivers/bluetooth_uart_driver/hci_uart.ko \
-				$ROOTFS_DIR/usr/lib/modules/
-			sed -i "s/BT_DRV/hci_uart/g" \
-				$ROOTFS_DIR/usr/bin/bt_load_rtk_firmware
+				$ROOTFS_DIR/system/lib/modules/
 		fi
-		cp $ROOTFS_DIR/usr/bin/bt_load_rtk_firmware \
-			$ROOTFS_DIR/usr/bin/bt_init.sh
-		cp $ROOTFS_DIR/usr/bin/bt_load_rtk_firmware \
-			$ROOTFS_DIR/usr/bin/bt_pcba_test
-		rm -rf $ROOTFS_DIR/etc/init.d/S36load_all_wifi_modules
-		cp $RKWIFIBT/S36load_wifi_modules $ROOTFS_DIR/etc/init.d/
-		sed -i "s/WIFI_KO/\/system\/lib\/modules\/$WIFI_CHIP.ko/g" \
-			$ROOTFS_DIR/etc/init.d/S36load_wifi_modules
 	fi
 
 	if [[ "$WIFI_CHIP" =~ "CYW" ]];then
@@ -397,20 +440,6 @@ build_wifibt()
 		cp $RKWIFIBT/drivers/infineon/*.ko \
 			$ROOTFS_DIR/system/lib/modules/
 		#bt
-		cp $RKWIFIBT/sh/bt_load_broadcom_firmware $ROOTFS_DIR/usr/bin/
-		sed -i "s/BT_TTY_DEV/\/dev\/${BT_TTY_DEV}/g" \
-			$ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware
-		sed -i "s/BTFIRMWARE_PATH/\/system\/etc\/firmware\//g" \
-			$ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware
-		cp $ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware \
-			$ROOTFS_DIR/usr/bin/bt_init.sh
-		cp $ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware \
-			$ROOTFS_DIR/usr/bin/bt_pcba_test
-		#wifi
-		rm -rf $ROOTFS_DIR/etc/init.d/S36load_all_wifi_modules
-		cp $RKWIFIBT/S36load_wifi_modules $ROOTFS_DIR/etc/init.d/
-		sed -i "s/WIFI_KO/\/system\/lib\/modules\/$WIFI_CHIP.ko/g" \
-			$ROOTFS_DIR/etc/init.d/S36load_wifi_modules
 	fi
 
 	if [[ "$WIFI_CHIP" =~ "AP6" ]];then
@@ -421,27 +450,18 @@ build_wifibt()
 		cp $RKWIFIBT/firmware/broadcom/$WIFI_CHIP/bt/* \
 			$ROOTFS_DIR/system/etc/firmware/
 		cp $RKWIFIBT/drivers/bcmdhd/*.ko $ROOTFS_DIR/system/lib/modules/
-		#bt
-		cp $RKWIFIBT/sh/bt_load_broadcom_firmware $ROOTFS_DIR/usr/bin/
-		sed -i "s/BT_TTY_DEV/\/dev\/${BT_TTY_DEV}/g" \
-			$ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware
-		sed -i "s/BTFIRMWARE_PATH/\/system\/etc\/firmware\//g" \
-			$ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware
-		cp $ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware \
-			$ROOTFS_DIR/usr/bin/bt_init.sh
-		cp $ROOTFS_DIR/usr/bin/bt_load_broadcom_firmware \
-			$ROOTFS_DIR/usr/bin/bt_pcba_test
-		#wifi
-		rm -rf $ROOTFS_DIR/etc/init.d/S36load_all_wifi_modules
-		cp $RKWIFIBT/S36load_wifi_modules $ROOTFS_DIR/etc/init.d/
-		if [[ "$WIFI_CHIP" =~ "AP" ]];then
-			sed -i "s/WIFI_KO/\/system\/lib\/modules\/bcmdhd.ko/g" \
-				$ROOTFS_DIR/etc/init.d/S36load_wifi_modules
-		else
-			sed -i "s/WIFI_KO/\/system\/lib\/modules\/bcmdhd_pcie.ko/g" \
-				$ROOTFS_DIR/etc/init.d/S36load_wifi_modules
-		fi
 	fi
+
+	# Install boot services
+	install_sysv_service $RKWIFIBT/S36wifibt-init.sh S
+	install_busybox_service $RKWIFIBT/S36wifibt-init.sh
+	install_systemd_service $RKWIFIBT/wifibt-init.service
+
+	# Log collection
+	mkdir -p "$ROOTFS_DIR/etc/generate_logs.d"
+	echo -e '#!/bin/sh\nwifibt-info > ${1:-/tmp}/wifibt-info.txt' > \
+		"$ROOTFS_DIR/etc/generate_logs.d/80-wifibt.sh"
+	chmod 755 "$ROOTFS_DIR/etc/generate_logs.d/80-wifibt.sh"
 
 	finish_build build_wifibt $@
 }
