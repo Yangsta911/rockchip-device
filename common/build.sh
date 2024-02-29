@@ -1096,10 +1096,10 @@ function build_wifibt(){
 	fi
 
 	echo "chmod +x tools"
-	chmod 755 $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1
-	chmod 755 $RKWIFIBT/tools/brcm_tools/dhd_priv
-	chmod 755 $RKWIFIBT/src/rk_wifibt_init
-	chmod 755 $RKWIFIBT/tools/rtk_hciattach/rtk_hciattach
+	test -f $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1 &&  chmod 755 $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1
+	test -f $RKWIFIBT/tools/brcm_tools/dhd_priv && chmod 755 $RKWIFIBT/tools/brcm_tools/dhd_priv
+	test -f $RKWIFIBT/src/rk_wifibt_init && chmod 755 $RKWIFIBT/src/rk_wifibt_init
+	test -f $RKWIFIBT/tools/rtk_hciattach/rtk_hciattach && chmod 755 $RKWIFIBT/tools/rtk_hciattach/rtk_hciattach
 
 	echo "mkdir rootfs dir" $TARGET_ROOTFS_DIR
 	rm -rf $TARGET_ROOTFS_DIR/system/lib/modules/
@@ -1142,11 +1142,11 @@ function build_wifibt(){
 		cp $RKWIFIBT/scripts/wifi-connect.sh $TARGET_ROOTFS_DIR/usr/bin/
 	fi
 
-	cp $RKWIFIBT/conf/wpa_supplicant.conf $TARGET_ROOTFS_DIR/etc/
-	cp $RKWIFIBT/conf/dnsmasq.conf $TARGET_ROOTFS_DIR/etc/
-	cp $RKWIFIBT/tools/brcm_tools/dhd_priv $TARGET_ROOTFS_DIR/usr/bin/
-	cp $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1 $TARGET_ROOTFS_DIR/usr/bin/
-	cp $RKWIFIBT/src/rk_wifibt_init $TARGET_ROOTFS_DIR/usr/bin/
+	test -f $RKWIFIBT/conf/wpa_supplicant.conf && cp $RKWIFIBT/conf/wpa_supplicant.conf $TARGET_ROOTFS_DIR/etc/
+	test -f $RKWIFIBT/conf/dnsmasq.conf && cp $RKWIFIBT/conf/dnsmasq.conf $TARGET_ROOTFS_DIR/etc/
+	test -f $RKWIFIBT/tools/brcm_tools/dhd_priv && cp $RKWIFIBT/tools/brcm_tools/dhd_priv $TARGET_ROOTFS_DIR/usr/bin/
+	test -f $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1 && cp $RKWIFIBT/tools/brcm_tools/brcm_patchram_plus1 $TARGET_ROOTFS_DIR/usr/bin/
+	test -f $RKWIFIBT/src/rk_wifibt_init && cp $RKWIFIBT/src/rk_wifibt_init $TARGET_ROOTFS_DIR/usr/bin/
 
 	if [[ "$WIFI_CHIP" = "ALL_CY" ]];then
 		echo "copy infineon/realtek firmware/nvram to rootfs"
