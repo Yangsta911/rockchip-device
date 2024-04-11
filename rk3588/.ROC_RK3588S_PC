@@ -16,6 +16,12 @@ roc-rk3588s-pc-mipi-H245QBN02-v12
 roc-rk3588s-pc-mipi101-M101014-BE45-A1
 roc-rk3588s-pc-mipi101-M101014-BE45-A1-v10
 roc-rk3588s-pc-mipi101-M101014-BE45-A1-v12
+roc-rk3588s-pc-mipi101-M101014-BE45-A1-pcie
+roc-rk3588s-pc-mipi101-M101014-BE45-A1-pcie-v10
+roc-rk3588s-pc-mipi101-M101014-BE45-A1-pcie-v12
 roc-rk3588s-pc-ext-mipi101-M101014-BE45-A1
 roc-rk3588s-pc-ext-mipi101-M101014-BE45-A1-v10
 roc-rk3588s-pc-ext-mipi101-M101014-BE45-A1-v12
+roc-rk3588s-pc-ext-mipi101-M101014-BE45-A1-pcie
+roc-rk3588s-pc-ext-mipi101-M101014-BE45-A1-pcie-v10
+roc-rk3588s-pc-ext-mipi101-M101014-BE45-A1-pcie-v12
